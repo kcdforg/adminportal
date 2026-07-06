@@ -1,0 +1,108 @@
+---
+description: KCDF Parents project conventions — always active in this repo
+globs:
+alwaysApply: true
+---
+
+# KCDF Parents — Project Conventions
+
+## What This Repo Is
+
+This is the **project management and documentation repository** for the KCDF Parents platform.
+
+It contains:
+- `docs/` — authoritative specifications for all modules, database schema, API conventions
+- `docs/adr/` — Architecture Decision Records
+- `prompts/` — focused AI execution prompts for each implementation phase
+- `updated-prompt.md` — original master requirements reference
+
+## Source of Truth
+
+Before generating any code, architecture, or schema for this project, ALWAYS read the relevant files in `docs/`:
+
+- System overview and tech stack → `docs/00-overview.md`
+- Full database schema with MySQL types → `docs/01-database.md`
+- API conventions, error format, auth → `docs/02-api-conventions.md`
+- Auth module spec → `docs/modules/auth.md`
+- Families module spec → `docs/modules/families.md`
+- Academics module spec → `docs/modules/academics.md`
+- Payments module spec → `docs/modules/payments.md`
+- Community module spec → `docs/modules/community.md`
+- Notifications module spec → `docs/modules/notifications.md`
+- Parent App spec → `docs/frontend/parent-app.md`
+- Admin Portal spec → `docs/frontend/admin-portal.md`
+
+## Three Repositories
+
+The actual application code lives in THREE separate repos:
+
+| Repo | Purpose |
+|---|---|
+| `kcdf-api-backend` | Slim Framework 4 REST API |
+| `kcdf-parents-app` | Ionic + Angular Parent App |
+| `kcdf-admin-app` | Angular + Material Admin Portal |
+
+Do NOT mix code from different repos. Do NOT embed Angular apps inside the Slim project.
+
+## Architecture Principles (Non-Negotiable)
+
+1. **Modular monolith** — Slim API is one application divided into domain modules under `src/Modules/`
+2. **Person-based identity** — `member_profiles` is the universal person record. Business roles (trainer, admin) are separate tables referencing it.
+3. **Thin controllers** — Controllers only parse input, call a Service method, and return the response. No business logic in controllers.
+4. **Repository pattern** — All database access goes through Repository classes. Services call Repositories. Controllers never touch the DB.
+5. **Service layer** — All business logic lives in Service classes.
+6. **No cross-module DB access** — Modules do not import each other's Repositories. Cross-module data is fetched via Service method calls.
+7. **Generic entity system** — Use `entities` + `entity_member_relations` instead of separate institution tables.
+8. **Shared address table** — `addresses` table has no owner references. Owner tables carry `address_id` FK.
+9. **No hard deletes** — Use `status` transitions instead of DELETE for all core records.
+10. **Audit everything** — All mutations must write to `activity_logs` via `ActivityLogService`.
+
+## Database Rules
+
+- All PKs: `BIGINT UNSIGNED AUTO_INCREMENT`
+- All timestamps: `TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP`
+- `updated_at`: add `ON UPDATE CURRENT_TIMESTAMP`
+- Soft deletes: `status` ENUM field. Never DELETE core records.
+- All FK columns must have an index.
+- Character set: `utf8mb4`, collation: `utf8mb4_unicode_ci`
+- JSON columns only for genuinely flexible metadata. Never for queryable fields.
+
+## API Response Format
+
+All API responses must use the standard envelope:
+
+```json
+// Success
+{ "success": true, "data": { ... }, "message": "..." }
+
+// List
+{ "success": true, "data": [...], "meta": { "total": N, "per_page": N, "current_page": N, "last_page": N } }
+
+// Error
+{ "success": false, "error": { "code": "...", "message": "...", "details": { ... } } }
+```
+
+Never return raw data without the envelope. Never return error details without the `error.code` field.
+
+## Implementation Order
+
+Always implement in this order:
+1. Database schema (`schema.sql`) — reviewed first before any code
+2. Slim API backend — module by module: Auth → Families → Academics → Payments → Community → Notifications
+3. Frontend — Parent App, then Admin Portal — only after backend is functional
+
+## When Updating Requirements
+
+1. Edit the relevant file in `docs/modules/` or `docs/frontend/`
+2. If the change is a design decision (not just a detail), add or update an ADR in `docs/adr/`
+3. Commit the change with a clear message explaining WHY, not just WHAT changed
+4. Update the relevant `prompts/` file if the change affects what needs to be generated
+
+## Do Not
+
+- Do not run `updated-prompt.md` directly as a prompt — it is a legacy reference
+- Do not create new tables without adding them to `docs/01-database.md`
+- Do not add new API endpoints without documenting them in the relevant `docs/modules/` file
+- Do not mix business logic into controllers
+- Do not skip audit logging on mutations
+- Do not use hard deletes on core tables

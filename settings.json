@@ -1,0 +1,8 @@
+{
+  "terminal.integrated.env.osx": {
+    "PATH": "/Applications/XAMPP/xamppfiles/bin:${env:PATH}",
+    "XAMPP_ROOT": "/Applications/XAMPP/xamppfiles",
+    "MYSQL_HOME": "/Applications/XAMPP/xamppfiles"
+  },
+  "php.validate.executablePath": "/Applications/XAMPP/xamppfiles/bin/php"
+}
