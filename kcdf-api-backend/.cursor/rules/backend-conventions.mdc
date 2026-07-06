@@ -1,0 +1,164 @@
+---
+description: kcdf-api-backend coding conventions — always active
+globs:
+alwaysApply: true
+---
+
+# kcdf-api-backend — Backend Conventions
+
+## What This Project Is
+
+This is the Slim Framework 4 REST API backend for the KCDF Parents platform.
+All frontend applications communicate exclusively with this API.
+
+**Project documentation lives in the parent workspace at:**
+`docs/` (relative to workspace root: `/Users/apple/development/php/kcdf-parents/docs/`)
+
+Before generating any code, read the relevant module doc from that location.
+
+---
+
+## Project Structure
+
+```
+src/
+├── Core/           ← BaseController, BaseRepository, shared abstractions
+├── Middleware/     ← JwtAuthMiddleware, RoleMiddleware, CorsMiddleware
+└── Modules/
+    ├── Auth/
+    ├── Families/
+    ├── Academics/
+    ├── Payments/
+    ├── Community/
+    └── Notifications/
+
+Each module:
+    Controllers/    ← parse input, call service, return response
+    Services/       ← business logic only
+    Repositories/   ← all DB access
+    Models/         ← Eloquent models
+    DTOs/           ← data transfer objects
+    Validators/     ← input validation
+    Policies/       ← access control decisions
+    routes.php      ← module route definitions
+```
+
+---
+
+## Architecture Rules (Non-Negotiable)
+
+1. **Thin controllers** — Controllers only: parse request body/params, call ONE service method, return response via BaseController helpers. No business logic.
+2. **Business logic in Services** — All validation logic, business rules, and coordination go in Services.
+3. **All DB access in Repositories** — Services call Repositories. Controllers never touch the DB. No raw SQL anywhere.
+4. **Policy classes enforce access control** — Services call Policy methods before performing operations. Policies receive the JWT payload and target resource, return bool or throw UnauthorizedException.
+5. **No cross-module DB access** — Modules do not import other modules' Repositories. Cross-module data is fetched via other modules' Service methods.
+6. **PHP-DI for all DI** — No `new` keyword in controllers or services. Use constructor injection.
+
+---
+
+## Response Format (Always Use BaseController Helpers)
+
+```php
+// Success single resource
+return $this->success($response, $data, 'Message');
+
+// Created
+return $this->created($response, $data);
+
+// Paginated list
+return $this->paginate($response, $data, $meta);
+
+// Not found
+return $this->notFound($response);
+
+// Unauthorized
+return $this->unauthorized($response);
+
+// Validation error
+return $this->validationError($response, ['field' => ['Error message']]);
+
+// Generic error
+return $this->error($response, 'ERROR_CODE', 'Message', $details, $httpStatus);
+```
+
+Never write `json_encode` directly in controllers.
+
+---
+
+## Standard Error Codes
+
+- `VALIDATION_FAILED` — 422
+- `UNAUTHENTICATED` — 401
+- `UNAUTHORIZED` — 403
+- `NOT_FOUND` — 404
+- `DUPLICATE_ENTRY` — 409
+- `ATTENDANCE_LOCKED` — 422
+- `BATCH_FULL` — 422
+- `ENROLLMENT_EXISTS` — 409
+- `INVALID_INVITE_CODE` — 422
+- `SERVER_ERROR` — 500
+
+---
+
+## Database Rules
+
+- All DB access through Repository classes using Eloquent query builder
+- Never use DB::raw() unless absolutely necessary (discuss first)
+- Soft deletes via status ENUM — never hard DELETE core records
+- All FK columns have an index (enforced in schema.sql)
+- JSON columns only for flexible metadata, never for queryable fields
+
+---
+
+## Audit Logging
+
+Every mutation (create, update, status change) MUST call ActivityLogService:
+
+```php
+$this->activityLog->log(
+    actorProfileId: $currentProfileId,
+    action: 'payment_recorded',
+    entityType: 'payments',
+    entityId: $payment->id,
+    oldValues: null,
+    newValues: ['amount' => $payment->amount, 'status' => $payment->status]
+);
+```
+
+Do not skip audit logging.
+
+---
+
+## Route Registration
+
+Each module has its own `routes.php`. Routes are registered in `routes/api.php`.
+To activate a module's routes, uncomment its line in `routes/api.php`.
+
+Protected routes must add `JwtAuthMiddleware::class`.
+Role-restricted routes must add `new RoleMiddleware(['role_name'])`.
+
+---
+
+## Module Implementation Order
+
+Implement modules in this order (dependencies flow downward):
+1. Auth (complete)
+2. Families (member_profiles, addresses, families, trainers, admins, entities)
+3. Academics (programs, batches, sessions, attendance, enrollments)
+4. Payments
+5. Community
+6. Notifications
+
+Do NOT skip ahead. Each phase's prompt is at:
+`prompts/` (relative to workspace root: `/Users/apple/development/php/kcdf-parents/prompts/`)
+
+---
+
+## Naming Conventions
+
+- Controller methods: camelCase action names (index, show, store, update, destroy)
+- Service methods: descriptive verb phrases (createEnrollment, markAttendance)
+- Repository methods: descriptive data-access phrases (findByUsername, findActiveBatchesByTrainer)
+- Model names: PascalCase, singular (MemberProfile, StudentBatch, BatchSession)
+- Table names: snake_case, plural (member_profiles, student_batches, batch_sessions)
+- Route paths: kebab-case, plural (families, batch-members, entity-relations)

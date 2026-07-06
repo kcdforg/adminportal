@@ -1,0 +1,7 @@
+{
+  "name": "kcdf-parents-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
