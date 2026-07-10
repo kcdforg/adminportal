@@ -17,6 +17,9 @@ class PaymentController extends BaseController
 {
     public function __construct(private readonly PaymentService $paymentService) {}
 
+    /**
+     * @OA\Get(path="/api/v1/payments", operationId="listPayments", tags={"Payments"}, summary="List payments", security={{"bearerAuth":{}}}, @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")), @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer")), @OA\Response(response=200, description="Payments retrieved", @OA\JsonContent(ref="#/components/schemas/PaginatedResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function index(Request $request, Response $response): Response
     {
         $jwt     = $request->getAttribute('jwt_payload', []);
@@ -30,6 +33,9 @@ class PaymentController extends BaseController
         }
     }
 
+    /**
+     * @OA\Get(path="/api/v1/families/{id}/payments", operationId="listFamilyPayments", tags={"Payments"}, summary="List family payments", security={{"bearerAuth":{}}}, @OA\Parameter(name="id", in="path", description="Family ID", required=true, @OA\Schema(type="integer")), @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")), @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer")), @OA\Response(response=200, description="Family payments retrieved", @OA\JsonContent(ref="#/components/schemas/PaginatedResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=404, description="Family not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function familyPayments(Request $request, Response $response, array $args): Response
     {
         $jwt      = $request->getAttribute('jwt_payload', []);
@@ -46,6 +52,9 @@ class PaymentController extends BaseController
         }
     }
 
+    /**
+     * @OA\Post(path="/api/v1/payments", operationId="createPayment", tags={"Payments"}, summary="Record payment", security={{"bearerAuth":{}}}, @OA\RequestBody(required=true, @OA\JsonContent(type="object")), @OA\Response(response=201, description="Payment recorded", @OA\JsonContent(type="object", @OA\Property(property="success", type="boolean", example=true), @OA\Property(property="data", type="object"))), @OA\Response(response=404, description="Family not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=422, description="Validation or business rule failed", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")))
+     */
     public function store(Request $request, Response $response): Response
     {
         $jwt  = $request->getAttribute('jwt_payload', []);

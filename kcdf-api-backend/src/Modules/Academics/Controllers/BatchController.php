@@ -20,6 +20,9 @@ class BatchController extends BaseController
         private readonly SessionService $sessionService
     ) {}
 
+    /**
+     * @OA\Get(path="/api/v1/batches", operationId="listBatches", tags={"Batches"}, summary="List batches", security={{"bearerAuth":{}}}, @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")), @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer")), @OA\Response(response=200, description="Batches retrieved", @OA\JsonContent(ref="#/components/schemas/PaginatedResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function index(Request $request, Response $response): Response
     {
         $jwt     = $request->getAttribute('jwt_payload', []);
@@ -30,6 +33,9 @@ class BatchController extends BaseController
         return $this->paginate($response, $result['data'], $result['meta']);
     }
 
+    /**
+     * @OA\Post(path="/api/v1/batches", operationId="createBatch", tags={"Batches"}, summary="Create batch", security={{"bearerAuth":{}}}, @OA\RequestBody(required=true, @OA\JsonContent(type="object")), @OA\Response(response=201, description="Batch created", @OA\JsonContent(type="object", @OA\Property(property="success", type="boolean", example=true), @OA\Property(property="data", type="object"))), @OA\Response(response=404, description="Program not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=422, description="Validation failed", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")))
+     */
     public function store(Request $request, Response $response): Response
     {
         $jwt  = $request->getAttribute('jwt_payload', []);
@@ -47,6 +53,9 @@ class BatchController extends BaseController
         }
     }
 
+    /**
+     * @OA\Get(path="/api/v1/batches/{id}", operationId="getBatch", tags={"Batches"}, summary="Get batch", security={{"bearerAuth":{}}}, @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")), @OA\Response(response=200, description="Batch retrieved", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=404, description="Batch not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function show(Request $request, Response $response, array $args): Response
     {
         $jwt = $request->getAttribute('jwt_payload', []);
@@ -62,6 +71,9 @@ class BatchController extends BaseController
         }
     }
 
+    /**
+     * @OA\Put(path="/api/v1/batches/{id}", operationId="updateBatch", tags={"Batches"}, summary="Update batch", security={{"bearerAuth":{}}}, @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")), @OA\RequestBody(required=true, @OA\JsonContent(type="object")), @OA\Response(response=200, description="Batch updated", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=404, description="Batch not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=422, description="Validation failed", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")))
+     */
     public function update(Request $request, Response $response, array $args): Response
     {
         $jwt  = $request->getAttribute('jwt_payload', []);

@@ -16,6 +16,9 @@ class EntityController extends BaseController
 {
     public function __construct(private readonly EntityService $entityService) {}
 
+    /**
+     * @OA\Get(path="/api/v1/entities", operationId="listEntities", tags={"Entities"}, summary="List entities", security={{"bearerAuth":{}}}, @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")), @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer")), @OA\Response(response=200, description="Entities retrieved", @OA\JsonContent(ref="#/components/schemas/PaginatedResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function index(Request $request, Response $response): Response
     {
         $jwt     = $request->getAttribute('jwt_payload', []);
@@ -26,6 +29,9 @@ class EntityController extends BaseController
         return $this->paginate($response, $result['data'], $result['meta']);
     }
 
+    /**
+     * @OA\Post(path="/api/v1/entities", operationId="createEntity", tags={"Entities"}, summary="Create entity", security={{"bearerAuth":{}}}, @OA\RequestBody(required=true, @OA\JsonContent(type="object")), @OA\Response(response=201, description="Entity created", @OA\JsonContent(type="object", @OA\Property(property="success", type="boolean", example=true), @OA\Property(property="data", type="object"))), @OA\Response(response=422, description="Validation failed", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")))
+     */
     public function store(Request $request, Response $response): Response
     {
         $jwt  = $request->getAttribute('jwt_payload', []);
@@ -39,6 +45,9 @@ class EntityController extends BaseController
         }
     }
 
+    /**
+     * @OA\Get(path="/api/v1/entities/{id}", operationId="getEntity", tags={"Entities"}, summary="Get entity", security={{"bearerAuth":{}}}, @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")), @OA\Response(response=200, description="Entity retrieved", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=404, description="Entity not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function show(Request $request, Response $response, array $args): Response
     {
         $jwt = $request->getAttribute('jwt_payload', []);
@@ -52,6 +61,9 @@ class EntityController extends BaseController
         }
     }
 
+    /**
+     * @OA\Put(path="/api/v1/entities/{id}", operationId="updateEntity", tags={"Entities"}, summary="Update entity", security={{"bearerAuth":{}}}, @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")), @OA\RequestBody(required=true, @OA\JsonContent(type="object")), @OA\Response(response=200, description="Entity updated", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=404, description="Entity not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=422, description="Validation failed", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")))
+     */
     public function update(Request $request, Response $response, array $args): Response
     {
         $jwt  = $request->getAttribute('jwt_payload', []);

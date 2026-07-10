@@ -14,6 +14,9 @@ class ActivityLogController extends BaseController
 {
     public function __construct(private readonly ActivityLogService $activityLogService) {}
 
+    /**
+     * @OA\Get(path="/api/v1/activity-logs", operationId="listActivityLogs", tags={"Activity Logs"}, summary="List activity logs", security={{"bearerAuth":{}}}, @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")), @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer")), @OA\Response(response=200, description="Activity logs retrieved", @OA\JsonContent(ref="#/components/schemas/PaginatedResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function index(Request $request, Response $response): Response
     {
         $jwt     = $request->getAttribute('jwt_payload', []);

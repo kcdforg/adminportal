@@ -13,6 +13,51 @@ class AuthController extends BaseController
 {
     public function __construct(private readonly AuthService $authService) {}
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/login",
+     *     operationId="authLogin",
+     *     tags={"Auth"},
+     *     summary="User login",
+     *     description="Authenticate user with username and password. Returns access and refresh tokens.",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Login credentials",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             required={"username", "password"},
+     *             @OA\Property(property="username", type="string", example="john.doe"),
+     *             @OA\Property(property="password", type="string", format="password", example="secret123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Login successful",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Login successful"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="access_token", type="string"),
+     *                 @OA\Property(property="refresh_token", type="string"),
+     *                 @OA\Property(property="profile", type="object")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid credentials",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation failed",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
+     *     )
+     * )
+     */
     public function login(Request $request, Response $response): Response
     {
         $body = (array) $request->getParsedBody();
@@ -39,6 +84,49 @@ class AuthController extends BaseController
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/refresh",
+     *     operationId="authRefresh",
+     *     tags={"Auth"},
+     *     summary="Refresh access token",
+     *     description="Issue new access and refresh tokens using a valid refresh token.",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             required={"refresh_token"},
+     *             @OA\Property(property="refresh_token", type="string", example="eyJhbGc...")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token refreshed",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Token refreshed"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="access_token", type="string"),
+     *                 @OA\Property(property="refresh_token", type="string"),
+     *                 @OA\Property(property="profile", type="object")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid refresh token",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation failed",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
+     *     )
+     * )
+     */
     public function refresh(Request $request, Response $response): Response
     {
         $body = (array) $request->getParsedBody();
@@ -56,6 +144,37 @@ class AuthController extends BaseController
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/auth/logout",
+     *     operationId="authLogout",
+     *     tags={"Auth"},
+     *     summary="User logout",
+     *     description="Invalidate the user's refresh token and logout.",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="refresh_token", type="string", example="eyJhbGc...")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logged out successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Logged out successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
+     */
     public function logout(Request $request, Response $response): Response
     {
         $body = (array) $request->getParsedBody();
@@ -70,6 +189,36 @@ class AuthController extends BaseController
         return $this->success($response, null, 'Logged out successfully');
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/auth/me",
+     *     operationId="getCurrentProfile",
+     *     tags={"Auth"},
+     *     summary="Get current user profile",
+     *     description="Retrieve the authenticated user's profile information.",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Profile retrieved",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OK"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Profile not found",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
+     */
     public function me(Request $request, Response $response): Response
     {
         $payload   = $request->getAttribute('jwt_payload', []);

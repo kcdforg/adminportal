@@ -17,6 +17,9 @@ class ProgramController extends BaseController
 {
     public function __construct(private readonly ProgramService $programService) {}
 
+    /**
+     * @OA\Get(path="/api/v1/programs", operationId="listPrograms", tags={"Programs"}, summary="List programs", security={{"bearerAuth":{}}}, @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")), @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer")), @OA\Response(response=200, description="Programs retrieved", @OA\JsonContent(ref="#/components/schemas/PaginatedResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function index(Request $request, Response $response): Response
     {
         $jwt     = $request->getAttribute('jwt_payload', []);
@@ -27,6 +30,9 @@ class ProgramController extends BaseController
         return $this->paginate($response, $result['data'], $result['meta']);
     }
 
+    /**
+     * @OA\Post(path="/api/v1/programs", operationId="createProgram", tags={"Programs"}, summary="Create program", security={{"bearerAuth":{}}}, @OA\RequestBody(required=true, @OA\JsonContent(type="object")), @OA\Response(response=201, description="Program created", @OA\JsonContent(type="object", @OA\Property(property="success", type="boolean", example=true), @OA\Property(property="data", type="object"))), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=422, description="Validation failed", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")))
+     */
     public function store(Request $request, Response $response): Response
     {
         $jwt  = $request->getAttribute('jwt_payload', []);
@@ -42,6 +48,9 @@ class ProgramController extends BaseController
         }
     }
 
+    /**
+     * @OA\Get(path="/api/v1/programs/{id}", operationId="getProgram", tags={"Programs"}, summary="Get program", security={{"bearerAuth":{}}}, @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")), @OA\Response(response=200, description="Program retrieved", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=404, description="Program not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function show(Request $request, Response $response, array $args): Response
     {
         $jwt = $request->getAttribute('jwt_payload', []);
@@ -55,6 +64,9 @@ class ProgramController extends BaseController
         }
     }
 
+    /**
+     * @OA\Put(path="/api/v1/programs/{id}", operationId="updateProgram", tags={"Programs"}, summary="Update program", security={{"bearerAuth":{}}}, @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")), @OA\RequestBody(required=true, @OA\JsonContent(type="object")), @OA\Response(response=200, description="Program updated", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=404, description="Program not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=422, description="Validation failed", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")))
+     */
     public function update(Request $request, Response $response, array $args): Response
     {
         $jwt  = $request->getAttribute('jwt_payload', []);

@@ -17,6 +17,9 @@ class EnrollmentController extends BaseController
 {
     public function __construct(private readonly EnrollmentService $enrollmentService) {}
 
+    /**
+     * @OA\Get(path="/api/v1/enrollments", operationId="listEnrollments", tags={"Enrollments"}, summary="List enrollments", security={{"bearerAuth":{}}}, @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")), @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer")), @OA\Response(response=200, description="Enrollments retrieved", @OA\JsonContent(ref="#/components/schemas/PaginatedResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function index(Request $request, Response $response): Response
     {
         $jwt     = $request->getAttribute('jwt_payload', []);
@@ -27,6 +30,9 @@ class EnrollmentController extends BaseController
         return $this->paginate($response, $result['data'], $result['meta']);
     }
 
+    /**
+     * @OA\Post(path="/api/v1/enrollments", operationId="createEnrollment", tags={"Enrollments"}, summary="Create enrollment", security={{"bearerAuth":{}}}, @OA\RequestBody(required=true, @OA\JsonContent(type="object")), @OA\Response(response=201, description="Enrollment created", @OA\JsonContent(type="object", @OA\Property(property="success", type="boolean", example=true), @OA\Property(property="data", type="object"))), @OA\Response(response=404, description="Batch or member not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=409, description="Enrollment already exists or batch full", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=422, description="Validation or business rule failed", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")))
+     */
     public function store(Request $request, Response $response): Response
     {
         $jwt  = $request->getAttribute('jwt_payload', []);
@@ -46,6 +52,9 @@ class EnrollmentController extends BaseController
         }
     }
 
+    /**
+     * @OA\Get(path="/api/v1/enrollments/{id}", operationId="getEnrollment", tags={"Enrollments"}, summary="Get enrollment", security={{"bearerAuth":{}}}, @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")), @OA\Response(response=200, description="Enrollment retrieved", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=404, description="Enrollment not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function show(Request $request, Response $response, array $args): Response
     {
         $jwt = $request->getAttribute('jwt_payload', []);

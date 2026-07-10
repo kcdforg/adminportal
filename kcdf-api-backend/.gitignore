@@ -4,3 +4,6 @@
 *.log
 /storage/logs/*.log
 /storage/installed.lock
+
+# Swagger documentation (auto-generated)
+public/swagger/swagger.json

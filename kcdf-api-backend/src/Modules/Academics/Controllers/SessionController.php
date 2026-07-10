@@ -21,6 +21,9 @@ class SessionController extends BaseController
         private readonly AttendanceService $attendanceService
     ) {}
 
+    /**
+     * @OA\Get(path="/api/v1/sessions/{id}", operationId="getSession", tags={"Sessions"}, summary="Get session", security={{"bearerAuth":{}}}, @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")), @OA\Response(response=200, description="Session retrieved", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=404, description="Session not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")))
+     */
     public function show(Request $request, Response $response, array $args): Response
     {
         $jwt = $request->getAttribute('jwt_payload', []);
@@ -36,6 +39,9 @@ class SessionController extends BaseController
         }
     }
 
+    /**
+     * @OA\Put(path="/api/v1/sessions/{id}", operationId="updateSession", tags={"Sessions"}, summary="Update session", security={{"bearerAuth":{}}}, @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")), @OA\RequestBody(required=true, @OA\JsonContent(type="object")), @OA\Response(response=200, description="Session updated", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")), @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=403, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=404, description="Session not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")), @OA\Response(response=422, description="Validation or business rule failed", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")))
+     */
     public function update(Request $request, Response $response, array $args): Response
     {
         $jwt  = $request->getAttribute('jwt_payload', []);

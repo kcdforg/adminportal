@@ -1,5 +1,91 @@
 <?php
 
+/**
+ * @OA\Info(
+ *     title="KCDF Parents Platform API",
+ *     version="1.0.0",
+ *     description="REST API for the KCDF Parents platform",
+ *     contact={"name": "KCDF Support", "email": "support@kcdf.org"},
+ *     license={"name": "Proprietary"}
+ * )
+ *
+ * @OA\Server(
+ *     url="http://localhost:8080",
+ *     description="Development Server"
+ * )
+ *
+ * @OA\Server(
+ *     url="https://api.example.com",
+ *     description="Production Server"
+ * )
+ *
+ * @OA\SecurityScheme(
+ *     type="http",
+ *     name="bearerAuth",
+ *     in="header",
+ *     bearerFormat="JWT",
+ *     scheme="bearer",
+ *     description="JWT Bearer token authentication"
+ * )
+ *
+ * @OA\Schema(
+ *     schema="SuccessResponse",
+ *     type="object",
+ *     title="Success Response",
+ *     @OA\Property(property="success", type="boolean", example=true),
+ *     @OA\Property(property="data", type="object"),
+ *     @OA\Property(property="message", type="string", example="Operation successful")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="ErrorResponse",
+ *     type="object",
+ *     title="Error Response",
+ *     @OA\Property(property="success", type="boolean", example=false),
+ *     @OA\Property(
+ *         property="error",
+ *         type="object",
+ *         @OA\Property(property="code", type="string", example="VALIDATION_FAILED"),
+ *         @OA\Property(property="message", type="string", example="Request validation failed"),
+ *         @OA\Property(property="details", type="object")
+ *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="ValidationErrorResponse",
+ *     type="object",
+ *     title="Validation Error Response",
+ *     @OA\Property(property="success", type="boolean", example=false),
+ *     @OA\Property(
+ *         property="error",
+ *         type="object",
+ *         @OA\Property(property="code", type="string", example="VALIDATION_FAILED"),
+ *         @OA\Property(property="message", type="string", example="Validation failed"),
+ *         @OA\Property(
+ *             property="details",
+ *             type="object",
+ *             example={"username": {"The username field is required."}, "password": {"The password field is required."}}
+ *         )
+ *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="PaginatedResponse",
+ *     type="object",
+ *     title="Paginated Response",
+ *     @OA\Property(property="success", type="boolean", example=true),
+ *     @OA\Property(property="data", type="array", @OA\Items(type="object")),
+ *     @OA\Property(
+ *         property="meta",
+ *         type="object",
+ *         @OA\Property(property="total", type="integer", example=100),
+ *         @OA\Property(property="per_page", type="integer", example=15),
+ *         @OA\Property(property="current_page", type="integer", example=1),
+ *         @OA\Property(property="last_page", type="integer", example=7)
+ *     )
+ * )
+ */
+
 declare(strict_types=1);
 
 namespace App\Core;
