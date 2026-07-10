@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError, NEVER } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { authStore } from '../store/auth.store';
 
@@ -27,11 +27,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             catchError((refreshError) => {
               isRefreshing = false;
               authService.clearAuth();
+              router.navigate(['/login']);
               return throwError(() => refreshError);
             })
           );
         } else {
           authService.clearAuth();
+          router.navigate(['/login']);
+          return NEVER;
         }
       } else if (error.status === 403) {
         snackBar.open("You don't have permission to perform this action", 'Close', { duration: 4000 });

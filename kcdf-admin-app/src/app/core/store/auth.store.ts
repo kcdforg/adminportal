@@ -18,11 +18,29 @@ function getAdminRole(roles: string[]): AdminRole | null {
   return null;
 }
 
-const _accessToken = signal<string | null>(localStorage.getItem('admin_access_token'));
-const _refreshToken = signal<string | null>(localStorage.getItem('admin_refresh_token'));
+// Initialize with null, then set from localStorage when store is accessed
+const _accessToken = signal<string | null>(null);
+const _refreshToken = signal<string | null>(null);
 const _user = signal<AdminUser | null>(null);
+let _initialized = false;
+
+function ensureInitialized() {
+  if (!_initialized) {
+    try {
+      const accessToken = typeof localStorage !== 'undefined' ? localStorage.getItem('admin_access_token') : null;
+      const refreshToken = typeof localStorage !== 'undefined' ? localStorage.getItem('admin_refresh_token') : null;
+      _accessToken.set(accessToken);
+      _refreshToken.set(refreshToken);
+      _initialized = true;
+    } catch (e) {
+      console.warn('Failed to access localStorage:', e);
+      _initialized = true;
+    }
+  }
+}
 
 const _adminRole = computed<AdminRole | null>(() => {
+  ensureInitialized();
   const token = _accessToken();
   if (!token) return null;
   const payload = parseJwt(token);
@@ -31,12 +49,19 @@ const _adminRole = computed<AdminRole | null>(() => {
 });
 
 export const authStore = {
-  accessToken: _accessToken.asReadonly(),
-  refreshToken: _refreshToken.asReadonly(),
+  accessToken: () => {
+    ensureInitialized();
+    return _accessToken();
+  },
+  refreshToken: () => {
+    ensureInitialized();
+    return _refreshToken();
+  },
   user: _user.asReadonly(),
   adminRole: _adminRole,
 
   isAuthenticated: computed(() => {
+    ensureInitialized();
     const token = _accessToken();
     if (!token) return false;
     const payload = parseJwt(token);
@@ -55,8 +80,14 @@ export const authStore = {
     }),
 
   setTokens(access: string, refresh: string) {
-    localStorage.setItem('admin_access_token', access);
-    localStorage.setItem('admin_refresh_token', refresh);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('admin_access_token', access);
+        localStorage.setItem('admin_refresh_token', refresh);
+      }
+    } catch (e) {
+      console.warn('Failed to save tokens to localStorage:', e);
+    }
     _accessToken.set(access);
     _refreshToken.set(refresh);
   },
@@ -66,8 +97,14 @@ export const authStore = {
   },
 
   clearAuth() {
-    localStorage.removeItem('admin_access_token');
-    localStorage.removeItem('admin_refresh_token');
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('admin_access_token');
+        localStorage.removeItem('admin_refresh_token');
+      }
+    } catch (e) {
+      console.warn('Failed to clear localStorage:', e);
+    }
     _accessToken.set(null);
     _refreshToken.set(null);
     _user.set(null);
