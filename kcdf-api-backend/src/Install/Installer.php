@@ -33,8 +33,8 @@ class Installer
         $checks = [];
 
         $checks['php_version'] = [
-            'label'   => 'PHP 8.2 or higher',
-            'ok'      => PHP_VERSION_ID >= 80200,
+            'label'   => 'PHP 8.1 or higher',
+            'ok'      => PHP_VERSION_ID >= 80100,
             'message' => 'Current: ' . PHP_VERSION,
         ];
 
