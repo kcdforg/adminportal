@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Middleware\CorsMiddleware;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
@@ -14,6 +15,14 @@ return [
     // PSR Response Factory
     ResponseFactoryInterface::class => function () {
         return new ResponseFactory();
+    },
+
+    // CORS Middleware
+    CorsMiddleware::class => function ($container) {
+        return new CorsMiddleware(
+            $container->get(ResponseFactoryInterface::class),
+            $container->get('config')
+        );
     },
 
     // Database — Eloquent via Capsule
