@@ -20,6 +20,10 @@ require __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable($root);
 $dotenv->load();
 
+// TEMPORARY: Force debug mode for troubleshooting
+putenv('APP_DEBUG=true');
+$_ENV['APP_DEBUG'] = 'true';
+
 // Build DI container
 $containerBuilder = new ContainerBuilder();
 $containerBuilder->addDefinitions(__DIR__ . '/../config/container.php');
