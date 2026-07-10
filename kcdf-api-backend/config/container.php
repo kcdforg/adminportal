@@ -5,9 +5,16 @@ declare(strict_types=1);
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
+use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Log\LoggerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
 
 return [
+
+    // PSR Response Factory
+    ResponseFactoryInterface::class => function () {
+        return new ResponseFactory();
+    },
 
     // Database — Eloquent via Capsule
     Capsule::class => function () {
