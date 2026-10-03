@@ -20,6 +20,7 @@ class ProfileRepository extends BaseRepository
         // Family roles
         $familyMemberships = DB::table('family_members')
             ->where('profile_id', $profileId)
+            ->where('status', 'active')
             ->get(['member_role', 'family_id']);
 
         foreach ($familyMemberships as $membership) {

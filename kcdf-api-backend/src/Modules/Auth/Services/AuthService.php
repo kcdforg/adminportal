@@ -6,9 +6,15 @@ namespace App\Modules\Auth\Services;
 
 use App\Modules\Auth\Repositories\ProfileRepository;
 use App\Modules\Auth\Repositories\UserLoginRepository;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
+use App\Core\SystemClock;
+use DateInterval;
+use DateTimeImmutable;
 use Illuminate\Database\Capsule\Manager as DB;
+use Lcobucci\JWT\Configuration;
+use Lcobucci\JWT\Signer\Hmac\Sha256;
+use Lcobucci\JWT\Signer\Key\InMemory;
+use Lcobucci\JWT\Validation\Constraint\SignedWith;
+use Lcobucci\JWT\Validation\Constraint\StrictValidAt;
 
 class AuthService
 {
@@ -33,70 +39,63 @@ class AuthService
         $profile = $this->profileRepository->findOrFail($login->profile_id);
         $roleData = $this->profileRepository->getRolesForProfile($login->profile_id);
 
-        $accessToken  = $this->issueAccessToken($profile->id, $login->username, $roleData);
-        $refreshToken = $this->issueRefreshToken($profile->id);
-
         $this->loginRepository->updateLastLogin($login->id);
 
-        return [
-            'access_token'  => $accessToken,
-            'refresh_token' => $refreshToken,
-            'token_type'    => 'Bearer',
-            'expires_in'    => $this->config['jwt']['access_ttl'],
-            'profile'       => [
-                'id'         => $profile->id,
-                'first_name' => $profile->first_name,
-                'last_name'  => $profile->last_name,
-                'roles'      => $roleData['roles'],
-                'family_ids' => $roleData['family_ids'],
-            ],
-        ];
+        return $this->buildAuthResponse($profile->id, $login->username, $roleData, $profile);
     }
 
     public function refresh(string $refreshToken): array
     {
+        $jwtConfig = $this->jwtConfiguration();
+
         try {
-            $decoded = JWT::decode($refreshToken, new Key($this->config['jwt']['secret'], 'HS256'));
+            $token = $jwtConfig->parser()->parse($refreshToken);
+            $constraints = [
+                new SignedWith($jwtConfig->signer(), $jwtConfig->signingKey()),
+                new StrictValidAt(new SystemClock(), new DateInterval('PT60S')),
+            ];
+
+            if (!$jwtConfig->validator()->validate($token, ...$constraints)) {
+                throw new \RuntimeException('Invalid or expired refresh token', 401);
+            }
+
+            if ($token->claims()->get('type') !== 'refresh') {
+                throw new \RuntimeException('Invalid or expired refresh token', 401);
+            }
+        } catch (\RuntimeException $e) {
+            throw $e;
         } catch (\Throwable) {
             throw new \RuntimeException('Invalid or expired refresh token', 401);
         }
 
         $tokenHash = hash('sha256', $refreshToken);
-        $stored = DB::table('refresh_tokens')
-            ->where('token_hash', $tokenHash)
-            ->whereNull('revoked_at')
-            ->where('expires_at', '>', now())
-            ->first();
+        $claims = $token->claims();
+        $profileId = (int) $claims->get('sub');
 
-        if (!$stored) {
-            throw new \RuntimeException('Refresh token has been revoked or expired', 401);
-        }
+        return DB::transaction(function () use ($tokenHash, $profileId) {
+            $stored = DB::table('refresh_tokens')
+                ->where('token_hash', $tokenHash)
+                ->whereNull('revoked_at')
+                ->where('expires_at', '>', now())
+                ->lockForUpdate()
+                ->first();
 
-        // Revoke old token
-        DB::table('refresh_tokens')->where('id', $stored->id)->update(['revoked_at' => now()]);
+            if (!$stored) {
+                throw new \RuntimeException('Refresh token has been revoked or expired', 401);
+            }
 
-        $profileId = (int) $decoded->sub;
-        $login = DB::table('user_logins')->where('profile_id', $profileId)->first();
-        $roleData = $this->profileRepository->getRolesForProfile($profileId);
+            DB::table('refresh_tokens')->where('id', $stored->id)->update(['revoked_at' => now()]);
 
-        $newAccessToken  = $this->issueAccessToken($profileId, $login->username, $roleData);
-        $newRefreshToken = $this->issueRefreshToken($profileId);
+            $login = DB::table('user_logins')->where('profile_id', $profileId)->first();
+            if (!$login) {
+                throw new \RuntimeException('Invalid or expired refresh token', 401);
+            }
 
-        $profile = $this->profileRepository->findOrFail($profileId);
+            $roleData = $this->profileRepository->getRolesForProfile($profileId);
+            $profile = $this->profileRepository->findOrFail($profileId);
 
-        return [
-            'access_token'  => $newAccessToken,
-            'refresh_token' => $newRefreshToken,
-            'token_type'    => 'Bearer',
-            'expires_in'    => $this->config['jwt']['access_ttl'],
-            'profile'       => [
-                'id'         => $profile->id,
-                'first_name' => $profile->first_name,
-                'last_name'  => $profile->last_name,
-                'roles'      => $roleData['roles'],
-                'family_ids' => $roleData['family_ids'],
-            ],
-        ];
+            return $this->buildAuthResponse($profileId, $login->username, $roleData, $profile);
+        });
     }
 
     public function logout(int $profileId, string $refreshToken): void
@@ -116,42 +115,91 @@ class AuthService
         return array_merge($profile->toArray(), $roleData);
     }
 
+    /**
+     * Issue a fresh access + refresh token pair (used by login, refresh, invitation accept).
+     */
+    public function issueTokenPair(int $profileId, string $username, array $roleData): array
+    {
+        return [
+            'access_token'  => $this->issueAccessToken($profileId, $username, $roleData),
+            'refresh_token' => $this->issueRefreshToken($profileId),
+            'token_type'    => 'Bearer',
+            'expires_in'    => $this->config['jwt']['access_ttl'],
+        ];
+    }
+
+    private function buildAuthResponse(int $profileId, string $username, array $roleData, object $profile): array
+    {
+        $tokens = $this->issueTokenPair($profileId, $username, $roleData);
+
+        return array_merge($tokens, [
+            'profile' => [
+                'id'         => $profile->id,
+                'first_name' => $profile->first_name,
+                'last_name'  => $profile->last_name,
+                'roles'      => $roleData['roles'],
+                'family_ids' => $roleData['family_ids'],
+            ],
+        ]);
+    }
+
     private function issueAccessToken(int $profileId, string $username, array $roleData): string
     {
-        $now = time();
-        $payload = [
-            'sub'        => $profileId,
-            'profile_id' => $profileId,
-            'username'   => $username,
-            'roles'      => $roleData['roles'],
-            'family_ids' => $roleData['family_ids'],
-            'iat'        => $now,
-            'exp'        => $now + $this->config['jwt']['access_ttl'],
-        ];
+        $jwtConfig = $this->jwtConfiguration();
+        $now = new DateTimeImmutable();
+        $expiresAt = $now->modify('+' . $this->config['jwt']['access_ttl'] . ' seconds');
 
-        return JWT::encode($payload, $this->config['jwt']['secret'], 'HS256');
+        $token = $jwtConfig->builder()
+            ->issuedAt($now)
+            ->canOnlyBeUsedAfter($now)
+            ->expiresAt($expiresAt)
+            ->relatedTo((string) $profileId)
+            ->withClaim('profile_id', $profileId)
+            ->withClaim('username', $username)
+            ->withClaim('roles', $roleData['roles'])
+            ->withClaim('family_ids', $roleData['family_ids'])
+            ->getToken($jwtConfig->signer(), $jwtConfig->signingKey());
+
+        return $token->toString();
     }
 
     private function issueRefreshToken(int $profileId): string
     {
-        $now = time();
-        $payload = [
-            'sub'  => $profileId,
-            'type' => 'refresh',
-            'iat'  => $now,
-            'exp'  => $now + $this->config['jwt']['refresh_ttl'],
-        ];
+        $jwtConfig = $this->jwtConfiguration();
+        $now = new DateTimeImmutable();
+        $expiresAt = $now->modify('+' . $this->config['jwt']['refresh_ttl'] . ' seconds');
 
-        $token     = JWT::encode($payload, $this->config['jwt']['secret'], 'HS256');
-        $tokenHash = hash('sha256', $token);
+        $token = $jwtConfig->builder()
+            ->issuedAt($now)
+            ->canOnlyBeUsedAfter($now)
+            ->expiresAt($expiresAt)
+            ->relatedTo((string) $profileId)
+            ->withClaim('type', 'refresh')
+            ->getToken($jwtConfig->signer(), $jwtConfig->signingKey());
+
+        $tokenString = $token->toString();
+        $tokenHash = hash('sha256', $tokenString);
 
         DB::table('refresh_tokens')->insert([
             'profile_id' => $profileId,
             'token_hash' => $tokenHash,
-            'expires_at' => date('Y-m-d H:i:s', $now + $this->config['jwt']['refresh_ttl']),
+            'expires_at' => $expiresAt->format('Y-m-d H:i:s'),
             'created_at' => now(),
         ]);
 
-        return $token;
+        return $tokenString;
+    }
+
+    private function jwtConfiguration(): Configuration
+    {
+        $secret = $this->config['jwt']['secret'] ?? null;
+        if (empty($secret)) {
+            throw new \RuntimeException('JWT secret is not configured', 401);
+        }
+
+        return Configuration::forSymmetricSigner(
+            new Sha256(),
+            InMemory::plainText($secret)
+        );
     }
 }

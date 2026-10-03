@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Middleware\JwtAuthMiddleware;
-use App\Middleware\RequireAdminMiddleware;
+use App\Middleware\RequireElevatedAdminMiddleware;
 use App\Middleware\RequireSuperAdminMiddleware;
 use App\Modules\Notifications\Controllers\ActivityLogController;
 use App\Modules\Notifications\Controllers\NotificationController;
@@ -25,12 +25,12 @@ return function ($group) {
 
         // POST /api/v1/notifications/send — admin only
         $notifications->post('/send', [NotificationController::class, 'send'])
-            ->add(RequireAdminMiddleware::class)
+            ->add(RequireElevatedAdminMiddleware::class)
             ->add(JwtAuthMiddleware::class);
 
-        // POST /api/v1/notifications/broadcast — admin only
+        // POST /api/v1/notifications/broadcast — elevated admin only
         $notifications->post('/broadcast', [NotificationController::class, 'broadcast'])
-            ->add(RequireAdminMiddleware::class)
+            ->add(RequireElevatedAdminMiddleware::class)
             ->add(JwtAuthMiddleware::class);
 
         // PATCH /api/v1/notifications/{id}/read — own notifications only

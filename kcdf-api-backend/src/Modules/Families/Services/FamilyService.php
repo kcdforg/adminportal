@@ -174,12 +174,22 @@ class FamilyService
             }
         }
 
-        $membership = $this->familyMemberRepo->create([
-            'family_id'         => $familyId,
-            'profile_id'        => $profileId,
-            'relationship_type' => $data['relationship_type'],
-            'member_role'       => $data['member_role'],
-        ]);
+        $removed = $this->familyMemberRepo->findByFamilyAndProfile($familyId, $profileId, false);
+        if ($removed && $removed->status === 'removed') {
+            $membership = $this->familyMemberRepo->update($removed, [
+                'relationship_type' => $data['relationship_type'],
+                'member_role'       => $data['member_role'],
+                'status'            => 'active',
+            ]);
+        } else {
+            $membership = $this->familyMemberRepo->create([
+                'family_id'         => $familyId,
+                'profile_id'        => $profileId,
+                'relationship_type' => $data['relationship_type'],
+                'member_role'       => $data['member_role'],
+                'status'            => 'active',
+            ]);
+        }
 
         $membership->load('profile');
 
@@ -206,9 +216,9 @@ class FamilyService
         }
 
         $oldValues = $membership->toArray();
-        $membership->delete();
+        $this->familyMemberRepo->update($membership, ['status' => 'removed']);
 
         $actorId = (int) ($jwt['profile_id'] ?? 0) ?: null;
-        $this->activityLog->log($actorId, 'remove_member', 'families', $familyId, $oldValues, null);
+        $this->activityLog->log($actorId, 'remove_member', 'families', $familyId, $oldValues, ['status' => 'removed']);
     }
 }

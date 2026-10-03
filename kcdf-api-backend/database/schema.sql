@@ -146,12 +146,14 @@ CREATE TABLE `family_members` (
     `profile_id`        BIGINT UNSIGNED NOT NULL,
     `relationship_type` ENUM('father', 'mother', 'guardian', 'child') NOT NULL,
     `member_role`       ENUM('primary', 'normal', 'student') NOT NULL DEFAULT 'normal',
+    `status`            ENUM('active', 'removed') NOT NULL DEFAULT 'active',
     `created_at`        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_family_members_family_profile` (`family_id`, `profile_id`),
     INDEX `idx_family_members_family_id` (`family_id`),
     INDEX `idx_family_members_profile_id` (`profile_id`),
+    INDEX `idx_family_members_status` (`status`),
     CONSTRAINT `fk_family_members_family` FOREIGN KEY (`family_id`) REFERENCES `families` (`id`),
     CONSTRAINT `fk_family_members_profile` FOREIGN KEY (`profile_id`) REFERENCES `member_profiles` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

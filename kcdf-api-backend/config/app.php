@@ -12,6 +12,9 @@ return [
         'refresh_ttl' => (int) ($_ENV['JWT_REFRESH_TTL'] ?? 2592000),
     ],
     'cors' => [
-        'allowed_origins' => explode(',', $_ENV['CORS_ALLOWED_ORIGINS'] ?? ''),
+        'allowed_origins' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', $_ENV['CORS_ALLOWED_ORIGINS'] ?? '')
+        ))),
     ],
 ];

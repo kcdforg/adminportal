@@ -183,6 +183,7 @@ class NotificationService
                 ->toArray(),
 
             'all_families' => DB::table('family_members')
+                ->where('status', 'active')
                 ->pluck('profile_id')
                 ->unique()
                 ->values()

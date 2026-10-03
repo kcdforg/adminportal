@@ -128,40 +128,51 @@ class Installer
     {
         $pdo = $this->connectDatabase($db);
 
-        $stmt = $pdo->prepare(
-            'INSERT INTO member_profiles (first_name, last_name, email, status, created_at, updated_at)
-             VALUES (:first_name, :last_name, :email, :status, NOW(), NOW())'
-        );
-        $stmt->execute([
-            'first_name' => $admin['first_name'],
-            'last_name'  => $admin['last_name'],
-            'email'      => $admin['email'],
-            'status'     => 'active',
-        ]);
+        try {
+            $pdo->beginTransaction();
 
-        $profileId = (int) $pdo->lastInsertId();
+            $stmt = $pdo->prepare(
+                'INSERT INTO member_profiles (first_name, last_name, email, status, created_at, updated_at)
+                 VALUES (:first_name, :last_name, :email, :status, NOW(), NOW())'
+            );
+            $stmt->execute([
+                'first_name' => $admin['first_name'],
+                'last_name'  => $admin['last_name'],
+                'email'      => $admin['email'],
+                'status'     => 'active',
+            ]);
 
-        $passwordHash = password_hash($admin['password'], PASSWORD_BCRYPT, ['cost' => 12]);
+            $profileId = (int) $pdo->lastInsertId();
 
-        $stmt = $pdo->prepare(
-            'INSERT INTO user_logins (profile_id, username, password_hash, is_active, created_at, updated_at)
-             VALUES (:profile_id, :username, :password_hash, 1, NOW(), NOW())'
-        );
-        $stmt->execute([
-            'profile_id'    => $profileId,
-            'username'      => $admin['username'],
-            'password_hash' => $passwordHash,
-        ]);
+            $passwordHash = password_hash($admin['password'], PASSWORD_BCRYPT, ['cost' => 12]);
 
-        $stmt = $pdo->prepare(
-            'INSERT INTO admins (profile_id, admin_role, status, created_at, updated_at)
-             VALUES (:profile_id, :admin_role, :status, NOW(), NOW())'
-        );
-        $stmt->execute([
-            'profile_id' => $profileId,
-            'admin_role' => 'super_admin',
-            'status'     => 'active',
-        ]);
+            $stmt = $pdo->prepare(
+                'INSERT INTO user_logins (profile_id, username, password_hash, is_active, created_at, updated_at)
+                 VALUES (:profile_id, :username, :password_hash, 1, NOW(), NOW())'
+            );
+            $stmt->execute([
+                'profile_id'    => $profileId,
+                'username'      => $admin['username'],
+                'password_hash' => $passwordHash,
+            ]);
+
+            $stmt = $pdo->prepare(
+                'INSERT INTO admins (profile_id, admin_role, status, created_at, updated_at)
+                 VALUES (:profile_id, :admin_role, :status, NOW(), NOW())'
+            );
+            $stmt->execute([
+                'profile_id' => $profileId,
+                'admin_role' => 'super_admin',
+                'status'     => 'active',
+            ]);
+
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
     }
 
     public function createLockFile(): void

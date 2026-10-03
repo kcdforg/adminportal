@@ -1,0 +1,1 @@
+{"version":2,"defects":[],"times":{"AuthSmokeTest::testHelpersNowFunctionExists":0.01,"AuthSmokeTest::testJwtAuthMiddlewareClassExists":0.001,"AuthSmokeTest::testAuthServiceExposesIssueTokenPair":0.002,"AuthSmokeTest::testRequireAccountsAdminMiddlewareExists":0.001,"AuthSmokeTest::testActivityLogQueryServiceRenamed":0.001}}

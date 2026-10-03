@@ -67,7 +67,10 @@ class EntityRepository extends BaseRepository
 
     public function deleteRelation(EntityMemberRelation $relation): void
     {
-        $relation->delete();
+        $relation->update([
+            'is_current' => false,
+            'end_date'   => date('Y-m-d'),
+        ]);
     }
 
     public function entityExists(int $entityId): bool

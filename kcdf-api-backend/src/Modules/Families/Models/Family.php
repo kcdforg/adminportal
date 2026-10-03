@@ -26,6 +26,6 @@ class Family extends Model
 
     public function members(): HasMany
     {
-        return $this->hasMany(FamilyMember::class, 'family_id');
+        return $this->hasMany(FamilyMember::class, 'family_id')->where('status', 'active');
     }
 }

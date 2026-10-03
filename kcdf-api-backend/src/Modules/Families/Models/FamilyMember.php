@@ -17,6 +17,7 @@ class FamilyMember extends Model
         'profile_id',
         'relationship_type',
         'member_role',
+        'status',
     ];
 
     public function family(): BelongsTo
@@ -27,5 +28,10 @@ class FamilyMember extends Model
     public function profile(): BelongsTo
     {
         return $this->belongsTo(MemberProfile::class, 'profile_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
     }
 }

@@ -11,12 +11,12 @@ use App\Core\Exceptions\NotFoundException;
 use App\Core\Exceptions\UnauthorizedException;
 use App\Core\Exceptions\ValidationException;
 use App\Modules\Auth\Repositories\ProfileRepository;
+use App\Modules\Auth\Services\AuthService;
 use App\Modules\Community\DTOs\CreateInvitationDTO;
 use App\Modules\Community\Models\Invitation;
 use App\Modules\Community\Policies\InvitationPolicy;
 use App\Modules\Community\Repositories\InvitationRepository;
 use App\Modules\Community\Validators\InvitationValidator;
-use Firebase\JWT\JWT;
 use Illuminate\Database\Capsule\Manager as DB;
 
 class InvitationService
@@ -27,7 +27,7 @@ class InvitationService
         private readonly InvitationPolicy     $policy,
         private readonly InvitationValidator  $validator,
         private readonly ActivityLogService   $activityLog,
-        private readonly array                $config,
+        private readonly AuthService          $authService,
     ) {}
 
     public function list(array $filters, array $jwt): array
@@ -194,13 +194,12 @@ class InvitationService
                 ['status' => 'accepted', 'new_profile_id' => $profile]
             );
 
-            $roleData     = $this->profileRepo->getRolesForProfile($profile);
-            $accessToken  = $this->issueAccessToken($profile, $email, $roleData);
-            $refreshToken = $this->issueRefreshToken($profile);
+            $roleData = $this->profileRepo->getRolesForProfile($profile);
+            $tokens   = $this->authService->issueTokenPair($profile, $email, $roleData);
 
             return [
-                'access_token'  => $accessToken,
-                'refresh_token' => $refreshToken,
+                'access_token'  => $tokens['access_token'],
+                'refresh_token' => $tokens['refresh_token'],
             ];
         });
     }
@@ -252,50 +251,10 @@ class InvitationService
             $code .= $chars[random_int(0, strlen($chars) - 1)];
         }
 
-        // Ensure uniqueness — retry on collision
         if (DB::table('invitations')->where('invite_code', $code)->exists()) {
             return $this->generateInviteCode();
         }
 
         return $code;
-    }
-
-    private function issueAccessToken(int $profileId, string $username, array $roleData): string
-    {
-        $now     = time();
-        $payload = [
-            'sub'        => $profileId,
-            'profile_id' => $profileId,
-            'username'   => $username,
-            'roles'      => $roleData['roles'],
-            'family_ids' => $roleData['family_ids'],
-            'iat'        => $now,
-            'exp'        => $now + $this->config['jwt']['access_ttl'],
-        ];
-
-        return JWT::encode($payload, $this->config['jwt']['secret'], 'HS256');
-    }
-
-    private function issueRefreshToken(int $profileId): string
-    {
-        $now     = time();
-        $payload = [
-            'sub'  => $profileId,
-            'type' => 'refresh',
-            'iat'  => $now,
-            'exp'  => $now + $this->config['jwt']['refresh_ttl'],
-        ];
-
-        $token     = JWT::encode($payload, $this->config['jwt']['secret'], 'HS256');
-        $tokenHash = hash('sha256', $token);
-
-        DB::table('refresh_tokens')->insert([
-            'profile_id' => $profileId,
-            'token_hash' => $tokenHash,
-            'expires_at' => date('Y-m-d H:i:s', $now + $this->config['jwt']['refresh_ttl']),
-            'created_at' => now(),
-        ]);
-
-        return $token;
     }
 }

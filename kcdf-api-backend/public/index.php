@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-// TEMPORARY: Enable error display for debugging
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
 $root = dirname(__DIR__);
 $lockFile = $root . '/storage/installed.lock';
 
@@ -20,14 +15,11 @@ use DI\ContainerBuilder;
 use Slim\Factory\AppFactory;
 
 require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../src/helpers.php';
 
 // Load environment variables
 $dotenv = Dotenv\Dotenv::createImmutable($root);
 $dotenv->load();
-
-// TEMPORARY: Force debug mode for troubleshooting
-putenv('APP_DEBUG=true');
-$_ENV['APP_DEBUG'] = 'true';
 
 // Build DI container
 $containerBuilder = new ContainerBuilder();

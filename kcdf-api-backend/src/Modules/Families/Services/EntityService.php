@@ -30,6 +30,11 @@ class EntityService
         $perPage = min((int) ($filters['per_page'] ?? 20), 100);
         $page    = max((int) ($filters['page'] ?? 1), 1);
 
+        // Non-admins only see active entities (catalog for relation pickers)
+        if (!$this->isAnyAdmin($jwt)) {
+            $filters['status'] = 'active';
+        }
+
         return $this->entityRepo->paginateFiltered($filters, $perPage, $page);
     }
 
@@ -62,6 +67,11 @@ class EntityService
         if (!$entity) {
             throw new NotFoundException('Entity not found.');
         }
+
+        if ($entity->status !== 'active' && !$this->isAnyAdmin($jwt)) {
+            throw new NotFoundException('Entity not found.');
+        }
+
         return $entity;
     }
 
@@ -167,6 +177,17 @@ class EntityService
         $this->entityRepo->deleteRelation($relation);
 
         $actorId = (int) ($jwt['profile_id'] ?? 0) ?: null;
-        $this->activityLog->log($actorId, 'remove_entity_relation', 'member_profiles', $memberId, $oldValues, null);
+        $this->activityLog->log($actorId, 'remove_entity_relation', 'member_profiles', $memberId, $oldValues, [
+            'is_current' => false,
+            'end_date'   => date('Y-m-d'),
+        ]);
+    }
+
+    private function isAnyAdmin(array $jwt): bool
+    {
+        return !empty(array_intersect(
+            $jwt['roles'] ?? [],
+            ['admin_super', 'admin_program_manager', 'admin_accounts', 'admin_readonly']
+        ));
     }
 }

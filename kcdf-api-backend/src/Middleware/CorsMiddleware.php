@@ -21,56 +21,42 @@ class CorsMiddleware implements MiddlewareInterface
     {
         try {
             $origin = $request->getHeaderLine('Origin');
-            $allowedOrigins = $this->config['cors']['allowed_origins'] ?? [];
+            $allowedOrigins = array_values(array_filter(array_map(
+                'trim',
+                $this->config['cors']['allowed_origins'] ?? []
+            )));
 
-            // Check if origin is allowed
-            $isAllowed = false;
-            
-            // Check against explicit whitelist
-            if (in_array($origin, $allowedOrigins, true)) {
-                $isAllowed = true;
-            }
-            
-            // Allow all subdomains of kcdfindia.com (both http and https)
-            if (!$isAllowed && !empty($origin)) {
-                $parsedUrl = parse_url($origin);
-                $host = $parsedUrl['host'] ?? '';
-                
-                // Match kcdfindia.com and all its subdomains
-                if ($host === 'kcdfindia.com' || preg_match('/\.kcdfindia\.com$/', $host)) {
-                    $isAllowed = true;
-                }
-            }
+            $isAllowed = $origin !== '' && in_array($origin, $allowedOrigins, true);
 
-            // Handle preflight requests
             if ($request->getMethod() === 'OPTIONS') {
                 $response = $this->responseFactory->createResponse(204);
-                
-                if ($isAllowed && !empty($origin)) {
-                    $response = $response->withHeader('Access-Control-Allow-Origin', $origin);
-                    $response = $response->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-                    $response = $response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-                    $response = $response->withHeader('Access-Control-Max-Age', '86400');
-                    $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
+
+                if ($isAllowed) {
+                    $response = $this->withCorsHeaders($response, $origin);
                 }
-                
+
                 return $response;
             }
 
             $response = $handler->handle($request);
 
-            if ($isAllowed && !empty($origin)) {
-                $response = $response->withHeader('Access-Control-Allow-Origin', $origin);
-                $response = $response->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-                $response = $response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-                $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
+            if ($isAllowed) {
+                $response = $this->withCorsHeaders($response, $origin);
             }
 
             return $response;
-        } catch (\Throwable $e) {
-            // If there's an error in CORS middleware, let the request continue
-            // This prevents CORS processing from breaking the entire application
+        } catch (\Throwable) {
             return $handler->handle($request);
         }
+    }
+
+    private function withCorsHeaders(Response $response, string $origin): Response
+    {
+        return $response
+            ->withHeader('Access-Control-Allow-Origin', $origin)
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+            ->withHeader('Access-Control-Max-Age', '86400')
+            ->withHeader('Access-Control-Allow-Credentials', 'true');
     }
 }

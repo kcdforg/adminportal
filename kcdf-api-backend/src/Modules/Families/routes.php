@@ -26,7 +26,7 @@ return function ($group) {
             ->add(JwtAuthMiddleware::class);
 
         $members->post('', [MemberController::class, 'store'])
-            ->add(RequireAdminMiddleware::class)
+            ->add(RequireElevatedAdminMiddleware::class)
             ->add(JwtAuthMiddleware::class);
 
         $members->get('/{id:[0-9]+}', [MemberController::class, 'show'])
@@ -57,7 +57,7 @@ return function ($group) {
             ->add(JwtAuthMiddleware::class);
 
         $families->post('', [FamilyController::class, 'store'])
-            ->add(RequireAdminMiddleware::class)
+            ->add(RequireElevatedAdminMiddleware::class)
             ->add(JwtAuthMiddleware::class);
 
         $families->get('/{id:[0-9]+}', [FamilyController::class, 'show'])
@@ -137,7 +137,7 @@ return function ($group) {
             ->add(JwtAuthMiddleware::class);
 
         $entities->put('/{id:[0-9]+}', [EntityController::class, 'update'])
-            ->add(RequireAdminMiddleware::class)
+            ->add(RequireElevatedAdminMiddleware::class)
             ->add(JwtAuthMiddleware::class);
 
     });

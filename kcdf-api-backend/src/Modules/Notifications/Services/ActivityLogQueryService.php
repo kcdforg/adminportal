@@ -11,7 +11,7 @@ use App\Modules\Notifications\Repositories\ActivityLogRepository;
  * Read-only service for querying activity logs (admin view).
  * Write operations are handled by App\Core\ActivityLogService.
  */
-class ActivityLogService
+class ActivityLogQueryService
 {
     public function __construct(
         private readonly ActivityLogRepository $activityLogRepo,

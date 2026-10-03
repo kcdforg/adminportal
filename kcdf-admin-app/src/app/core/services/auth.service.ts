@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { authStore } from '../store/auth.store';
@@ -18,11 +18,38 @@ export class AuthService {
 
   login(credentials: LoginRequest): Observable<ApiResponse<{ tokens: AuthTokens; user: AdminUser }>> {
     return this.http
-      .post<ApiResponse<{ tokens: AuthTokens; user: AdminUser }>>(
+      .post<any>(
         `${environment.apiUrl}/auth/login`,
         credentials
       )
       .pipe(
+        map((res) => {
+          if (res.success) {
+            const { access_token, refresh_token, token_type, expires_in, profile } = res.data;
+            return {
+              success: true,
+              message: res.message,
+              data: {
+                tokens: {
+                  access_token,
+                  refresh_token,
+                  token_type,
+                  expires_in,
+                },
+                user: {
+                  id: profile.id,
+                  profile_id: profile.id,
+                  username: '',
+                  admin_role: 'super_admin',
+                  first_name: profile.first_name,
+                  last_name: profile.last_name,
+                  email: '',
+                } as AdminUser,
+              },
+            };
+          }
+          return res;
+        }),
         tap((res) => {
           if (res.success) {
             authStore.setTokens(res.data.tokens.access_token, res.data.tokens.refresh_token);
@@ -47,13 +74,31 @@ export class AuthService {
 
   refresh(): Observable<ApiResponse<{ tokens: AuthTokens }>> {
     return this.http
-      .post<ApiResponse<{ tokens: AuthTokens }>>(`${environment.apiUrl}/auth/refresh`, {
+      .post<any>(`${environment.apiUrl}/auth/refresh`, {
         refresh_token: authStore.refreshToken(),
       })
       .pipe(
+        map((res) => {
+          if (res.success) {
+            const { access_token, refresh_token, token_type, expires_in, profile } = res.data;
+            return {
+              success: true,
+              message: res.message,
+              data: {
+                tokens: {
+                  access_token,
+                  refresh_token,
+                  token_type,
+                  expires_in,
+                },
+              },
+            };
+          }
+          return res;
+        }),
         tap((res) => {
           if (res.success) {
-            authStore.setTokens(res.data.tokens.access_token, authStore.refreshToken()!);
+            authStore.setTokens(res.data.tokens.access_token, res.data.tokens.refresh_token);
           }
         })
       );

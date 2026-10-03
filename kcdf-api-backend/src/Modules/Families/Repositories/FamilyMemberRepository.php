@@ -12,16 +12,22 @@ class FamilyMemberRepository extends BaseRepository
 {
     protected string $modelClass = FamilyMember::class;
 
-    public function findByFamilyAndProfile(int $familyId, int $profileId): ?FamilyMember
+    public function findByFamilyAndProfile(int $familyId, int $profileId, bool $activeOnly = true): ?FamilyMember
     {
-        return FamilyMember::where('family_id', $familyId)
-            ->where('profile_id', $profileId)
-            ->first();
+        $query = FamilyMember::where('family_id', $familyId)
+            ->where('profile_id', $profileId);
+
+        if ($activeOnly) {
+            $query->active();
+        }
+
+        return $query->first();
     }
 
     public function findPrimaryMember(int $familyId): ?FamilyMember
     {
-        return FamilyMember::where('family_id', $familyId)
+        return FamilyMember::active()
+            ->where('family_id', $familyId)
             ->where('member_role', 'primary')
             ->first();
     }
@@ -29,13 +35,15 @@ class FamilyMemberRepository extends BaseRepository
     public function getMembersForFamily(int $familyId): Collection
     {
         return FamilyMember::with('profile')
+            ->active()
             ->where('family_id', $familyId)
             ->get();
     }
 
     public function isPrimaryMemberOfSameFamilyAs(int $requesterProfileId, int $targetProfileId): bool
     {
-        $primaryFamilyIds = FamilyMember::where('profile_id', $requesterProfileId)
+        $primaryFamilyIds = FamilyMember::active()
+            ->where('profile_id', $requesterProfileId)
             ->where('member_role', 'primary')
             ->pluck('family_id')
             ->toArray();
@@ -44,14 +52,16 @@ class FamilyMemberRepository extends BaseRepository
             return false;
         }
 
-        return FamilyMember::whereIn('family_id', $primaryFamilyIds)
+        return FamilyMember::active()
+            ->whereIn('family_id', $primaryFamilyIds)
             ->where('profile_id', $targetProfileId)
             ->exists();
     }
 
     public function getFamilyIdsForProfile(int $profileId): array
     {
-        return FamilyMember::where('profile_id', $profileId)
+        return FamilyMember::active()
+            ->where('profile_id', $profileId)
             ->pluck('family_id')
             ->toArray();
     }
