@@ -90,7 +90,7 @@ export class TrainerListComponent implements OnInit {
   readonly searchCtrl = new FormControl('');
   readonly statusCtrl = new FormControl('');
   pageSize = 20;
-  private page = 1;
+  page = 1;
 
   ngOnInit(): void {
     this.load();

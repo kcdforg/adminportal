@@ -60,7 +60,7 @@ export interface ColumnDef {
               <td *ngFor="let col of columns" class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">
                 <ng-container [ngSwitch]="col.type">
                   <ng-container *ngSwitchCase="'date'">
-                    {{ cellValue(row, col.key) | date:'dd MMM yyyy' }}
+                    {{ dateValue(row, col.key) | date:'dd MMM yyyy' }}
                   </ng-container>
                   <ng-container *ngSwitchCase="'boolean'">
                     <app-icon [name]="cellValue(row, col.key) ? 'check_circle' : 'cancel'" [style.color]="cellValue(row, col.key) ? '#2e7d32' : '#c62828'" aria-hidden="true" class="h-6 w-6"></app-icon>
@@ -131,6 +131,13 @@ export class DataTableComponent implements OnChanges {
 
   cellValue(row: unknown, key: string): unknown {
     return (row as Record<string, unknown>)[key];
+  }
+
+  dateValue(row: unknown, key: string): string | number | Date | null {
+    const value = this.cellValue(row, key);
+    return typeof value === 'string' || typeof value === 'number' || value instanceof Date
+      ? value
+      : null;
   }
 
   ariaSort(column: ColumnDef): 'ascending' | 'descending' | 'none' {

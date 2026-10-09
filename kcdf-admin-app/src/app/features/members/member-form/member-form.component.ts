@@ -87,7 +87,7 @@ import {
 export class MemberFormComponent {
   readonly member = inject(TAILWIND_DIALOG_DATA) as MemberProfile | null;
   private readonly memberService = inject(MemberService);
-  private readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
+  readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
   private readonly toast = inject(ToastService);
 
   saving = false;

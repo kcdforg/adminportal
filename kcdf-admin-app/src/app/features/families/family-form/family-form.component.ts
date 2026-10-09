@@ -83,7 +83,7 @@ import {
 export class FamilyFormComponent {
   readonly family = inject(TAILWIND_DIALOG_DATA) as Family | null;
   private readonly familyService = inject(FamilyService);
-  private readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
+  readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
   private readonly toast = inject(ToastService);
 
   saving = false;

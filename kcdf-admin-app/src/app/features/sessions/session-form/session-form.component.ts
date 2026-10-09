@@ -74,7 +74,7 @@ interface SessionFormData {
 export class SessionFormComponent {
   readonly data: SessionFormData = inject(TAILWIND_DIALOG_DATA) as SessionFormData;
   private readonly sessionService = inject(SessionService);
-  private readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
+  readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
   private readonly toast = inject(ToastService);
   saving = false;
 

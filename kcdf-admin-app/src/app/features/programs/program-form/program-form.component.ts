@@ -71,7 +71,7 @@ import { Program } from '../../../core/models';
 export class ProgramFormComponent {
   readonly program: Program | null = inject(TAILWIND_DIALOG_DATA) as Program | null;
   private readonly programService = inject(ProgramService);
-  private readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
+  readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
   private readonly toast = inject(ToastService);
   saving = false;
 

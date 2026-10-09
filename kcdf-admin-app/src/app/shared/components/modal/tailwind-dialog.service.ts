@@ -1,4 +1,4 @@
-import { InjectionToken, Injector, Injectable, Type, inject, signal } from '@angular/core';
+import { DestroyableInjector, InjectionToken, Injector, Injectable, Type, inject, signal } from '@angular/core';
 import { Observable, ReplaySubject } from 'rxjs';
 
 export const TAILWIND_DIALOG_DATA = new InjectionToken<unknown>('TAILWIND_DIALOG_DATA');
@@ -13,7 +13,7 @@ export interface TailwindDialogConfig<D> {
 
 export interface ActiveTailwindDialog {
   component: Type<unknown>;
-  injector: Injector;
+  injector: DestroyableInjector;
   ref: TailwindDialogRef<unknown>;
   ariaLabel: string;
   maxWidth: string;
@@ -63,7 +63,7 @@ export class TailwindDialogService {
         { provide: TAILWIND_DIALOG_REF, useValue: ref },
       ],
       parent: this.parentInjector,
-    });
+    }) as DestroyableInjector;
 
     this.activeDialog.set({
       component,

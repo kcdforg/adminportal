@@ -57,7 +57,7 @@ export class EnrollmentFormComponent implements OnInit {
   private readonly enrollmentService = inject(EnrollmentService);
   private readonly familyService = inject(FamilyService);
   private readonly batchService = inject(BatchService);
-  private readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
+  readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
   private readonly toast = inject(ToastService);
 
   readonly families = signal<Family[]>([]);

@@ -50,7 +50,7 @@ import { Trainer } from '../../../core/models';
 export class TrainerFormComponent {
   readonly trainer: Trainer | null = inject(TAILWIND_DIALOG_DATA) as Trainer | null;
   private readonly trainerService = inject(TrainerService);
-  private readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
+  readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
   private readonly toast = inject(ToastService);
   saving = false;
 
