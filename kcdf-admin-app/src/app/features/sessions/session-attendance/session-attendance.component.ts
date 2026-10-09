@@ -2,13 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 import { AttendanceService, AttendanceRecord } from '../../../core/services/attendance.service';
 import { SessionService } from '../../../core/services/session.service';
 import { Attendance, Session, AttendanceStatus } from '../../../core/models';
@@ -16,6 +10,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { LoadingOverlayComponent } from '../../../shared/components/loading-overlay/loading-overlay.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { forkJoin } from 'rxjs';
+import { AppIconComponent } from '../../../shared/components/icon/app-icon.component';
 
 interface AttendanceRow {
   member_id: number;
@@ -30,72 +25,67 @@ interface AttendanceRow {
   standalone: true,
   imports: [
     CommonModule, RouterModule, ReactiveFormsModule,
-    MatCardModule, MatButtonModule, MatIconModule, MatTableModule, MatSelectModule, MatFormFieldModule,
+    AppIconComponent,
     PageHeaderComponent, LoadingOverlayComponent, StatusBadgeComponent,
   ],
   template: `
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
     <app-page-header [title]="'Attendance: ' + (session()?.title ?? sessionDate())" subtitle="Mark session attendance">
-      <button mat-stroked-button (click)="goBack()"><mat-icon>arrow_back</mat-icon> Back</button>
-      <button mat-flat-button color="accent" (click)="lockSession()" [disabled]="session()?.attendance_locked" *ngIf="session()">
-        <mat-icon>lock</mat-icon> {{ session()!.attendance_locked ? 'Locked' : 'Lock Session' }}
+      <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800" (click)="goBack()"><app-icon name="arrow_back" class="h-6 w-6"></app-icon> Back</button>
+      <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-amber-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed disabled:opacity-60" (click)="lockSession()" [disabled]="session()?.attendance_locked" *ngIf="session()">
+        <app-icon name="lock" class="h-6 w-6"></app-icon> {{ session()!.attendance_locked ? 'Locked' : 'Lock Session' }}
       </button>
-      <button mat-flat-button color="primary" (click)="saveAll()" [disabled]="saving || !!session()?.attendance_locked">
-        <mat-icon>save</mat-icon> {{ saving ? 'Saving...' : 'Save All' }}
+      <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60" (click)="saveAll()" [disabled]="saving || !!session()?.attendance_locked">
+        <app-icon name="save" class="h-6 w-6"></app-icon> {{ saving ? 'Saving...' : 'Save All' }}
       </button>
     </app-page-header>
 
-    <mat-card>
-      <mat-card-content>
-        <div class="session-info" *ngIf="session()">
-          <span>Date: <strong>{{ session()!.session_date | date:'dd MMM yyyy' }}</strong></span>
-          <span>Time: <strong>{{ session()!.start_time }} – {{ session()!.end_time }}</strong></span>
+    <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-gray-200 p-4 text-sm text-gray-600 dark:border-gray-800 dark:text-gray-300 sm:p-6" *ngIf="session()">
+          <span>Date: <strong class="font-semibold text-gray-900 dark:text-gray-100">{{ session()!.session_date | date:'dd MMM yyyy' }}</strong></span>
+          <span>Time: <strong class="font-semibold text-gray-900 dark:text-gray-100">{{ session()!.start_time }} – {{ session()!.end_time }}</strong></span>
           <span>Status: <app-status-badge [status]="session()!.status"></app-status-badge></span>
-          <span *ngIf="session()!.attendance_locked" class="locked-badge"><mat-icon>lock</mat-icon> Locked</span>
-        </div>
+          <span *ngIf="session()!.attendance_locked" class="flex items-center gap-1 font-semibold text-indigo-700 dark:text-indigo-300"><app-icon name="lock" class="h-6 w-6"></app-icon> Locked</span>
+      </div>
 
-        <table mat-table [dataSource]="rows()" class="full-width">
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Member</th>
-            <td mat-cell *matCellDef="let r">{{ r.name }}</td>
-          </ng-container>
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Attendance</th>
-            <td mat-cell *matCellDef="let r">
-              <mat-select [formControl]="r.statusCtrl" [disabled]="!!session()?.attendance_locked">
-                <mat-option value="present">Present</mat-option>
-                <mat-option value="absent">Absent</mat-option>
-                <mat-option value="late">Late</mat-option>
-                <mat-option value="excused">Excused</mat-option>
-              </mat-select>
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="cols"></tr>
-          <tr mat-row *matRowDef="let r; columns: cols;"></tr>
-          <tr class="mat-row" *matNoDataRow><td [colSpan]="cols.length" class="empty-row">No enrolled members</td></tr>
+      <div class="w-full overflow-x-auto">
+        <table class="w-full min-w-[600px]">
+          <thead>
+            <tr>
+              <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Member</th>
+              <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Attendance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of rows()">
+              <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ r.name }}</td>
+              <td class="!px-4 !py-2 !text-sm">
+              <label class="sr-only" [for]="'attendance-status-' + r.member_id">Attendance for {{ r.name }}</label>
+              <select [id]="'attendance-status-' + r.member_id" [formControl]="r.statusCtrl" [disabled]="!!session()?.attendance_locked" class="min-h-10 min-w-[130px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                <option value="present">Present</option>
+                <option value="absent">Absent</option>
+                <option value="late">Late</option>
+                <option value="excused">Excused</option>
+              </select>
+              </td>
+            </tr>
+            <tr *ngIf="rows().length === 0"><td colspan="2" class="!px-4 !py-12"><div class="text-center text-sm text-gray-500 dark:text-gray-400">No enrolled members</div></td></tr>
+          </tbody>
         </table>
-      </mat-card-content>
-    </mat-card>
-  `,
-  styles: [`
-    .session-info { display: flex; gap: 24px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; font-size: 14px; }
-    .locked-badge { display: flex; align-items: center; gap: 4px; color: #1a237e; font-weight: 600; }
-    .full-width { width: 100%; }
-    .empty-row { text-align: center; padding: 32px; color: #999; }
-    mat-select { min-width: 130px; }
-  `]
+      </div>
+    </section>
+  `
 })
 export class SessionAttendanceComponent implements OnInit {
   private readonly attendanceService = inject(AttendanceService);
   private readonly sessionService = inject(SessionService);
   private readonly route = inject(ActivatedRoute);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly toast = inject(ToastService);
 
   readonly loading = signal(false);
   saving = false;
   readonly session = signal<Session | null>(null);
   readonly rows = signal<AttendanceRow[]>([]);
-  readonly cols = ['name', 'status'];
   readonly sessionDate = () => this.session()?.session_date ?? '';
 
   ngOnInit(): void {
@@ -130,16 +120,16 @@ export class SessionAttendanceComponent implements OnInit {
       notes: r.notesCtrl.value || undefined,
     }));
     this.attendanceService.save(sessionId, records).subscribe({
-      next: () => { this.saving = false; this.snackBar.open('Attendance saved', 'Close', { duration: 3000 }); },
-      error: () => { this.saving = false; this.snackBar.open('Error saving attendance', 'Close', { duration: 4000 }); }
+      next: () => { this.saving = false; this.toast.show('Attendance saved', { variant: 'success', durationMs: 3000, actionLabel: 'Close' }); },
+      error: () => { this.saving = false; this.toast.show('Error saving attendance', { variant: 'error', durationMs: 4000, actionLabel: 'Close' }); }
     });
   }
 
   lockSession(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.sessionService.lock(id).subscribe({
-      next: (res) => { this.session.set(res.data); this.snackBar.open('Session locked', 'Close', { duration: 3000 }); },
-      error: () => this.snackBar.open('Error locking session', 'Close', { duration: 3000 })
+      next: (res) => { this.session.set(res.data); this.toast.show('Session locked', { variant: 'success', durationMs: 3000, actionLabel: 'Close' }); },
+      error: () => this.toast.show('Error locking session', { variant: 'error', durationMs: 3000, actionLabel: 'Close' })
     });
   }
 

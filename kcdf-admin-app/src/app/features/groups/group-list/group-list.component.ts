@@ -2,50 +2,47 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatDialog } from '@angular/material/dialog';
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { GroupService } from '../../../core/services/group.service';
 import { Group } from '../../../core/models';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { LoadingOverlayComponent } from '../../../shared/components/loading-overlay/loading-overlay.component';
+import { AppIconComponent } from '../../../shared/components/icon/app-icon.component';
+import { ToastService } from '../../../shared/components/toast/toast.service';
+import { TAILWIND_DIALOG_DATA, TAILWIND_DIALOG_REF, TailwindDialogRef, TailwindDialogService } from '../../../shared/components/modal/tailwind-dialog.service';
+import { TailwindPaginatorComponent, TailwindPageEvent } from '../../../shared/components/paginator/tailwind-paginator.component';
 
 @Component({
   selector: 'app-group-form-dialog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <h2 mat-dialog-title>{{ group ? 'Edit Group' : 'Create Group' }}</h2>
-    <mat-dialog-content>
-      <form [formGroup]="form" class="form-col">
-        <mat-form-field appearance="outline" class="full-width"><mat-label>Group Name</mat-label><input matInput formControlName="group_name" /><mat-error>Required</mat-error></mat-form-field>
-        <mat-form-field appearance="outline" class="full-width"><mat-label>Description</mat-label><textarea matInput formControlName="description" rows="2"></textarea></mat-form-field>
-        <mat-form-field appearance="outline" class="full-width"><mat-label>Visibility</mat-label>
-          <mat-select formControlName="visibility"><mat-option value="public">Public</mat-option><mat-option value="private">Private</mat-option></mat-select>
-        </mat-form-field>
+    <div class="px-6 pt-6 text-xl font-semibold tracking-tight text-gray-900 dark:text-white">{{ group ? 'Edit Group' : 'Create Group' }}</div>
+    <div class="px-6 py-4">
+      <form [formGroup]="form" class="flex min-w-0 flex-col gap-4 sm:min-w-[26rem]">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Group Name
+          <input formControlName="group_name" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+          <span *ngIf="form.controls.group_name.touched && form.controls.group_name.invalid" class="mt-1 block text-sm text-red-600">Required</span>
+        </label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Description<textarea formControlName="description" rows="2" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea></label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Visibility
+          <select formControlName="visibility" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+            <option value="public">Public</option><option value="private">Private</option>
+          </select>
+        </label>
       </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-flat-button color="primary" (click)="save()" [disabled]="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
-    </mat-dialog-actions>
-  `,
-  styles: [`.form-col{display:flex;flex-direction:column;gap:8px;min-width:440px}.full-width{width:100%}`]
+    </div>
+    <div class="flex justify-end gap-2 px-6 pb-5">
+      <button type="button" (click)="dialogRef.close()" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800">Cancel</button>
+      <button (click)="save()" [disabled]="saving" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">{{ saving ? 'Saving...' : 'Save' }}</button>
+    </div>
+  `
 })
 export class GroupFormDialogComponent {
-  readonly group: Group | null = inject(MAT_DIALOG_DATA);
+  readonly group = inject(TAILWIND_DIALOG_DATA) as Group | null;
   private readonly groupService = inject(GroupService);
-  private readonly dialogRef = inject(MatDialogRef<GroupFormDialogComponent>);
-  private readonly snackBar = inject(MatSnackBar);
+  readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
+  private readonly toastService = inject(ToastService);
   saving = false;
   readonly form = new FormGroup({
     group_name: new FormControl(this.group?.group_name ?? '', { nonNullable: true, validators: [Validators.required] }),
@@ -57,8 +54,8 @@ export class GroupFormDialogComponent {
     this.saving = true;
     const obs = this.group ? this.groupService.update(this.group.id, this.form.getRawValue()) : this.groupService.create(this.form.getRawValue());
     obs.subscribe({
-      next: () => { this.snackBar.open('Group saved', 'Close', { duration: 3000 }); this.dialogRef.close(true); },
-      error: (err) => { this.saving = false; this.snackBar.open(err?.error?.error?.message ?? 'Error', 'Close', { duration: 4000 }); }
+      next: () => { this.toastService.show('Group saved', { variant: 'success', durationMs: 3000, actionLabel: 'Close' }); this.dialogRef.close(true); },
+      error: (err) => { this.saving = false; this.toastService.show(err?.error?.error?.message ?? 'Error', { variant: 'error', durationMs: 4000, actionLabel: 'Close' }); }
     });
   }
 }
@@ -66,57 +63,54 @@ export class GroupFormDialogComponent {
 @Component({
   selector: 'app-group-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatSelectModule, MatTableModule, MatPaginatorModule, StatusBadgeComponent, PageHeaderComponent, LoadingOverlayComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AppIconComponent, TailwindPaginatorComponent, StatusBadgeComponent, PageHeaderComponent, LoadingOverlayComponent],
   template: `
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
     <app-page-header title="Groups" [subtitle]="'Total: ' + total()">
-      <button mat-flat-button color="primary" (click)="openForm()"><mat-icon>add</mat-icon> Create Group</button>
+      <button type="button" (click)="openForm()" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"><app-icon name="add" aria-hidden="true" class="h-6 w-6"></app-icon> Create Group</button>
     </app-page-header>
-    <mat-card>
-      <mat-card-content>
-        <table mat-table [dataSource]="groups()" class="full-width">
-          <ng-container matColumnDef="group_name"><th mat-header-cell *matHeaderCellDef>Name</th><td mat-cell *matCellDef="let g">{{ g.group_name }}</td></ng-container>
-          <ng-container matColumnDef="visibility"><th mat-header-cell *matHeaderCellDef>Visibility</th><td mat-cell *matCellDef="let g">{{ g.visibility }}</td></ng-container>
-          <ng-container matColumnDef="member_count"><th mat-header-cell *matHeaderCellDef>Members</th><td mat-cell *matCellDef="let g">{{ g.member_count ?? '—' }}</td></ng-container>
-          <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let g"><app-status-badge [status]="g.status"></app-status-badge></td></ng-container>
-          <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let g">
-              <button mat-icon-button [routerLink]="['/groups', g.id]"><mat-icon>visibility</mat-icon></button>
-              <button mat-icon-button (click)="openForm(g); $event.stopPropagation()"><mat-icon>edit</mat-icon></button>
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="cols"></tr>
-          <tr mat-row *matRowDef="let r; columns: cols;" class="clickable" [routerLink]="['/groups', r.id]"></tr>
-          <tr class="mat-row" *matNoDataRow><td [colSpan]="cols.length" class="empty-row">No groups found</td></tr>
+    <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+          <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-300"><tr><th class="px-4 py-3">Name</th><th class="px-4 py-3">Visibility</th><th class="px-4 py-3">Members</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Actions</th></tr></thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+            <tr *ngFor="let g of groups()" class="cursor-pointer text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800/50" [routerLink]="['/groups', g.id]">
+              <td class="whitespace-nowrap px-4 py-3 font-medium">{{ g.group_name }}</td><td class="whitespace-nowrap px-4 py-3">{{ g.visibility }}</td><td class="whitespace-nowrap px-4 py-3">{{ g.member_count ?? '—' }}</td><td class="whitespace-nowrap px-4 py-3"><app-status-badge [status]="g.status"></app-status-badge></td>
+              <td class="whitespace-nowrap px-4 py-3">
+                <button type="button" [routerLink]="['/groups', g.id]" (click)="$event.stopPropagation()" [attr.aria-label]="'View ' + g.group_name" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-indigo-600 dark:hover:bg-gray-800"><app-icon name="visibility" aria-hidden="true" class="h-6 w-6"></app-icon></button>
+                <button type="button" (click)="openForm(g); $event.stopPropagation()" [attr.aria-label]="'Edit ' + g.group_name" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-indigo-600 dark:hover:bg-gray-800"><app-icon name="edit" aria-hidden="true" class="h-6 w-6"></app-icon></button>
+              </td>
+            </tr>
+            <tr *ngIf="!groups().length"><td colspan="5" class="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400">No groups found</td></tr>
+          </tbody>
         </table>
-        <mat-paginator [length]="total()" [pageSize]="20" [pageSizeOptions]="[10,20,50]" (page)="onPage($event)" showFirstLastButtons></mat-paginator>
-      </mat-card-content>
-    </mat-card>
+      </div>
+      <app-tailwind-paginator [length]="total()" [pageIndex]="page - 1" [pageSize]="pageSize()" [pageSizeOptions]="[10,20,50]" selectId="group-page-size" (page)="onPage($event)"></app-tailwind-paginator>
+    </section>
   `,
-  styles: [`.full-width{width:100%}.clickable{cursor:pointer}.clickable:hover{background:#f5f5f5}.empty-row{text-align:center;padding:32px;color:#999}`]
 })
 export class GroupListComponent implements OnInit {
   private readonly groupService = inject(GroupService);
-  private readonly dialog = inject(MatDialog);
+  private readonly dialog = inject(TailwindDialogService);
   readonly loading = signal(false);
   readonly groups = signal<Group[]>([]);
   readonly total = signal(0);
-  readonly cols = ['group_name', 'visibility', 'member_count', 'status', 'actions'];
-  private page = 1;
+  page = 1;
+  readonly pageSize = signal(20);
 
   ngOnInit(): void { this.load(); }
 
   load(): void {
     this.loading.set(true);
-    this.groupService.list({ page: this.page, per_page: 20 }).subscribe({
+    this.groupService.list({ page: this.page, per_page: this.pageSize() }).subscribe({
       next: res => { this.groups.set(res.data); this.total.set(res.meta.total); this.loading.set(false); },
       error: () => this.loading.set(false)
     });
   }
 
-  onPage(e: PageEvent): void { this.page = e.pageIndex + 1; this.load(); }
+  onPage(e: TailwindPageEvent): void { this.page = e.pageIndex + 1; this.pageSize.set(e.pageSize); this.load(); }
   openForm(group?: Group): void {
-    const ref = this.dialog.open(GroupFormDialogComponent, { width: '480px', data: group ?? null });
+    const ref = this.dialog.open<GroupFormDialogComponent, Group | null, boolean>(GroupFormDialogComponent, { width: '480px', data: group ?? null, ariaLabel: group ? 'Edit group' : 'Create group' });
     ref.afterClosed().subscribe(saved => { if (saved) this.load(); });
   }
 }

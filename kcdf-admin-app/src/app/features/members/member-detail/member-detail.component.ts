@@ -1,18 +1,14 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDialog } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
 import { MemberService } from '../../../core/services/member.service';
 import { MemberProfile } from '../../../core/models';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { LoadingOverlayComponent } from '../../../shared/components/loading-overlay/loading-overlay.component';
+import { AppIconComponent } from '../../../shared/components/icon/app-icon.component';
 import { MemberFormComponent } from '../member-form/member-form.component';
+import { TailwindDialogService } from '../../../shared/components/modal/tailwind-dialog.service';
 
 @Component({
   selector: 'app-member-detail',
@@ -20,11 +16,7 @@ import { MemberFormComponent } from '../member-form/member-form.component';
   imports: [
     CommonModule,
     RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-    MatDividerModule,
+    AppIconComponent,
     StatusBadgeComponent,
     PageHeaderComponent,
     LoadingOverlayComponent,
@@ -32,44 +24,43 @@ import { MemberFormComponent } from '../member-form/member-form.component';
   template: `
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
     <app-page-header [title]="memberName()" subtitle="Member Profile">
-      <button mat-stroked-button routerLink="/members"><mat-icon>arrow_back</mat-icon> Back</button>
-      <button mat-flat-button color="primary" (click)="openEdit()"><mat-icon>edit</mat-icon> Edit</button>
+      <button type="button" routerLink="/members"
+        class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800">
+        <app-icon name="arrow_back" aria-hidden="true" class="h-6 w-6"></app-icon> Back
+      </button>
+      <button type="button" (click)="openEdit()"
+        class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+        <app-icon name="edit" aria-hidden="true" class="h-6 w-6"></app-icon> Edit
+      </button>
     </app-page-header>
 
-    <div class="detail-grid" *ngIf="member()">
-      <mat-card>
-        <mat-card-header><mat-card-title>Personal Information</mat-card-title></mat-card-header>
-        <mat-card-content>
-          <div class="info-grid">
-            <div class="info-item"><span class="info-label">First Name</span><span>{{ member()!.first_name }}</span></div>
-            <div class="info-item"><span class="info-label">Last Name</span><span>{{ member()!.last_name }}</span></div>
-            <div class="info-item"><span class="info-label">Email</span><span>{{ member()!.email ?? '—' }}</span></div>
-            <div class="info-item"><span class="info-label">Mobile</span><span>{{ member()!.mobile ?? '—' }}</span></div>
-            <div class="info-item"><span class="info-label">Gender</span><span>{{ member()!.gender ?? '—' }}</span></div>
-            <div class="info-item"><span class="info-label">Date of Birth</span><span>{{ (member()!.date_of_birth | date:'dd MMM yyyy') ?? '—' }}</span></div>
-            <div class="info-item"><span class="info-label">Status</span><app-status-badge [status]="member()!.status"></app-status-badge></div>
-            <div class="info-item"><span class="info-label">Has Login</span>
-              <mat-icon [style.color]="member()!.has_login ? '#2e7d32' : '#c62828'">
-                {{ member()!.has_login ? 'check_circle' : 'cancel' }}
-              </mat-icon>
-            </div>
-            <div class="info-item"><span class="info-label">Member Since</span><span>{{ member()!.created_at | date:'dd MMM yyyy' }}</span></div>
+    <div *ngIf="member()" class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white">Personal Information</h2>
+      </div>
+      <div class="p-5">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">First Name</span><span class="text-sm text-gray-900 dark:text-white">{{ member()!.first_name }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Last Name</span><span class="text-sm text-gray-900 dark:text-white">{{ member()!.last_name }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Email</span><span class="text-sm text-gray-900 dark:text-white">{{ member()!.email ?? '—' }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Mobile</span><span class="text-sm text-gray-900 dark:text-white">{{ member()!.mobile ?? '—' }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Gender</span><span class="text-sm text-gray-900 dark:text-white">{{ member()!.gender ?? '—' }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Date of Birth</span><span class="text-sm text-gray-900 dark:text-white">{{ (member()!.date_of_birth | date:'dd MMM yyyy') ?? '—' }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</span><app-status-badge [status]="member()!.status"></app-status-badge></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Has Login</span>
+              <app-icon [name]="member()!.has_login ? 'check_circle' : 'cancel'" class="!text-xl h-5 w-5"
+                [style.color]="member()!.has_login ? '#2e7d32' : '#c62828'"></app-icon>
           </div>
-        </mat-card-content>
-      </mat-card>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Member Since</span><span class="text-sm text-gray-900 dark:text-white">{{ member()!.created_at | date:'dd MMM yyyy' }}</span></div>
+        </div>
+      </div>
     </div>
   `,
-  styles: [`
-    .detail-grid { display: grid; gap: 16px; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 8px 0; }
-    .info-item { display: flex; flex-direction: column; gap: 4px; }
-    .info-label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; }
-  `]
 })
 export class MemberDetailComponent implements OnInit {
   private readonly memberService = inject(MemberService);
   private readonly route = inject(ActivatedRoute);
-  private readonly dialog = inject(MatDialog);
+  private readonly dialog = inject(TailwindDialogService);
 
   readonly loading = signal(false);
   readonly member = signal<MemberProfile | null>(null);
@@ -89,7 +80,11 @@ export class MemberDetailComponent implements OnInit {
   }
 
   openEdit(): void {
-    const ref = this.dialog.open(MemberFormComponent, { width: '520px', data: this.member() });
+    const ref = this.dialog.open(MemberFormComponent, {
+      width: '520px',
+      ariaLabel: `Edit member ${this.memberName()}`,
+      data: this.member(),
+    });
     ref.afterClosed().subscribe(saved => {
       if (saved) {
         const id = Number(this.route.snapshot.paramMap.get('id'));

@@ -18,7 +18,8 @@ session_start();
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
-header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+$scriptNonce = base64_encode(random_bytes(18));
+header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-{$scriptNonce}'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
 header('X-Frame-Options: DENY');
 
 $installed = is_file($lockPath);
@@ -28,17 +29,14 @@ $secureRequest = $isHttps || $isLoopback;
 $errors = [];
 $success = isset($_GET['installed']) && $_GET['installed'] === '1' && $installed;
 $input = [
+    'db_mode' => 'new',
     'db_host' => '127.0.0.1',
     'db_port' => '3306',
     'db_name' => 'kcdf_parents',
     'db_user' => 'root',
     'cors_origins' => 'http://localhost:4200,http://localhost:8100',
-    'admin_first_name' => '',
-    'admin_last_name' => '',
     'admin_username' => '',
     'admin_email' => '',
-    'user_first_name' => '',
-    'user_last_name' => '',
     'user_username' => '',
     'user_email' => '',
 ];
@@ -57,18 +55,15 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !$installed && $requirem
         $errors[] = 'Installer credentials may only be submitted over HTTPS or from the local machine.';
     }
     foreach ($input as $key => $_) {
-        if ($key !== 'admin_password' && $key !== 'admin_password_confirm') {
-            $input[$key] = trim(installerPostString($key));
-        }
+        $input[$key] = trim(installerPostString($key));
     }
 
     if (!hash_equals((string) ($_SESSION['installer_csrf'] ?? ''), installerPostString('csrf_token'))) {
         $errors[] = 'Your session expired. Reload the page and try again.';
     }
-    if (installerPostString('confirm_new_database') !== 'yes') {
-        $errors[] = 'Confirm that the installer may create a new, empty database.';
+    if (!in_array($input['db_mode'], ['new', 'existing'], true)) {
+        $errors[] = 'Choose whether to create a new database or connect to an existing API database.';
     }
-
     $port = filter_var(installerPostString('db_port'), FILTER_VALIDATE_INT, [
         'options' => ['min_range' => 1, 'max_range' => 65535],
     ]);
@@ -90,64 +85,50 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !$installed && $requirem
         $errors[] = 'Enter one or more valid HTTP/HTTPS origins, separated by commas (for example https://portal.example.org).';
     }
 
-    $firstName = trim(installerPostString('admin_first_name'));
-    $lastName = trim(installerPostString('admin_last_name'));
     $username = trim(installerPostString('admin_username'));
     $email = trim(installerPostString('admin_email'));
     $password = installerPostString('admin_password');
     $passwordConfirm = installerPostString('admin_password_confirm');
-    $userFirstName = trim(installerPostString('user_first_name'));
-    $userLastName = trim(installerPostString('user_last_name'));
     $userUsername = trim(installerPostString('user_username'));
     $userEmail = trim(installerPostString('user_email'));
     $userPassword = installerPostString('user_password');
     $userPasswordConfirm = installerPostString('user_password_confirm');
 
-    if ($firstName === '' || strlen($firstName) > 100) {
-        $errors[] = 'Admin first name is required and must be at most 100 characters.';
-    }
-    if ($lastName === '' || strlen($lastName) > 100) {
-        $errors[] = 'Admin last name is required and must be at most 100 characters.';
-    }
-    if ($username === '' || strlen($username) > 100 || preg_match('/[\x00-\x1F\x7F]/', $username)) {
-        $errors[] = 'Admin username is required and must be at most 100 characters.';
-    }
-    if (strlen($email) > 255 || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-        $errors[] = 'Enter a valid admin email address (up to 255 characters).';
-    }
-    if (strlen($password) < 12) {
-        $errors[] = 'Admin password must be at least 12 characters.';
-    }
-    if (str_contains($password, "\0") || str_contains(installerPostString('db_password'), "\0")) {
-        $errors[] = 'Passwords must not contain a null byte.';
-    }
-    if (!hash_equals($password, $passwordConfirm)) {
-        $errors[] = 'Admin password confirmation does not match.';
-    }
+    if ($input['db_mode'] === 'new') {
+        if ($username === '' || strlen($username) > 100 || preg_match('/[\x00-\x1F\x7F]/', $username)) {
+            $errors[] = 'Admin username is required and must be at most 100 characters.';
+        }
+        if (strlen($email) > 255 || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            $errors[] = 'Enter a valid admin email address (up to 255 characters).';
+        }
+        if ($password === '') {
+            $errors[] = 'Admin password is required.';
+        }
+        if (str_contains($password, "\0") || str_contains(installerPostString('db_password'), "\0")) {
+            $errors[] = 'Passwords must not contain a null byte.';
+        }
+        if (!hash_equals($password, $passwordConfirm)) {
+            $errors[] = 'Admin password confirmation does not match.';
+        }
 
-    if ($userFirstName === '' || strlen($userFirstName) > 100) {
-        $errors[] = 'User first name is required and must be at most 100 characters.';
-    }
-    if ($userLastName === '' || strlen($userLastName) > 100) {
-        $errors[] = 'User last name is required and must be at most 100 characters.';
-    }
-    if ($userUsername === '' || strlen($userUsername) > 100 || preg_match('/[\x00-\x1F\x7F]/', $userUsername)) {
-        $errors[] = 'User username is required and must be at most 100 characters.';
-    }
-    if (strlen($userEmail) > 255 || filter_var($userEmail, FILTER_VALIDATE_EMAIL) === false) {
-        $errors[] = 'Enter a valid user email address (up to 255 characters).';
-    }
-    if (strlen($userPassword) < 12) {
-        $errors[] = 'User password must be at least 12 characters.';
-    }
-    if (str_contains($userPassword, "\0")) {
-        $errors[] = 'Passwords must not contain a null byte.';
-    }
-    if (!hash_equals($userPassword, $userPasswordConfirm)) {
-        $errors[] = 'User password confirmation does not match.';
-    }
-    if (strcasecmp($username, $userUsername) === 0) {
-        $errors[] = 'Admin and user accounts must have different usernames.';
+        if ($userUsername === '' || strlen($userUsername) > 100 || preg_match('/[\x00-\x1F\x7F]/', $userUsername)) {
+            $errors[] = 'User username is required and must be at most 100 characters.';
+        }
+        if (strlen($userEmail) > 255 || filter_var($userEmail, FILTER_VALIDATE_EMAIL) === false) {
+            $errors[] = 'Enter a valid user email address (up to 255 characters).';
+        }
+        if ($userPassword === '') {
+            $errors[] = 'User password is required.';
+        }
+        if (str_contains($userPassword, "\0")) {
+            $errors[] = 'Passwords must not contain a null byte.';
+        }
+        if (!hash_equals($userPassword, $userPasswordConfirm)) {
+            $errors[] = 'User password confirmation does not match.';
+        }
+        if (strcasecmp($username, $userUsername) === 0) {
+            $errors[] = 'Admin and user accounts must have different usernames.';
+        }
     }
 
     if ($errors === []) {
@@ -169,34 +150,43 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !$installed && $requirem
                 'SELECT 1 FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = :database'
             );
             $databaseExists->execute([':database' => $input['db_name']]);
-            if ($databaseExists->fetchColumn() !== false) {
-                throw new DomainException(
-                    'That database already exists. Choose a new, empty database name; existing databases are never modified.'
-                );
-            }
+            $databaseAlreadyExists = $databaseExists->fetchColumn() !== false;
+            if ($input['db_mode'] === 'new') {
+                if ($databaseAlreadyExists) {
+                    throw new DomainException(
+                        'That database already exists. Choose a new, empty database name; existing databases are never modified.'
+                    );
+                }
 
-            $databaseName = '`' . $input['db_name'] . '`';
-            $pdo->exec("CREATE DATABASE {$databaseName} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-            $createdDatabase = true;
-            $pdo->exec("USE {$databaseName}");
-            installerImportSchema($pdo, $root . '/database/schema.sql');
-            installerCreateInitialAccounts(
-                $pdo,
-                [
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'username' => $username,
-                    'email' => $email,
-                    'password' => $password,
-                ],
-                [
-                    'first_name' => $userFirstName,
-                    'last_name' => $userLastName,
-                    'username' => $userUsername,
-                    'email' => $userEmail,
-                    'password' => $userPassword,
-                ]
-            );
+                $databaseName = '`' . $input['db_name'] . '`';
+                $pdo->exec("CREATE DATABASE {$databaseName} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                $createdDatabase = true;
+                $pdo->exec("USE {$databaseName}");
+                installerImportSchema($pdo, $root . '/database/schema.sql');
+                installerCreateInitialAccounts(
+                    $pdo,
+                    [
+                        'first_name' => 'Admin',
+                        'last_name' => 'Account',
+                        'username' => $username,
+                        'email' => $email,
+                        'password' => $password,
+                    ],
+                    [
+                        'first_name' => 'Member',
+                        'last_name' => 'Account',
+                        'username' => $userUsername,
+                        'email' => $userEmail,
+                        'password' => $userPassword,
+                    ]
+                );
+            } else {
+                if (!$databaseAlreadyExists) {
+                    throw new DomainException('The selected existing database does not exist.');
+                }
+                $pdo->exec('USE `' . $input['db_name'] . '`');
+                installerVerifyExistingSchema($pdo, $root . '/database/schema.sql');
+            }
 
             $jwtSecret = bin2hex(random_bytes(64));
             $environment = installerEnvironment([
@@ -418,6 +408,35 @@ function installerImportSchema(PDO $pdo, string $schemaPath): void
     }
 }
 
+function installerVerifyExistingSchema(PDO $pdo, string $schemaPath): void
+{
+    $schema = file_get_contents($schemaPath);
+    if ($schema === false) {
+        throw new RuntimeException('The bundled API schema could not be read.');
+    }
+
+    preg_match_all('/^\s*CREATE\s+TABLE\s+`([^`]+)`/im', $schema, $matches);
+    $expectedTables = array_values(array_unique($matches[1] ?? []));
+    if ($expectedTables === []) {
+        throw new RuntimeException('The bundled API schema contains no table definitions.');
+    }
+
+    $placeholders = implode(',', array_fill(0, count($expectedTables), '?'));
+    $query = $pdo->prepare(
+        'SELECT TABLE_NAME FROM information_schema.TABLES ' .
+        'WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (' . $placeholders . ')'
+    );
+    $query->execute($expectedTables);
+    $existingTables = $query->fetchAll(PDO::FETCH_COLUMN);
+    $missingTables = array_values(array_diff($expectedTables, $existingTables));
+    if ($missingTables !== []) {
+        throw new DomainException(
+            'The existing database is missing required API tables: ' . implode(', ', $missingTables) .
+            '. No schema or account changes were made.'
+        );
+    }
+}
+
 function installerCreateInitialAccounts(PDO $pdo, array $adminAccount, array $userAccount): void
 {
     $pdo->beginTransaction();
@@ -521,7 +540,8 @@ $post = static fn (string $key): string => installerEscape(installerPostString($
         :root { color-scheme: light; font: 16px/1.5 system-ui, sans-serif; color: #172033; background: #f3f6fb; }
         body { margin: 0; padding: 2rem 1rem; }
         main { max-width: 760px; margin: 0 auto; }
-        section { background: #fff; border: 1px solid #dbe3ef; border-radius: 12px; padding: 1.5rem; margin: 1rem 0; }
+        section, fieldset { background: #fff; border: 1px solid #dbe3ef; border-radius: 12px; padding: 1.5rem; margin: 1rem 0; }
+        fieldset { min-width: 0; }
         h1, h2 { line-height: 1.2; } h1 { margin-top: 0; }
         label { display: block; font-weight: 650; margin: .9rem 0 .25rem; }
         input { box-sizing: border-box; width: 100%; padding: .65rem .75rem; border: 1px solid #aab7c9; border-radius: 6px; font: inherit; }
@@ -541,7 +561,7 @@ $post = static fn (string $key): string => installerEscape(installerPostString($
 <body>
 <main>
     <h1>KCDF Parents API setup</h1>
-    <p class="hint">This one-time installer creates a new MySQL database, installs the API schema, creates a super admin and a member profile with login credentials, and writes production configuration.</p>
+    <p class="hint">This one-time installer configures the API to use MySQL. Choose whether to create a new database with initial accounts or connect to an existing API database without modifying it.</p>
 
     <?php if ($installed || $success): ?>
         <section class="success">
@@ -573,49 +593,67 @@ $post = static fn (string $key): string => installerEscape(installerPostString($
             <form method="post" action="">
                 <input type="hidden" name="csrf_token" value="<?= installerEscape($csrf) ?>">
                 <section>
-                    <h2>New database</h2>
-                    <p class="hint">Use a MySQL account allowed to create a database and tables. The database name must not already exist; existing databases are never overwritten.</p>
+                    <h2>Database setup</h2>
+                    <label for="db_mode">Database option</label>
+                    <select id="db_mode" name="db_mode" required>
+                        <option value="new" <?= $input['db_mode'] === 'new' ? 'selected' : '' ?>>Create a new database and initial accounts</option>
+                        <option value="existing" <?= $input['db_mode'] === 'existing' ? 'selected' : '' ?>>Connect to an existing API database (no schema or account changes)</option>
+                    </select>
+                    <p class="hint">Use a MySQL account permitted to connect to the selected database. Creating a new database also requires permission to create databases and tables.</p>
                     <div class="grid">
                         <div><label for="db_host">Database host</label><input id="db_host" name="db_host" required value="<?= $post('db_host') ?: '127.0.0.1' ?>"></div>
                         <div><label for="db_port">Port</label><input id="db_port" name="db_port" type="number" min="1" max="65535" required value="<?= $post('db_port') ?: '3306' ?>"></div>
                     </div>
-                    <label for="db_name">New database name</label><input id="db_name" name="db_name" required maxlength="64" pattern="[A-Za-z0-9_]+" value="<?= $post('db_name') ?: 'kcdf_parents' ?>">
+                    <label for="db_name">Database name</label><input id="db_name" name="db_name" required maxlength="64" pattern="[A-Za-z0-9_]+" value="<?= $post('db_name') ?: 'kcdf_parents' ?>">
                     <label for="db_user">Database username</label><input id="db_user" name="db_user" required maxlength="128" autocomplete="username" value="<?= $post('db_user') ?: 'root' ?>">
                     <label for="db_password">Database password</label><input id="db_password" name="db_password" type="password" autocomplete="new-password">
                     <label for="cors_origins">Allowed frontend origins</label><input id="cors_origins" name="cors_origins" required value="<?= $post('cors_origins') ?: 'http://localhost:4200,http://localhost:8100' ?>">
                     <p class="hint">Comma-separated exact origins, including scheme and optional port. No paths or wildcard origins.</p>
-                    <label class="confirm"><input type="checkbox" name="confirm_new_database" value="yes" required> I confirm this is a new database name. If installation fails after creating it, the installer may remove that newly created database.</label>
+                    <p id="existing-database-note" class="hint" hidden>The existing database must already have the API schema. The installer verifies its tables and writes connection settings only; it does not change the database or create accounts.</p>
                 </section>
 
-                <section>
-                    <h2>Initial super admin</h2>
-                    <div class="grid">
-                        <div><label for="admin_first_name">First name</label><input id="admin_first_name" name="admin_first_name" required maxlength="100" autocomplete="given-name" value="<?= $post('admin_first_name') ?>"></div>
-                        <div><label for="admin_last_name">Last name</label><input id="admin_last_name" name="admin_last_name" required maxlength="100" autocomplete="family-name" value="<?= $post('admin_last_name') ?>"></div>
-                    </div>
-                    <label for="admin_username">Login username</label><input id="admin_username" name="admin_username" required maxlength="100" autocomplete="username" value="<?= $post('admin_username') ?>">
-                    <label for="admin_email">Email</label><input id="admin_email" name="admin_email" type="email" required maxlength="255" autocomplete="email" value="<?= $post('admin_email') ?>">
-                    <div class="grid">
-                        <div><label for="admin_password">Password (at least 12 characters)</label><input id="admin_password" name="admin_password" type="password" required minlength="12" autocomplete="new-password"></div>
-                        <div><label for="admin_password_confirm">Confirm password</label><input id="admin_password_confirm" name="admin_password_confirm" type="password" required minlength="12" autocomplete="new-password"></div>
-                    </div>
-                </section>
-                <section>
-                    <h2>Initial member account</h2>
-                    <p class="hint">This creates a member profile and its login credentials directly in the database. The Members API creates profiles only; it does not create login accounts. This account has no admin role or family membership.</p>
-                    <div class="grid">
-                        <div><label for="user_first_name">First name</label><input id="user_first_name" name="user_first_name" required maxlength="100" autocomplete="given-name" value="<?= $post('user_first_name') ?>"></div>
-                        <div><label for="user_last_name">Last name</label><input id="user_last_name" name="user_last_name" required maxlength="100" autocomplete="family-name" value="<?= $post('user_last_name') ?>"></div>
-                    </div>
-                    <label for="user_username">Login username</label><input id="user_username" name="user_username" required maxlength="100" autocomplete="username" value="<?= $post('user_username') ?>">
-                    <label for="user_email">Email</label><input id="user_email" name="user_email" type="email" required maxlength="255" autocomplete="email" value="<?= $post('user_email') ?>">
-                    <div class="grid">
-                        <div><label for="user_password">Password (at least 12 characters)</label><input id="user_password" name="user_password" type="password" required minlength="12" autocomplete="new-password"></div>
-                        <div><label for="user_password_confirm">Confirm password</label><input id="user_password_confirm" name="user_password_confirm" type="password" required minlength="12" autocomplete="new-password"></div>
-                    </div>
-                </section>
-                <button type="submit" <?= $requirementsMet && $secureRequest ? '' : 'disabled' ?>>Create database and install API</button>
+                <fieldset id="initial-accounts">
+                    <legend>Initial accounts for new database</legend>
+                    <p class="hint">First and last names are assigned automatically as “Admin Account” and “Member Account.” Passwords may be any non-empty value. Choose strong passwords for real deployments.</p>
+                    <section>
+                        <h2>Initial super admin</h2>
+                        <label for="admin_username">Login username</label><input id="admin_username" name="admin_username" required maxlength="100" autocomplete="username" value="<?= $post('admin_username') ?>">
+                        <label for="admin_email">Email</label><input id="admin_email" name="admin_email" type="email" required maxlength="255" autocomplete="email" value="<?= $post('admin_email') ?>">
+                        <div class="grid">
+                            <div><label for="admin_password">Password</label><input id="admin_password" name="admin_password" type="password" required autocomplete="new-password"></div>
+                            <div><label for="admin_password_confirm">Confirm password</label><input id="admin_password_confirm" name="admin_password_confirm" type="password" required autocomplete="new-password"></div>
+                        </div>
+                    </section>
+                    <section>
+                        <h2>Initial member account</h2>
+                        <p class="hint">This creates a member profile and its login credentials directly in the database. The Members API creates profiles only; it does not create login accounts. This account has no admin role or family membership.</p>
+                        <label for="user_username">Login username</label><input id="user_username" name="user_username" required maxlength="100" autocomplete="username" value="<?= $post('user_username') ?>">
+                        <label for="user_email">Email</label><input id="user_email" name="user_email" type="email" required maxlength="255" autocomplete="email" value="<?= $post('user_email') ?>">
+                        <div class="grid">
+                            <div><label for="user_password">Password</label><input id="user_password" name="user_password" type="password" required autocomplete="new-password"></div>
+                            <div><label for="user_password_confirm">Confirm password</label><input id="user_password_confirm" name="user_password_confirm" type="password" required autocomplete="new-password"></div>
+                        </div>
+                    </section>
+                </fieldset>
+                <button id="install-submit" type="submit" <?= $requirementsMet && $secureRequest ? '' : 'disabled' ?>>Install API</button>
             </form>
+            <script nonce="<?= installerEscape($scriptNonce) ?>">
+                const databaseMode = document.getElementById("db_mode");
+                const accountFields = document.getElementById("initial-accounts");
+                const existingDatabaseNote = document.getElementById("existing-database-note");
+                const submitButton = document.getElementById("install-submit");
+
+                function updateDatabaseMode() {
+                    const isNewDatabase = databaseMode.value === "new";
+                    accountFields.disabled = !isNewDatabase;
+                    accountFields.hidden = !isNewDatabase;
+                    existingDatabaseNote.hidden = isNewDatabase;
+                    submitButton.textContent = isNewDatabase ? "Create database and install API" : "Configure existing database";
+                }
+
+                databaseMode.addEventListener("change", updateDatabaseMode);
+                updateDatabaseMode();
+            </script>
         <?php elseif (!$requirementsMet): ?>
             <p class="hint">Resolve the server requirement failures before installing.</p>
         <?php endif; ?>

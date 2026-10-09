@@ -135,16 +135,34 @@ $assert(
 );
 $rewriteRules = file_get_contents($root . '/.htaccess');
 $frontController = file_get_contents($root . '/api/index.php');
+$installer = file_get_contents($root . '/install/index.php');
 $configLoadPosition = is_string($frontController) ? strpos($frontController, '/config/config.php') : false;
 $optionsCheckPosition = is_string($frontController) ? strpos($frontController, "=== 'OPTIONS'") : false;
 $runtimeInitPosition = is_string($frontController) ? strpos($frontController, '/config/init.php') : false;
 $assert(
     is_string($rewriteRules)
+        && str_contains($rewriteRules, '<IfModule mod_rewrite.c>')
+        && str_contains($rewriteRules, '</IfModule>')
+        && str_contains($rewriteRules, 'Options -Indexes')
         && str_contains($rewriteRules, 'RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]')
         && str_contains($rewriteRules, 'RewriteRule ^(?:\\.[^/]+|config|database|http|install|libraries|repositories|services|storage|tests)(?:/|$) - [F,L,NC]')
         && str_contains($rewriteRules, 'RewriteRule ^api/v1(?:/.*)?$ api/index.php [END,QSA,NC]')
         && str_contains($rewriteRules, 'RewriteRule ^api/.*\\.php(?:/.*)?$ - [F,L,NC]'),
     'Apache rules must preserve the API front-controller rewrite while denying direct PHP requests.'
+);
+$assert(
+    is_string($installer)
+        && !str_contains($installer, 'name="admin_first_name"')
+        && !str_contains($installer, 'name="admin_last_name"')
+        && !str_contains($installer, 'name="user_first_name"')
+        && !str_contains($installer, 'name="user_last_name"')
+        && !str_contains($installer, 'minlength="12"')
+        && !str_contains($installer, 'strlen($password) < 12')
+        && !str_contains($installer, 'strlen($userPassword) < 12')
+        && !str_contains($installer, 'name="confirm_new_database"')
+        && !str_contains($installer, 'name="confirm_existing_database"')
+        && str_contains($installer, 'installerVerifyExistingSchema($pdo, $root . \'/database/schema.sql\')'),
+    'The installer must omit account-name fields, password minimums, and database confirmation checkboxes, and verify an existing schema without importing it.'
 );
 $assert(
     is_string($frontController)

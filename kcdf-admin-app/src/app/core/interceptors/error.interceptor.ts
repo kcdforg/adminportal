@@ -1,16 +1,16 @@
 import { inject } from '@angular/core';
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, switchMap, throwError, NEVER } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { authStore } from '../store/auth.store';
+import { ToastService } from '../../shared/components/toast/toast.service';
 
 let isRefreshing = false;
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
-  const snackBar = inject(MatSnackBar);
+  const toast = inject(ToastService);
   const authService = inject(AuthService);
 
   return next(req).pipe(
@@ -37,11 +37,23 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           return NEVER;
         }
       } else if (error.status === 403) {
-        snackBar.open("You don't have permission to perform this action", 'Close', { duration: 4000 });
+        toast.show("You don't have permission to perform this action", {
+          variant: 'warning',
+          durationMs: 4000,
+          actionLabel: 'Close',
+        });
       } else if (error.status === 404) {
-        snackBar.open('Resource not found', 'Close', { duration: 3000 });
+        toast.show('Resource not found', {
+          variant: 'info',
+          durationMs: 3000,
+          actionLabel: 'Close',
+        });
       } else if (error.status >= 500) {
-        snackBar.open('Server error. Please try again.', 'Retry', { duration: 5000 });
+        toast.show('Server error. Please try again.', {
+          variant: 'error',
+          durationMs: 5000,
+          actionLabel: 'Retry',
+        });
       }
       return throwError(() => error);
     })

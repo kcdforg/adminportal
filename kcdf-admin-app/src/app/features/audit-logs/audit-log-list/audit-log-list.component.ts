@@ -1,54 +1,44 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ActivityLogService } from '../../../core/services/activity-log.service';
 import { ActivityLog } from '../../../core/models';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { LoadingOverlayComponent } from '../../../shared/components/loading-overlay/loading-overlay.component';
+import { AppIconComponent } from '../../../shared/components/icon/app-icon.component';
+import { TAILWIND_DIALOG_DATA, TAILWIND_DIALOG_REF, TailwindDialogRef, TailwindDialogService } from '../../../shared/components/modal/tailwind-dialog.service';
+import { TailwindPaginatorComponent, TailwindPageEvent } from '../../../shared/components/paginator/tailwind-paginator.component';
 
 @Component({
   selector: 'app-log-diff-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule],
+  imports: [CommonModule],
   template: `
-    <h2 mat-dialog-title>Audit Log Detail</h2>
-    <mat-dialog-content>
-      <div class="log-meta">
-        <span><strong>Action:</strong> {{ log.action }}</span>
-        <span><strong>Entity:</strong> {{ log.entity_type }} #{{ log.entity_id }}</span>
-        <span><strong>Actor:</strong> {{ log.actor?.first_name ?? log.actor_type }} #{{ log.actor_id }}</span>
-        <span><strong>Time:</strong> {{ log.created_at | date:'dd MMM yyyy HH:mm:ss' }}</span>
+    <div class="px-6 pt-6 text-xl font-semibold tracking-tight text-gray-900 dark:text-white">Audit Log Detail</div>
+    <div class="px-6 py-4">
+      <div class="mb-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700 dark:text-gray-200">
+        <span><strong>Action:</strong> {{ log.action }}</span><span><strong>Entity:</strong> {{ log.entity_type }} #{{ log.entity_id }}</span><span><strong>Actor:</strong> {{ log.actor?.first_name ?? log.actor_type }} #{{ log.actor_id }}</span><span><strong>Time:</strong> {{ log.created_at | date:'dd MMM yyyy HH:mm:ss' }}</span>
       </div>
-      <div class="diff-grid">
+      <div class="grid min-w-0 grid-cols-1 gap-4 lg:min-w-[37.5rem] lg:grid-cols-2">
         <div>
-          <p class="diff-label">Old Values</p>
-          <pre class="diff-box">{{ log.old_values | json }}</pre>
+          <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Old Values</p>
+          <pre class="max-h-72 overflow-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200">{{ log.old_values | json }}</pre>
         </div>
         <div>
-          <p class="diff-label">New Values</p>
-          <pre class="diff-box">{{ log.new_values | json }}</pre>
+          <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">New Values</p>
+          <pre class="max-h-72 overflow-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200">{{ log.new_values | json }}</pre>
         </div>
       </div>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Close</button>
-    </mat-dialog-actions>
-  `,
-  styles: [`.log-meta{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:16px;font-size:14px}.diff-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-width:600px}.diff-label{font-size:12px;font-weight:600;color:#666;text-transform:uppercase;margin:0 0 4px}.diff-box{background:#f5f5f5;padding:12px;border-radius:6px;overflow:auto;max-height:300px;font-size:12px;margin:0}`]
+    </div>
+    <div class="flex justify-end px-6 pb-5">
+      <button type="button" (click)="dialogRef.close()" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800">Close</button>
+    </div>
+  `
 })
 export class LogDiffDialogComponent {
-  readonly log: ActivityLog = inject(MAT_DIALOG_DATA);
+  readonly log = inject(TAILWIND_DIALOG_DATA) as ActivityLog;
+  readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<void>;
 }
 
 @Component({
@@ -56,62 +46,46 @@ export class LogDiffDialogComponent {
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule,
-    MatCardModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatTableModule, MatPaginatorModule,
+    AppIconComponent, TailwindPaginatorComponent,
     PageHeaderComponent, LoadingOverlayComponent,
   ],
   template: `
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
     <app-page-header title="Audit Logs" [subtitle]="'Total: ' + total()"></app-page-header>
-    <mat-card>
-      <mat-card-content>
-        <div class="filters">
-          <mat-form-field appearance="outline">
-            <mat-label>Entity Type</mat-label>
-            <input matInput [formControl]="entityCtrl" placeholder="e.g. Family, Member" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Action</mat-label>
-            <input matInput [formControl]="actionCtrl" placeholder="e.g. create, update" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>From Date</mat-label>
-            <input matInput type="date" [formControl]="dateFromCtrl" />
-          </mat-form-field>
-        </div>
-        <table mat-table [dataSource]="logs()" class="full-width">
-          <ng-container matColumnDef="actor"><th mat-header-cell *matHeaderCellDef>Actor</th><td mat-cell *matCellDef="let l">{{ l.actor?.first_name ?? l.actor_type }} {{ l.actor?.last_name ?? '' }}</td></ng-container>
-          <ng-container matColumnDef="action"><th mat-header-cell *matHeaderCellDef>Action</th><td mat-cell *matCellDef="let l">{{ l.action }}</td></ng-container>
-          <ng-container matColumnDef="entity_type"><th mat-header-cell *matHeaderCellDef>Entity</th><td mat-cell *matCellDef="let l">{{ l.entity_type }}</td></ng-container>
-          <ng-container matColumnDef="entity_id"><th mat-header-cell *matHeaderCellDef>ID</th><td mat-cell *matCellDef="let l">{{ l.entity_id ?? '—' }}</td></ng-container>
-          <ng-container matColumnDef="created_at"><th mat-header-cell *matHeaderCellDef>Time</th><td mat-cell *matCellDef="let l">{{ l.created_at | date:'dd MMM yyyy HH:mm' }}</td></ng-container>
-          <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let l">
-              <button mat-icon-button (click)="viewDiff(l)" matTooltip="View diff"><mat-icon>diff</mat-icon></button>
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="cols"></tr>
-          <tr mat-row *matRowDef="let r; columns: cols;" class="clickable" (click)="viewDiff(r)"></tr>
-          <tr class="mat-row" *matNoDataRow><td [colSpan]="cols.length" class="empty-row">No audit logs found</td></tr>
+    <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="grid grid-cols-1 gap-4 border-b border-gray-200 p-4 sm:grid-cols-3 dark:border-gray-800">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Entity Type<input [formControl]="entityCtrl" placeholder="e.g. Family, Member" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" /></label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Action<input [formControl]="actionCtrl" placeholder="e.g. create, update" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" /></label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">From Date<input type="date" [formControl]="dateFromCtrl" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" /></label>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+          <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-300"><tr><th class="px-4 py-3">Actor</th><th class="px-4 py-3">Action</th><th class="px-4 py-3">Entity</th><th class="px-4 py-3">ID</th><th class="px-4 py-3">Time</th><th class="px-4 py-3"><span class="sr-only">Details</span></th></tr></thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+            <tr *ngFor="let l of logs()" tabindex="0" (click)="viewDiff(l)" (keydown.enter)="viewDiff(l)" (keydown.space)="viewDiff(l); $event.preventDefault()" class="cursor-pointer text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 dark:text-gray-200 dark:hover:bg-gray-800/50">
+              <td class="whitespace-nowrap px-4 py-3">{{ l.actor?.first_name ?? l.actor_type }} {{ l.actor?.last_name ?? '' }}</td><td class="whitespace-nowrap px-4 py-3">{{ l.action }}</td><td class="whitespace-nowrap px-4 py-3">{{ l.entity_type }}</td><td class="whitespace-nowrap px-4 py-3">{{ l.entity_id ?? '—' }}</td><td class="whitespace-nowrap px-4 py-3">{{ l.created_at | date:'dd MMM yyyy HH:mm' }}</td>
+              <td class="whitespace-nowrap px-4 py-3"><button type="button" (click)="viewDiff(l); $event.stopPropagation()" aria-label="View audit log details" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-indigo-600 dark:hover:bg-gray-800"><app-icon name="diff" aria-hidden="true" class="h-6 w-6"></app-icon></button></td>
+            </tr>
+            <tr *ngIf="!logs().length"><td colspan="6" class="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400">No audit logs found</td></tr>
+          </tbody>
         </table>
-        <mat-paginator [length]="total()" [pageSize]="20" [pageSizeOptions]="[10,20,50]" (page)="onPage($event)" showFirstLastButtons></mat-paginator>
-      </mat-card-content>
-    </mat-card>
+      </div>
+      <app-tailwind-paginator [length]="total()" [pageIndex]="page - 1" [pageSize]="pageSize()" [pageSizeOptions]="[10,20,50]" selectId="audit-log-page-size" (page)="onPage($event)"></app-tailwind-paginator>
+    </section>
   `,
-  styles: [`.filters{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px}.full-width{width:100%}.clickable{cursor:pointer}.clickable:hover{background:#f5f5f5}.empty-row{text-align:center;padding:32px;color:#999}`]
 })
 export class AuditLogListComponent implements OnInit {
   private readonly logService = inject(ActivityLogService);
-  private readonly dialog = inject(MatDialog);
+  private readonly dialog = inject(TailwindDialogService);
 
   readonly loading = signal(false);
   readonly logs = signal<ActivityLog[]>([]);
   readonly total = signal(0);
-  readonly cols = ['actor', 'action', 'entity_type', 'entity_id', 'created_at', 'actions'];
   readonly entityCtrl = new FormControl('');
   readonly actionCtrl = new FormControl('');
   readonly dateFromCtrl = new FormControl('');
-  private page = 1;
+  page = 1;
+  readonly pageSize = signal(20);
 
   ngOnInit(): void {
     this.load();
@@ -123,7 +97,7 @@ export class AuditLogListComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.logService.list({
-      page: this.page, per_page: 20,
+      page: this.page, per_page: this.pageSize(),
       entity_type: this.entityCtrl.value ?? undefined,
       action: this.actionCtrl.value ?? undefined,
       date_from: this.dateFromCtrl.value ?? undefined,
@@ -133,9 +107,9 @@ export class AuditLogListComponent implements OnInit {
     });
   }
 
-  onPage(e: PageEvent): void { this.page = e.pageIndex + 1; this.load(); }
+  onPage(e: TailwindPageEvent): void { this.page = e.pageIndex + 1; this.pageSize.set(e.pageSize); this.load(); }
 
   viewDiff(log: ActivityLog): void {
-    this.dialog.open(LogDiffDialogComponent, { data: log, width: '680px' });
+    this.dialog.open<LogDiffDialogComponent, ActivityLog, void>(LogDiffDialogComponent, { data: log, width: '680px', ariaLabel: 'Audit log detail' });
   }
 }

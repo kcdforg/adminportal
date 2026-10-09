@@ -1,12 +1,12 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, ActivatedRouteSnapshot } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from '../../shared/components/toast/toast.service';
 import { authStore } from '../store/auth.store';
 import { AdminRole } from '../models';
 
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const router = inject(Router);
-  const snackBar = inject(MatSnackBar);
+  const toast = inject(ToastService);
   const allowedRoles: AdminRole[] = route.data['roles'] ?? [];
   const role = authStore.adminRole();
 
@@ -14,6 +14,10 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
     return true;
   }
 
-  snackBar.open("You don't have permission to access this page", 'Close', { duration: 4000 });
+  toast.show("You don't have permission to access this page", {
+    variant: 'warning',
+    durationMs: 4000,
+    actionLabel: 'Close',
+  });
   return router.createUrlTree(['/dashboard']);
 };

@@ -1,45 +1,40 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDialog } from '@angular/material/dialog';
+import { TailwindDialogService } from '../../../shared/components/modal/tailwind-dialog.service';
 import { TrainerService } from '../../../core/services/trainer.service';
 import { Trainer } from '../../../core/models';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { LoadingOverlayComponent } from '../../../shared/components/loading-overlay/loading-overlay.component';
+import { AppIconComponent } from '../../../shared/components/icon/app-icon.component';
 import { TrainerFormComponent } from '../trainer-form/trainer-form.component';
 
 @Component({
   selector: 'app-trainer-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatCardModule, MatButtonModule, MatIconModule, StatusBadgeComponent, PageHeaderComponent, LoadingOverlayComponent],
+  imports: [CommonModule, RouterModule, StatusBadgeComponent, PageHeaderComponent, LoadingOverlayComponent, AppIconComponent],
   template: `
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
     <app-page-header [title]="trainerName()" subtitle="Trainer Profile">
-      <button mat-stroked-button routerLink="/trainers"><mat-icon>arrow_back</mat-icon> Back</button>
-      <button mat-flat-button color="primary" (click)="openEdit()"><mat-icon>edit</mat-icon> Edit</button>
+      <button type="button" routerLink="/trainers" class="inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"><app-icon name="arrow_back" class="h-6 w-6"></app-icon> Back</button>
+      <button type="button" (click)="openEdit()" class="inline-flex min-h-10 items-center justify-center gap-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><app-icon name="edit" class="h-6 w-6"></app-icon> Edit</button>
     </app-page-header>
-    <mat-card *ngIf="trainer()">
-      <mat-card-content>
-        <div class="info-grid">
-          <div class="info-item"><span class="info-label">Trainer Code</span><span>{{ trainer()!.trainer_code }}</span></div>
-          <div class="info-item"><span class="info-label">Name</span><span>{{ trainer()!.member?.first_name }} {{ trainer()!.member?.last_name }}</span></div>
-          <div class="info-item"><span class="info-label">Specialization</span><span>{{ trainer()!.specialization ?? '—' }}</span></div>
-          <div class="info-item"><span class="info-label">Status</span><app-status-badge [status]="trainer()!.status"></app-status-badge></div>
-          <div class="info-item" style="grid-column:1/-1"><span class="info-label">Bio</span><span>{{ trainer()!.bio ?? '—' }}</span></div>
+    <section *ngIf="trainer()" class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+        <div class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+          <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Trainer Code</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ trainer()!.trainer_code }}</span></div>
+          <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Name</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ trainer()!.member?.first_name }} {{ trainer()!.member?.last_name }}</span></div>
+          <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Specialization</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ trainer()!.specialization ?? '—' }}</span></div>
+          <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</span><app-status-badge [status]="trainer()!.status"></app-status-badge></div>
+          <div class="flex min-w-0 flex-col gap-1.5 sm:col-span-2"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Bio</span><span class="text-sm leading-6 text-gray-700 dark:text-gray-300">{{ trainer()!.bio ?? '—' }}</span></div>
         </div>
-      </mat-card-content>
-    </mat-card>
-  `,
-  styles: [`.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:8px 0}.info-item{display:flex;flex-direction:column;gap:4px}.info-label{font-size:12px;color:#666;text-transform:uppercase;font-weight:600}`]
+    </section>
+  `
 })
 export class TrainerDetailComponent implements OnInit {
   private readonly trainerService = inject(TrainerService);
   private readonly route = inject(ActivatedRoute);
-  private readonly dialog = inject(MatDialog);
+  private readonly dialog = inject(TailwindDialogService);
   readonly loading = signal(false);
   readonly trainer = signal<Trainer | null>(null);
   trainerName = () => { const t = this.trainer(); return t ? `${t.member?.first_name ?? ''} ${t.member?.last_name ?? ''}`.trim() || t.trainer_code : 'Trainer'; };
@@ -51,7 +46,11 @@ export class TrainerDetailComponent implements OnInit {
   }
 
   openEdit(): void {
-    const ref = this.dialog.open(TrainerFormComponent, { width: '520px', data: this.trainer() });
+    const ref = this.dialog.open<TrainerFormComponent, Trainer | null, boolean>(TrainerFormComponent, {
+      width: '520px',
+      data: this.trainer(),
+      ariaLabel: 'Edit trainer',
+    });
     ref.afterClosed().subscribe(saved => {
       if (saved) {
         const id = Number(this.route.snapshot.paramMap.get('id'));

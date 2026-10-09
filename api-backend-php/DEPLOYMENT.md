@@ -7,14 +7,15 @@ target until the plain-PHP runtime has passed staging acceptance.
 ## Runtime requirements
 
 - Apache 2.4 or compatible with `mod_rewrite` enabled and `AllowOverride
-  FileInfo Options` for this directory. The runtime depends on the `END`
-  rewrite flag and the `.htaccess` file.
+  FileInfo` for this directory. The runtime depends on the `END` rewrite flag
+  and the `.htaccess` file; hosting configuration must allow `RewriteEngine`,
+  `RewriteCond`, and `RewriteRule` directives in `.htaccess`.
 - PHP 8.1 or later with PDO and `pdo_mysql`. Enable the `json`, `hash`, and
   `openssl` extensions; use a maintained PHP build with its standard secure
   random-number implementation.
-- MySQL 8 with a setup account allowed to create a database and tables. The
-  web installer creates a fresh database and imports the bundled schema; it
-  refuses to use an existing database.
+- MySQL 8 with a setup account allowed to create a database and tables for
+  new-database mode, or connect to and inspect the API tables for
+  existing-database mode.
 - The web process must be able to create `storage/`, write the backend-root
   `.env`, and append logs under `storage/logs/`. Grant write access only to
   the web-service account.
@@ -70,6 +71,15 @@ target host):
 </Directory>
 ```
 
+If Apache reports that rewrite directives are not allowed in `.htaccess`,
+the server administrator must enable `mod_rewrite` and permit the `FileInfo`
+override class for the backend directory. This `.htaccess` deliberately does
+not use `Options -Indexes`, because many shared hosts prohibit `Options` in
+`.htaccess`. Ask the server administrator to configure `Options -Indexes` for
+the backend directory in the virtual-host/server configuration to disable
+directory listings. Removing an `<IfModule>` wrapper does not replace that
+server-level permission.
+
 `apachectl -t` checks the main Apache configuration only; it does not prove
 that a deployed virtual host honors this `.htaccess`. Verify the deployed
 document root and rewrite/access behavior with the staging checks below.
@@ -103,15 +113,20 @@ is unset; production configuration must explicitly set `APP_DEBUG=false`.
 
 ## First-time web installation
 
-Use the browser installer only for a new deployment with an unused database
-name. It creates the database and schema, creates the first super-admin
-profile/login, generates a random JWT secret, writes production settings to
-`.env`, and creates `storage/installed.lock`. During setup it asks for both
-the initial super-admin credentials and a regular user's credentials. The
-regular user is created as a `member_profiles` record plus a `user_logins`
-record directly by the installer; the Members API only creates profiles and
-does not create login credentials. This member has no admin role or family
+The browser installer offers two database modes. For a new database, it
+creates the database and schema and creates the initial super-admin and member
+profile/login accounts. Their profile names are assigned as “Admin Account”
+and “Member Account”; usernames, emails, and passwords are entered in the
+installer. Passwords may be any non-empty value, although strong passwords
+are strongly recommended. The initial member has no admin role or family
 membership; assign family access separately after installation.
+
+For an existing database, the installer only connects and verifies that all
+tables in the bundled API schema exist. It does not import or modify schema
+and does not create accounts. Select this mode only for a database that
+already has the API schema and login accounts configured. Both modes generate
+a random JWT secret, write production settings to `.env`, and create
+`storage/installed.lock`.
 
 1. Deploy the complete backend, including `database/schema.sql`, and configure
    Apache's document root to this backend directory.
@@ -122,17 +137,21 @@ membership; assign family access separately after installation.
    HTTP is accepted only from the local machine. The installer lock also
    blocks repeat setup, but is not a substitute for denying access to
    `install/`.
-3. Enter a MySQL account allowed to create a database, exact frontend origins,
-   and the initial super-admin credentials.
+3. Choose the new-database or existing-database mode. Enter its MySQL
+   connection details and exact frontend origins. New-database mode also
+   requires initial super-admin and member login credentials. Existing-
+   database mode verifies the current API tables but leaves all database
+   contents unchanged.
 4. After setup completes, verify `/api/v1/auth/login` and confirm that
    `/install/` and all private directories return HTTP 403 before exposing
    the API publicly. The lock file blocks repeat setup; the installer will not
-   overwrite `.env` or use an existing database.
+   overwrite `.env`.
 
 The bundled install schema contains no `DROP TABLE` statements. Do not use
-the installer to migrate an existing Slim database or any database containing
-production data. For an existing installation, perform a separately reviewed
-schema/data migration and configure the backend environment manually.
+new-database mode to migrate an existing Slim database or any database
+containing production data. Existing-database mode does not perform schema
+migrations; for a database with a different schema, perform a separately
+reviewed schema/data migration before configuring the backend.
 
 ## Creating a login for an existing member
 

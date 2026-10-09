@@ -1,99 +1,106 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatChipsModule } from '@angular/material/chips';
+import { RouterModule } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { AuthService } from '../../core/services/auth.service';
 import { authStore } from '../../core/store/auth.store';
+import { AppIconComponent } from '../../shared/components/icon/app-icon.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatSidenavModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatButtonModule,
-    MatMenuModule,
-    MatChipsModule,
-    SidebarComponent,
-  ],
+  imports: [CommonModule, RouterModule, SidebarComponent, AppIconComponent],
   template: `
-    <mat-sidenav-container class="app-container">
-      <mat-sidenav mode="side" opened class="app-sidenav">
-        <app-sidebar></app-sidebar>
-      </mat-sidenav>
+    <div class="min-h-screen bg-gray-50 text-gray-800 dark:bg-gray-950 dark:text-gray-100">
+      <app-sidebar
+        [mobileNavOpen]="mobileNavOpen()"
+        (navigate)="closeMobileNav()">
+      </app-sidebar>
 
-      <mat-sidenav-content class="app-content">
-        <mat-toolbar class="app-toolbar" color="primary">
-          <span class="toolbar-title">KCDF Admin Portal</span>
-          <span class="toolbar-spacer"></span>
+      <button
+        *ngIf="mobileNavOpen()"
+        type="button"
+        aria-label="Close navigation menu"
+        class="fixed inset-0 z-40 bg-gray-900/50 xl:hidden"
+        (click)="closeMobileNav()">
+      </button>
 
-          <div class="toolbar-user" [matMenuTriggerFor]="userMenu">
-            <span class="user-name">{{ user()?.first_name }} {{ user()?.last_name }}</span>
-            <span class="role-badge" *ngIf="adminRole()">{{ roleLabel() }}</span>
-            <mat-icon>expand_more</mat-icon>
+      <div class="min-h-screen transition-[padding] duration-300 xl:pl-[290px]">
+        <header class="sticky top-0 z-30 border-b border-gray-200 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
+          <div class="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+            <div class="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                [attr.aria-label]="mobileNavOpen() ? 'Close navigation menu' : 'Open navigation menu'"
+                [attr.aria-expanded]="mobileNavOpen()"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 xl:hidden dark:text-gray-300 dark:hover:bg-gray-800"
+                (click)="toggleMobileNav()">
+                <app-icon name="menu" aria-hidden="true" class="h-6 w-6"></app-icon>
+              </button>
+              <h1 class="truncate text-lg font-semibold text-gray-900 dark:text-white">KCDF Admin Portal</h1>
+            </div>
+
+            <details class="relative shrink-0">
+              <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:gap-3 sm:px-3 dark:hover:bg-gray-800">
+                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                  {{ userInitials() }}
+                </span>
+                <span class="hidden text-left sm:block">
+                  <span class="block max-w-44 truncate text-sm font-medium text-gray-900 dark:text-white">
+                    {{ user()?.first_name }} {{ user()?.last_name }}
+                  </span>
+                  <span *ngIf="adminRole()" class="block text-xs text-gray-500 dark:text-gray-400">
+                    {{ roleLabel() }}
+                  </span>
+                </span>
+                <app-icon name="expand_more" aria-hidden="true" class="h-5 w-5 text-gray-500"></app-icon>
+              </summary>
+              <div class="absolute right-0 mt-2 w-48 rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+                <div class="px-3 py-2 sm:hidden">
+                  <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
+                    {{ user()?.first_name }} {{ user()?.last_name }}
+                  </p>
+                  <p *ngIf="adminRole()" class="text-xs text-gray-500 dark:text-gray-400">{{ roleLabel() }}</p>
+                </div>
+                <button
+                  type="button"
+                  class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-indigo-600 dark:text-gray-200 dark:hover:bg-gray-800"
+                  (click)="logout()">
+                  <app-icon name="logout" aria-hidden="true" class="h-5 w-5"></app-icon>
+                  <span>Logout</span>
+                </button>
+              </div>
+            </details>
           </div>
+        </header>
 
-          <mat-menu #userMenu="matMenu">
-            <button mat-menu-item (click)="logout()">
-              <mat-icon>logout</mat-icon>
-              <span>Logout</span>
-            </button>
-          </mat-menu>
-        </mat-toolbar>
-
-        <div class="app-body">
+        <main class="mx-auto w-full max-w-screen-2xl p-4 sm:p-6 lg:p-8">
           <router-outlet></router-outlet>
-        </div>
-      </mat-sidenav-content>
-    </mat-sidenav-container>
-  `,
-  styles: [`
-    .app-container { height: 100vh; }
-    .app-sidenav { width: 240px; border-right: 1px solid #e0e0e0; }
-    .app-toolbar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .toolbar-title { font-size: 18px; font-weight: 500; }
-    .toolbar-spacer { flex: 1; }
-    .toolbar-user {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 4px;
-    }
-    .toolbar-user:hover { background: rgba(255,255,255,0.1); }
-    .user-name { font-size: 14px; }
-    .role-badge {
-      padding: 2px 8px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 12px;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .app-body { padding: 24px; min-height: calc(100vh - 64px); background: #f5f5f5; }
-  `]
+        </main>
+      </div>
+    </div>
+  `
 })
 export class MainLayoutComponent {
   private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
 
   readonly user = authStore.user;
   readonly adminRole = authStore.adminRole;
+  readonly mobileNavOpen = signal(false);
+
+  toggleMobileNav(): void {
+    this.mobileNavOpen.update(open => !open);
+  }
+
+  closeMobileNav(): void {
+    this.mobileNavOpen.set(false);
+  }
+
+  userInitials(): string {
+    const user = this.user();
+    const initials = `${user?.first_name?.[0] ?? ''}${user?.last_name?.[0] ?? ''}`.trim();
+    return initials || 'KC';
+  }
 
   roleLabel(): string {
     const role = this.adminRole();

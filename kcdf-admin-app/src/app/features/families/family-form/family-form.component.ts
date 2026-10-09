@@ -1,81 +1,90 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDividerModule } from '@angular/material/divider';
 import { FamilyService } from '../../../core/services/family.service';
 import { Family } from '../../../core/models';
+import { ToastService } from '../../../shared/components/toast/toast.service';
+import {
+  TAILWIND_DIALOG_DATA,
+  TAILWIND_DIALOG_REF,
+  TailwindDialogRef,
+} from '../../../shared/components/modal/tailwind-dialog.service';
 
 @Component({
   selector: 'app-family-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatDividerModule],
+  imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <h2 mat-dialog-title>{{ family ? 'Edit Family' : 'Create Family' }}</h2>
-    <mat-dialog-content>
-      <form [formGroup]="form" class="form-col">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Family Name</mat-label>
-          <input matInput formControlName="family_name" />
-          <mat-error>Required</mat-error>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width" *ngIf="family">
-          <mat-label>Status</mat-label>
-          <mat-select formControlName="status">
-            <mat-option value="active">Active</mat-option>
-            <mat-option value="inactive">Inactive</mat-option>
-            <mat-option value="suspended">Suspended</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <mat-divider></mat-divider>
-        <p class="section-label">Address</p>
-        <div class="form-grid" formGroupName="address">
-          <mat-form-field appearance="outline">
-            <mat-label>Line 1</mat-label>
-            <input matInput formControlName="line1" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Line 2</mat-label>
-            <input matInput formControlName="line2" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>City</mat-label>
-            <input matInput formControlName="city" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>State</mat-label>
-            <input matInput formControlName="state" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Pincode</mat-label>
-            <input matInput formControlName="pincode" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Country</mat-label>
-            <input matInput formControlName="country" />
-          </mat-form-field>
+    <h2 class="border-b border-gray-200 px-6 py-5 text-lg font-semibold text-gray-900 dark:border-gray-800 dark:text-white">{{ family ? 'Edit Family' : 'Create Family' }}</h2>
+    <div class="max-h-[75vh] overflow-y-auto px-6 py-5">
+      <form [formGroup]="form" class="space-y-4">
+        <div>
+          <label for="family-name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Family Name</label>
+          <input id="family-name" type="text" formControlName="family_name" required
+            [attr.aria-invalid]="form.controls.family_name.touched && form.controls.family_name.invalid"
+            [attr.aria-describedby]="form.controls.family_name.touched && form.controls.family_name.hasError('required') ? 'family-name-error' : null"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
+            [class.border-rose-500]="form.controls.family_name.touched && form.controls.family_name.invalid" />
+          <p *ngIf="form.controls.family_name.touched && form.controls.family_name.hasError('required')" id="family-name-error" class="mt-1 text-sm text-rose-600 dark:text-rose-400">Required</p>
+        </div>
+        <div *ngIf="family">
+          <label for="family-status" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Status</label>
+          <select id="family-status" formControlName="status"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white">
+            <option value="active">Active</option><option value="inactive">Inactive</option><option value="suspended">Suspended</option>
+          </select>
+        </div>
+        <div class="border-t border-gray-200 pt-4 dark:border-gray-800"></div>
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Address</p>
+        <div class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2" formGroupName="address">
+          <div>
+            <label for="family-address-line1" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Line 1</label>
+            <input id="family-address-line1" type="text" formControlName="line1"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-address-line2" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Line 2</label>
+            <input id="family-address-line2" type="text" formControlName="line2"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-city" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">City</label>
+            <input id="family-city" type="text" formControlName="city"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-state" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">State</label>
+            <input id="family-state" type="text" formControlName="state"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-pincode" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Pincode</label>
+            <input id="family-pincode" type="text" formControlName="pincode"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-country" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Country</label>
+            <input id="family-country" type="text" formControlName="country"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
         </div>
       </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-flat-button color="primary" (click)="save()" [disabled]="saving">
+    </div>
+    <div class="flex justify-end gap-2 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+      <button type="button" (click)="dialogRef.close()"
+        class="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800">Cancel</button>
+      <button type="button" (click)="save()" [disabled]="saving"
+        class="inline-flex min-h-10 items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60">
         {{ saving ? 'Saving...' : 'Save' }}
       </button>
-    </mat-dialog-actions>
+    </div>
   `,
-  styles: [`.form-col{display:flex;flex-direction:column;gap:8px;min-width:480px}.full-width{width:100%}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.section-label{font-size:12px;font-weight:600;color:#666;text-transform:uppercase;margin:8px 0 0}`]
 })
 export class FamilyFormComponent {
-  readonly family: Family | null = inject(MAT_DIALOG_DATA);
+  readonly family = inject(TAILWIND_DIALOG_DATA) as Family | null;
   private readonly familyService = inject(FamilyService);
-  private readonly dialogRef = inject(MatDialogRef<FamilyFormComponent>);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
+  private readonly toast = inject(ToastService);
 
   saving = false;
 
@@ -102,12 +111,20 @@ export class FamilyFormComponent {
 
     obs.subscribe({
       next: () => {
-        this.snackBar.open(`Family ${this.family ? 'updated' : 'created'}`, 'Close', { duration: 3000 });
+        this.toast.show(`Family ${this.family ? 'updated' : 'created'}`, {
+          variant: 'success',
+          durationMs: 3000,
+          actionLabel: 'Close',
+        });
         this.dialogRef.close(true);
       },
       error: (err) => {
         this.saving = false;
-        this.snackBar.open(err?.error?.error?.message ?? 'Error saving family', 'Close', { duration: 4000 });
+        this.toast.show(err?.error?.error?.message ?? 'Error saving family', {
+          variant: 'error',
+          durationMs: 4000,
+          actionLabel: 'Close',
+        });
       }
     });
   }

@@ -1,9 +1,9 @@
 # KCDF Parents — Admin Portal
 
-Angular SPA with Angular Material for KCDF staff. Manages members, families, academics, payments, community, and reports.
+Angular SPA for KCDF staff. Manages members, families, academics, payments, community, and reports.
 
 **Dev URL:** `http://localhost:4200`  
-**Production:** `https://admin.xyz.com`
+**Production API:** `https://api.kcdfindia.com/api/v1`
 
 ---
 
@@ -12,7 +12,7 @@ Angular SPA with Angular Material for KCDF staff. Manages members, families, aca
 | Layer | Technology |
 |---|---|
 | Framework | Angular 21 (standalone components) |
-| UI | Angular Material |
+| UI | Tailwind CSS 4 utilities and native Angular controls |
 | State | Angular Signals |
 | HTTP | HttpClient + JWT interceptors |
 | API | KCDF REST API (`kcdf-api-backend`) |
@@ -21,7 +21,7 @@ Angular SPA with Angular Material for KCDF staff. Manages members, families, aca
 
 ## Prerequisites
 
-- Node.js 20+ and npm
+- Node.js `^20.19.0`, `^22.12.0`, or `>=24.0.0` and npm (the project declares npm `11.4.2`)
 - KCDF API backend running at `http://localhost:8080/api/v1`
 - Admin user account in the API (`member_profiles` + `user_logins` + `admins` record)
 
@@ -45,16 +45,20 @@ export const environment = {
 };
 ```
 
-Production (`src/environments/environment.prod.ts`):
+Production (`src/environments/environment.prod.ts`, as currently configured):
 
 ```typescript
 export const environment = {
   production: true,
-  apiUrl: 'https://api.xyz.com/api/v1'
+  apiUrl: 'https://api.kcdfindia.com/api/v1'
 };
 ```
 
-Update `apiUrl` to match your deployed API before building for production.
+If the production API host changes, update this environment value before building for production.
+
+### UI styling
+
+Tailwind CSS 4 is configured through `.postcssrc.json` and `src/tailwind.css`. Tailwind preflight remains disabled to preserve the application's existing global element styles. The UI uses native Angular form controls, accessible Tailwind dialogs, toasts, tables, pagination, and inline SVG icons; Angular Material and CDK are not runtime dependencies.
 
 ---
 
@@ -88,7 +92,7 @@ npm run build
 
 Output: `dist/kcdf-admin-app/browser/`
 
-Deploy the contents of `dist/kcdf-admin-app/browser/` to your web server (e.g. `admin.xyz.com`).
+Deploy the contents of `dist/kcdf-admin-app/browser/` to the configured static web host.
 
 For SPA routing, configure the server to rewrite all routes to `index.html`.
 
@@ -126,9 +130,9 @@ kcdf-admin-app/src/app/
 │   ├── models/         # TypeScript interfaces
 │   └── store/          # Auth state (signals)
 ├── shared/
-│   └── components/     # DataTable, StatusBadge, PageHeader, etc.
+│   └── components/     # Tailwind controls, dialogs, toasts, tables, and pagination
 ├── layout/
-│   ├── main-layout/    # Sidenav shell
+│   ├── main-layout/    # Responsive Tailwind application shell
 │   └── sidebar/        # Navigation
 └── features/
     ├── auth/login/

@@ -1,33 +1,53 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
   selector: 'app-status-badge',
   standalone: true,
-  imports: [CommonModule, MatChipsModule],
+  imports: [CommonModule],
   template: `
-    <span class="status-badge" [class]="'status-' + status">{{ status | titlecase }}</span>
-  `,
-  styles: [`
-    .status-badge {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .status-active, .status-completed, .status-present, .status-paid, .status-sent, .status-delivered { background: #e8f5e9; color: #2e7d32; }
-    .status-inactive, .status-cancelled, .status-absent, .status-failed { background: #ffebee; color: #c62828; }
-    .status-pending, .status-scheduled, .status-upcoming { background: #fff3e0; color: #e65100; }
-    .status-suspended, .status-overdue { background: #fce4ec; color: #880e4f; }
-    .status-late, .status-makeup { background: #fff8e1; color: #f57f17; }
-    .status-excused, .status-waived, .status-archived { background: #f3e5f5; color: #6a1b9a; }
-    .status-locked { background: #e8eaf6; color: #283593; }
-  `]
+    <span
+      class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize"
+      [ngClass]="toneClasses">
+      {{ status | titlecase }}
+    </span>
+  `
 })
 export class StatusBadgeComponent {
   @Input() status = '';
+
+  get toneClasses(): string {
+    switch (this.status.trim().toLowerCase()) {
+      case 'active':
+      case 'completed':
+      case 'present':
+      case 'paid':
+      case 'sent':
+      case 'delivered':
+        return 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20';
+      case 'inactive':
+      case 'cancelled':
+      case 'absent':
+      case 'failed':
+        return 'bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/20';
+      case 'pending':
+      case 'scheduled':
+      case 'upcoming':
+        return 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20';
+      case 'suspended':
+      case 'overdue':
+        return 'bg-pink-50 text-pink-700 ring-1 ring-inset ring-pink-600/20 dark:bg-pink-500/10 dark:text-pink-300 dark:ring-pink-500/20';
+      case 'late':
+      case 'makeup':
+        return 'bg-yellow-50 text-yellow-800 ring-1 ring-inset ring-yellow-600/20 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/20';
+      case 'excused':
+      case 'waived':
+      case 'archived':
+        return 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20 dark:bg-purple-500/10 dark:text-purple-300 dark:ring-purple-500/20';
+      case 'locked':
+        return 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-600/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:ring-indigo-500/20';
+      default:
+        return 'bg-gray-100 text-gray-700 ring-1 ring-inset ring-gray-600/10 dark:bg-gray-500/10 dark:text-gray-300 dark:ring-gray-400/20';
+    }
+  }
 }

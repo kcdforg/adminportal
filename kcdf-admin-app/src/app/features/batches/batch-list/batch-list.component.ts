@@ -2,78 +2,88 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { BatchService } from '../../../core/services/batch.service';
 import { Batch } from '../../../core/models';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { LoadingOverlayComponent } from '../../../shared/components/loading-overlay/loading-overlay.component';
+import { AppIconComponent } from '../../../shared/components/icon/app-icon.component';
+import { TailwindPaginatorComponent, TailwindPageEvent } from '../../../shared/components/paginator/tailwind-paginator.component';
 
 @Component({
   selector: 'app-batch-list',
   standalone: true,
   imports: [
     CommonModule, RouterModule, ReactiveFormsModule,
-    MatCardModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatSelectModule,
-    MatTableModule, MatPaginatorModule,
-    StatusBadgeComponent, PageHeaderComponent, LoadingOverlayComponent,
+    TailwindPaginatorComponent,
+    StatusBadgeComponent, PageHeaderComponent, LoadingOverlayComponent, AppIconComponent,
   ],
   template: `
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
     <app-page-header title="Batches" [subtitle]="'Total: ' + total()">
-      <button mat-flat-button color="primary" routerLink="/batches/new"><mat-icon>add</mat-icon> New Batch</button>
+      <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" routerLink="/batches/new"><app-icon name="add" class="h-6 w-6"></app-icon> New Batch</button>
     </app-page-header>
-    <mat-card>
-      <mat-card-content>
+    <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="border-b border-gray-200 p-4 dark:border-gray-800 sm:p-6">
         <div class="filters">
-          <mat-form-field appearance="outline">
-            <mat-label>Status</mat-label>
-            <mat-select [formControl]="statusCtrl">
-              <mat-option value="">All</mat-option>
-              <mat-option value="upcoming">Upcoming</mat-option>
-              <mat-option value="active">Active</mat-option>
-              <mat-option value="completed">Completed</mat-option>
-              <mat-option value="cancelled">Cancelled</mat-option>
-            </mat-select>
-          </mat-form-field>
+          <label for="batch-status-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Status
+            <select id="batch-status-filter" [formControl]="statusCtrl" class="mt-1 block w-full min-w-[200px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+              <option value="">All</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </label>
         </div>
-        <table mat-table [dataSource]="batches()" class="full-width">
-          <ng-container matColumnDef="batch_name"><th mat-header-cell *matHeaderCellDef>Batch Name</th><td mat-cell *matCellDef="let b">{{ b.batch_name }}</td></ng-container>
-          <ng-container matColumnDef="program"><th mat-header-cell *matHeaderCellDef>Program</th><td mat-cell *matCellDef="let b">{{ b.program?.name ?? '—' }}</td></ng-container>
-          <ng-container matColumnDef="trainer"><th mat-header-cell *matHeaderCellDef>Trainer</th><td mat-cell *matCellDef="let b">{{ b.trainer?.member?.first_name ?? '—' }}</td></ng-container>
-          <ng-container matColumnDef="start_date"><th mat-header-cell *matHeaderCellDef>Start Date</th><td mat-cell *matCellDef="let b">{{ b.start_date | date:'dd MMM yyyy' }}</td></ng-container>
-          <ng-container matColumnDef="capacity"><th mat-header-cell *matHeaderCellDef>Capacity</th><td mat-cell *matCellDef="let b">{{ b.enrolled_count ?? 0 }}/{{ b.capacity }}</td></ng-container>
-          <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let b"><app-status-badge [status]="b.status"></app-status-badge></td></ng-container>
-          <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let b">
-              <button mat-icon-button [routerLink]="['/batches', b.id]"><mat-icon>visibility</mat-icon></button>
-              <button mat-icon-button [routerLink]="['/batches', b.id, 'edit']"><mat-icon>edit</mat-icon></button>
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="cols"></tr>
-          <tr mat-row *matRowDef="let r; columns: cols;" class="clickable" [routerLink]="['/batches', r.id]"></tr>
-          <tr class="mat-row" *matNoDataRow><td [colSpan]="cols.length" class="empty-row">No batches found</td></tr>
+      </div>
+      <div class="w-full overflow-x-auto">
+        <table class="w-full min-w-[800px] text-left text-sm">
+          <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
+            <tr>
+              <th scope="col" class="px-4 py-3 font-semibold">Batch Name</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Program</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Trainer</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Start Date</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Capacity</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Status</th>
+              <th scope="col" class="px-4 py-3 font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr *ngFor="let b of batches()" class="cursor-pointer text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800/50"
+              [routerLink]="['/batches', b.id]">
+              <td class="px-4 py-3">{{ b.batch_name }}</td>
+              <td class="px-4 py-3">{{ b.program?.name ?? '—' }}</td>
+              <td class="px-4 py-3">{{ b.trainer?.member?.first_name ?? '—' }}</td>
+              <td class="px-4 py-3">{{ b.start_date | date:'dd MMM yyyy' }}</td>
+              <td class="px-4 py-3">{{ b.enrolled_count ?? 0 }}/{{ b.capacity }}</td>
+              <td class="px-4 py-3"><app-status-badge [status]="b.status"></app-status-badge></td>
+              <td class="px-4 py-3">
+                <button type="button" [routerLink]="['/batches', b.id]" aria-label="View batch" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:text-gray-300 dark:hover:bg-gray-800"><app-icon name="visibility" class="h-6 w-6"></app-icon></button>
+                <button type="button" [routerLink]="['/batches', b.id, 'edit']" aria-label="Edit batch" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:text-gray-300 dark:hover:bg-gray-800"><app-icon name="edit" class="h-6 w-6"></app-icon></button>
+              </td>
+            </tr>
+            <tr *ngIf="batches().length === 0">
+              <td colspan="7" class="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400">No batches found</td>
+            </tr>
+          </tbody>
         </table>
-        <mat-paginator [length]="total()" [pageSize]="20" [pageSizeOptions]="[10,20,50]" (page)="onPage($event)" showFirstLastButtons></mat-paginator>
-      </mat-card-content>
-    </mat-card>
+      </div>
+      <app-tailwind-paginator [length]="total()" [pageIndex]="page - 1" [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 20, 50]" selectId="batch-page-size" (page)="onPage($event)"></app-tailwind-paginator>
+    </section>
   `,
-  styles: [`.filters{display:flex;gap:16px;margin-bottom:8px}.full-width{width:100%}.clickable{cursor:pointer}.clickable:hover{background:#f5f5f5}.empty-row{text-align:center;padding:32px;color:#999}`]
+  styles: [`.filters{display:flex;flex-wrap:wrap;gap:16px}`]
 })
 export class BatchListComponent implements OnInit {
   private readonly batchService = inject(BatchService);
   readonly loading = signal(false);
   readonly batches = signal<Batch[]>([]);
   readonly total = signal(0);
-  readonly cols = ['batch_name', 'program', 'trainer', 'start_date', 'capacity', 'status', 'actions'];
   readonly statusCtrl = new FormControl('');
-  private page = 1;
+  pageSize = 20;
+  page = 1;
 
   ngOnInit(): void {
     this.load();
@@ -82,11 +92,11 @@ export class BatchListComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
-    this.batchService.list({ page: this.page, per_page: 20, status: this.statusCtrl.value ?? undefined }).subscribe({
+    this.batchService.list({ page: this.page, per_page: this.pageSize, status: this.statusCtrl.value ?? undefined }).subscribe({
       next: res => { this.batches.set(res.data); this.total.set(res.meta.total); this.loading.set(false); },
       error: () => this.loading.set(false)
     });
   }
 
-  onPage(e: PageEvent): void { this.page = e.pageIndex + 1; this.load(); }
+  onPage(e: TailwindPageEvent): void { this.page = e.pageIndex + 1; this.pageSize = e.pageSize; this.load(); }
 }

@@ -2,14 +2,9 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
+import { AppIconComponent } from '../../../shared/components/icon/app-icon.component';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -17,92 +12,82 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSnackBarModule,
-    MatProgressSpinnerModule,
+    AppIconComponent,
   ],
   template: `
-    <div class="login-container">
-      <mat-card class="login-card">
-        <mat-card-header>
-          <div class="login-logo">
-            <mat-icon class="login-icon">admin_panel_settings</mat-icon>
-          </div>
-          <mat-card-title>KCDF Admin Portal</mat-card-title>
-          <mat-card-subtitle>Sign in to your admin account</mat-card-subtitle>
-        </mat-card-header>
+    <main class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10 dark:bg-gray-950 sm:px-6">
+      <section class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl shadow-gray-900/5 dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+          <header class="mb-8 text-center">
+            <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/20">
+              <app-icon name="admin_panel_settings" aria-hidden="true" class="h-9 w-9"></app-icon>
+            </div>
+            <h1 class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">KCDF Admin Portal</h1>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Sign in to your admin account</p>
+          </header>
 
-        <mat-card-content>
-          <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Username</mat-label>
-              <input matInput formControlName="username" autocomplete="username" />
-              <mat-icon matSuffix>person</mat-icon>
-              <mat-error *ngIf="form.controls.username.hasError('required')">Username is required</mat-error>
-            </mat-form-field>
+          <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
+            <div>
+              <label for="username" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Username</label>
+              <div class="relative">
+                <input
+                  id="username"
+                  type="text"
+                  formControlName="username"
+                  autocomplete="username"
+                  class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500"
+                  [ngClass]="{ 'border-rose-500': form.controls.username.touched && form.controls.username.invalid }"
+                  [attr.aria-invalid]="form.controls.username.touched && form.controls.username.invalid">
+                <app-icon name="person" aria-hidden="true" class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"></app-icon>
+              </div>
+              <p *ngIf="form.controls.username.touched && form.controls.username.hasError('required')" class="mt-1.5 text-sm text-rose-600 dark:text-rose-400">
+                Username is required
+              </p>
+            </div>
 
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Password</mat-label>
-              <input matInput [type]="showPassword() ? 'text' : 'password'" formControlName="password" autocomplete="current-password" />
-              <button mat-icon-button matSuffix type="button" (click)="showPassword.set(!showPassword())">
-                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-              </button>
-              <mat-error *ngIf="form.controls.password.hasError('required')">Password is required</mat-error>
-            </mat-form-field>
+            <div>
+              <label for="password" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
+              <div class="relative">
+                <input
+                  id="password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  formControlName="password"
+                  autocomplete="current-password"
+                  class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500"
+                  [ngClass]="{ 'border-rose-500': form.controls.password.touched && form.controls.password.invalid }"
+                  [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid">
+                <button
+                  type="button"
+                  class="absolute inset-y-0 right-0 inline-flex w-11 items-center justify-center rounded-r-lg text-gray-400 hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-indigo-600 dark:hover:text-gray-200"
+                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                  [attr.aria-pressed]="showPassword()"
+                  (click)="showPassword.set(!showPassword())">
+                  <span class="relative inline-flex h-5 w-5" aria-hidden="true">
+                    <app-icon name="visibility" class="h-5 w-5"></app-icon>
+                    <span *ngIf="showPassword()" class="absolute left-1/2 top-1/2 h-px w-6 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-current"></span>
+                  </span>
+                </button>
+              </div>
+              <p *ngIf="form.controls.password.touched && form.controls.password.hasError('required')" class="mt-1.5 text-sm text-rose-600 dark:text-rose-400">
+                Password is required
+              </p>
+            </div>
 
             <button
-              mat-flat-button
-              color="primary"
               type="submit"
-              class="full-width login-btn"
+              class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
               [disabled]="loading()">
-              <mat-spinner *ngIf="loading()" diameter="20" class="btn-spinner"></mat-spinner>
-              <span *ngIf="!loading()">Sign In</span>
+              <span *ngIf="loading()" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
+              <span>{{ loading() ? 'Signing in…' : 'Sign In' }}</span>
             </button>
           </form>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  `,
-  styles: [`
-    .login-container {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
-    }
-    .login-card {
-      width: 100%;
-      max-width: 420px;
-      padding: 16px;
-      border-radius: 12px !important;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
-    }
-    mat-card-header { flex-direction: column; align-items: center; margin-bottom: 16px; }
-    .login-logo {
-      width: 72px; height: 72px;
-      background: #1a237e; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 12px;
-    }
-    .login-icon { font-size: 40px; height: 40px; width: 40px; color: white; }
-    mat-card-title { font-size: 22px !important; font-weight: 600; }
-    mat-card-subtitle { text-align: center; }
-    .login-form { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-    .full-width { width: 100%; }
-    .login-btn { height: 48px; font-size: 16px; margin-top: 8px; }
-    .btn-spinner { display: inline-block; }
-  `]
+      </section>
+    </main>
+  `
 })
 export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly toastService = inject(ToastService);
 
   readonly loading = signal(false);
   readonly showPassword = signal(false);
@@ -128,7 +113,7 @@ export class LoginComponent {
       error: (err) => {
         this.loading.set(false);
         const msg = err?.error?.error?.message ?? 'Invalid credentials. Please try again.';
-        this.snackBar.open(msg, 'Close', { duration: 4000 });
+        this.toastService.show(msg, { variant: 'error', durationMs: 4000, actionLabel: 'Close' });
       }
     });
   }

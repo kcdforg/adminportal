@@ -1,17 +1,15 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { forkJoin } from 'rxjs';
+import { ApiListResponse } from '../../core/models';
 import { FamilyService } from '../../core/services/family.service';
 import { BatchService } from '../../core/services/batch.service';
 import { PaymentService } from '../../core/services/payment.service';
-import { NotificationService } from '../../core/services/notification.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { LoadingOverlayComponent } from '../../shared/components/loading-overlay/loading-overlay.component';
+import { AppIconComponent } from '../../shared/components/icon/app-icon.component';
+import { ToastService } from '../../shared/components/toast/toast.service';
 
 interface StatCard {
   label: string;
@@ -27,10 +25,7 @@ interface StatCard {
   imports: [
     CommonModule,
     RouterModule,
-    MatCardModule,
-    MatIconModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
+    AppIconComponent,
     PageHeaderComponent,
     LoadingOverlayComponent,
   ],
@@ -38,86 +33,34 @@ interface StatCard {
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
     <app-page-header title="Dashboard" subtitle="Welcome to KCDF Admin Portal"></app-page-header>
 
-    <div class="stats-grid">
-      <mat-card class="stat-card" *ngFor="let stat of stats()" [routerLink]="stat.route">
-        <mat-card-content>
-          <div class="stat-icon" [style.background]="stat.color + '20'">
-            <mat-icon [style.color]="stat.color">{{ stat.icon }}</mat-icon>
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <a *ngFor="let stat of stats()" [routerLink]="stat.route" class="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl" [style.background]="stat.color + '20'">
+            <app-icon [name]="stat.icon" aria-hidden="true" [style.color]="stat.color" class="!h-7 !w-7 !text-[28px]"></app-icon>
           </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stat.value }}</div>
-            <div class="stat-label">{{ stat.label }}</div>
+          <div class="min-w-0">
+            <div class="text-2xl font-bold leading-none text-gray-900 dark:text-white">{{ stat.value }}</div>
+            <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</div>
           </div>
-        </mat-card-content>
-      </mat-card>
+      </a>
     </div>
 
-    <div class="quick-nav">
-      <h2 class="section-title">Quick Navigation</h2>
-      <div class="quick-nav-grid">
-        <mat-card class="quick-card" *ngFor="let nav of quickNav" [routerLink]="nav.route">
-          <mat-card-content>
-            <mat-icon [style.color]="nav.color">{{ nav.icon }}</mat-icon>
+    <section>
+      <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Quick Navigation</h2>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        <a *ngFor="let nav of quickNav" [routerLink]="nav.route" class="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-5 text-center text-sm font-medium text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">
+            <app-icon [name]="nav.icon" aria-hidden="true" [style.color]="nav.color" class="!h-8 !w-8 !text-[32px]"></app-icon>
             <span>{{ nav.label }}</span>
-          </mat-card-content>
-        </mat-card>
+        </a>
       </div>
-    </div>
+    </section>
   `,
-  styles: [`
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-    .stat-card {
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important; }
-    .stat-card mat-card-content {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 20px !important;
-    }
-    .stat-icon {
-      width: 56px; height: 56px;
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .stat-icon mat-icon { font-size: 28px; height: 28px; width: 28px; }
-    .stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
-    .stat-label { font-size: 14px; color: #666; margin-top: 4px; }
-    .section-title { font-size: 18px; font-weight: 500; margin-bottom: 16px; color: #333; }
-    .quick-nav-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-    }
-    .quick-card {
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .quick-card:hover { transform: translateY(-2px); }
-    .quick-card mat-card-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 20px 12px !important;
-      text-align: center;
-    }
-    .quick-card mat-icon { font-size: 32px; height: 32px; width: 32px; }
-    .quick-card span { font-size: 13px; color: #444; }
-  `]
 })
 export class DashboardComponent implements OnInit {
   private readonly familyService = inject(FamilyService);
   private readonly batchService = inject(BatchService);
   private readonly paymentService = inject(PaymentService);
+  private readonly toastService = inject(ToastService);
 
   readonly loading = signal(true);
   readonly stats = signal<StatCard[]>([
@@ -143,15 +86,44 @@ export class DashboardComponent implements OnInit {
       payments: this.paymentService.list({ status: 'pending', per_page: 1 }),
     }).subscribe({
       next: ({ families, batches, payments }) => {
+        const totals = {
+          families: this.readTotal(families),
+          batches: this.readTotal(batches),
+          payments: this.readTotal(payments),
+        };
+
         this.stats.set([
-          { label: 'Total Families', value: families.meta.total, icon: 'family_restroom', color: '#1a237e', route: '/families' },
-          { label: 'Active Batches', value: batches.meta.total, icon: 'groups', color: '#2e7d32', route: '/batches' },
-          { label: 'Pending Payments', value: payments.meta.total, icon: 'payments', color: '#e65100', route: '/payments' },
+          { label: 'Total Families', value: totals.families ?? '—', icon: 'family_restroom', color: '#1a237e', route: '/families' },
+          { label: 'Active Batches', value: totals.batches ?? '—', icon: 'groups', color: '#2e7d32', route: '/batches' },
+          { label: 'Pending Payments', value: totals.payments ?? '—', icon: 'payments', color: '#e65100', route: '/payments' },
           { label: 'Notifications Sent', value: '—', icon: 'notifications', color: '#6a1b9a', route: '/notifications' },
         ]);
+
+        const missingTotals = Object.entries(totals)
+          .filter(([, total]) => total === null)
+          .map(([resource]) => resource);
+
+        if (missingTotals.length) {
+          console.error(
+            `Dashboard API response is missing numeric pagination metadata for: ${missingTotals.join(', ')}.`
+          );
+          this.toastService.show(
+            `Could not load dashboard totals for ${missingTotals.join(', ')}. The API response is missing pagination metadata.`,
+            { variant: 'warning', durationMs: 6000, actionLabel: 'Close' }
+          );
+        }
+
         this.loading.set(false);
       },
       error: () => this.loading.set(false)
     });
+  }
+
+  private readTotal<T>(response: ApiListResponse<T> | null | undefined): number | null {
+    if (typeof response?.meta?.total === 'number' && Number.isFinite(response.meta.total)) {
+      return response.meta.total;
+    }
+
+    return null;
   }
 }

@@ -1,118 +1,161 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatTableModule } from '@angular/material/table';
-import { MatDialog } from '@angular/material/dialog';
 import { forkJoin } from 'rxjs';
 import { BatchService } from '../../../core/services/batch.service';
 import { SessionService } from '../../../core/services/session.service';
 import { Batch, Session, MemberProfile } from '../../../core/models';
+import { TailwindDialogService } from '../../../shared/components/modal/tailwind-dialog.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { LoadingOverlayComponent } from '../../../shared/components/loading-overlay/loading-overlay.component';
 import { SessionFormComponent } from '../../sessions/session-form/session-form.component';
+import { AppIconComponent } from '../../../shared/components/icon/app-icon.component';
+import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 
 @Component({
   selector: 'app-batch-detail',
   standalone: true,
   imports: [
     CommonModule, RouterModule,
-    MatCardModule, MatButtonModule, MatIconModule, MatTabsModule, MatTableModule,
+    AppIconComponent, TooltipDirective,
     StatusBadgeComponent, PageHeaderComponent, LoadingOverlayComponent,
   ],
   template: `
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
     <app-page-header [title]="batch()?.batch_name ?? 'Batch'" subtitle="Batch Detail">
-      <button mat-stroked-button routerLink="/batches"><mat-icon>arrow_back</mat-icon> Back</button>
+      <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800" routerLink="/batches"><app-icon name="arrow_back" class="h-6 w-6"></app-icon> Back</button>
     </app-page-header>
 
-    <mat-tab-group *ngIf="batch()">
-      <mat-tab label="Info">
-        <div class="tab-content">
-          <div class="info-grid">
-            <div class="info-item"><span class="info-label">Batch Name</span><span>{{ batch()!.batch_name }}</span></div>
-            <div class="info-item"><span class="info-label">Program</span><span>{{ batch()!.program?.name ?? '—' }}</span></div>
-            <div class="info-item"><span class="info-label">Trainer</span><span>{{ batch()!.trainer?.member?.first_name }} {{ batch()!.trainer?.member?.last_name }}</span></div>
-            <div class="info-item"><span class="info-label">Capacity</span><span>{{ batch()!.enrolled_count ?? 0 }} / {{ batch()!.capacity }}</span></div>
-            <div class="info-item"><span class="info-label">Start Date</span><span>{{ batch()!.start_date | date:'dd MMM yyyy' }}</span></div>
-            <div class="info-item"><span class="info-label">End Date</span><span>{{ (batch()!.end_date | date:'dd MMM yyyy') ?? '—' }}</span></div>
-            <div class="info-item"><span class="info-label">Schedule</span><span>{{ batch()!.schedule_days ?? '—' }}</span></div>
-            <div class="info-item"><span class="info-label">Status</span><app-status-badge [status]="batch()!.status"></app-status-badge></div>
+    <section *ngIf="batch()" class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div role="tablist" aria-label="Batch details" class="flex overflow-x-auto border-b border-gray-200 dark:border-gray-800"
+        (keydown)="onTabKeydown($event)">
+        <button id="batch-info-tab" type="button" role="tab" aria-controls="batch-info-panel"
+          [attr.aria-selected]="activeTab() === 'info'" [attr.tabindex]="activeTab() === 'info' ? 0 : -1"
+          [class.border-indigo-600]="activeTab() === 'info'" [class.text-indigo-700]="activeTab() === 'info'"
+          class="min-h-12 shrink-0 border-b-2 border-transparent px-5 text-sm font-medium text-gray-600 hover:text-indigo-700 focus-visible:outline-2 focus-visible:outline-indigo-600 dark:text-gray-300 dark:hover:text-indigo-300"
+          (click)="activeTab.set('info')">Info</button>
+        <button id="batch-members-tab" type="button" role="tab" aria-controls="batch-members-panel"
+          [attr.aria-selected]="activeTab() === 'members'" [attr.tabindex]="activeTab() === 'members' ? 0 : -1"
+          [class.border-indigo-600]="activeTab() === 'members'" [class.text-indigo-700]="activeTab() === 'members'"
+          class="min-h-12 shrink-0 border-b-2 border-transparent px-5 text-sm font-medium text-gray-600 hover:text-indigo-700 focus-visible:outline-2 focus-visible:outline-indigo-600 dark:text-gray-300 dark:hover:text-indigo-300"
+          (click)="activeTab.set('members')">Members ({{ members().length }})</button>
+        <button id="batch-sessions-tab" type="button" role="tab" aria-controls="batch-sessions-panel"
+          [attr.aria-selected]="activeTab() === 'sessions'" [attr.tabindex]="activeTab() === 'sessions' ? 0 : -1"
+          [class.border-indigo-600]="activeTab() === 'sessions'" [class.text-indigo-700]="activeTab() === 'sessions'"
+          class="min-h-12 shrink-0 border-b-2 border-transparent px-5 text-sm font-medium text-gray-600 hover:text-indigo-700 focus-visible:outline-2 focus-visible:outline-indigo-600 dark:text-gray-300 dark:hover:text-indigo-300"
+          (click)="activeTab.set('sessions')">Sessions ({{ sessions().length }})</button>
+      </div>
+      <div id="batch-info-panel" role="tabpanel" aria-labelledby="batch-info-tab" tabindex="0" *ngIf="activeTab() === 'info'">
+        <div class="min-h-[120px] p-4 sm:p-6">
+          <div class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+            <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Batch Name</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ batch()!.batch_name }}</span></div>
+            <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Program</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ batch()!.program?.name ?? '—' }}</span></div>
+            <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Trainer</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ batch()!.trainer?.member?.first_name }} {{ batch()!.trainer?.member?.last_name }}</span></div>
+            <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Capacity</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ batch()!.enrolled_count ?? 0 }} / {{ batch()!.capacity }}</span></div>
+            <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Start Date</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ batch()!.start_date | date:'dd MMM yyyy' }}</span></div>
+            <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">End Date</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ (batch()!.end_date | date:'dd MMM yyyy') ?? '—' }}</span></div>
+            <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Schedule</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ batch()!.schedule_days ?? '—' }}</span></div>
+            <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</span><app-status-badge [status]="batch()!.status"></app-status-badge></div>
           </div>
         </div>
-      </mat-tab>
+      </div>
 
-      <mat-tab label="Members ({{ members().length }})">
-        <div class="tab-content">
-          <table mat-table [dataSource]="members()" class="full-width">
-            <ng-container matColumnDef="name"><th mat-header-cell *matHeaderCellDef>Name</th><td mat-cell *matCellDef="let m">{{ m.first_name }} {{ m.last_name }}</td></ng-container>
-            <ng-container matColumnDef="email"><th mat-header-cell *matHeaderCellDef>Email</th><td mat-cell *matCellDef="let m">{{ m.email ?? '—' }}</td></ng-container>
-            <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let m"><app-status-badge [status]="m.status"></app-status-badge></td></ng-container>
-            <tr mat-header-row *matHeaderRowDef="memberCols"></tr>
-            <tr mat-row *matRowDef="let r; columns: memberCols;"></tr>
-            <tr class="mat-row" *matNoDataRow><td [colSpan]="memberCols.length" class="empty-row">No members enrolled</td></tr>
+      <div id="batch-members-panel" role="tabpanel" aria-labelledby="batch-members-tab" tabindex="0" *ngIf="activeTab() === 'members'">
+        <div class="p-4 sm:p-6">
+          <div class="overflow-x-auto">
+          <table class="w-full min-w-[600px]">
+            <thead>
+              <tr>
+                <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Name</th>
+                <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Email</th>
+                <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let m of members()">
+                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ m.first_name }} {{ m.last_name }}</td>
+                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ m.email ?? '—' }}</td>
+                <td class="!px-4 !py-3 !text-sm text-gray-700 dark:!text-gray-200"><app-status-badge [status]="m.status"></app-status-badge></td>
+              </tr>
+              <tr *ngIf="members().length === 0"><td colspan="3" class="!px-4 !py-12"><div class="text-center text-sm text-gray-500 dark:text-gray-400">No members enrolled</div></td></tr>
+            </tbody>
           </table>
+          </div>
         </div>
-      </mat-tab>
+      </div>
 
-      <mat-tab label="Sessions ({{ sessions().length }})">
-        <div class="tab-content">
-          <div class="tab-actions">
-            <button mat-flat-button color="primary" (click)="addSession()">
-              <mat-icon>add</mat-icon> Add Session
+      <div id="batch-sessions-panel" role="tabpanel" aria-labelledby="batch-sessions-tab" tabindex="0" *ngIf="activeTab() === 'sessions'">
+        <div class="p-4 sm:p-6">
+          <div class="mb-4">
+            <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" (click)="addSession()">
+              <app-icon name="add" class="h-6 w-6"></app-icon> Add Session
             </button>
           </div>
-          <table mat-table [dataSource]="sessions()" class="full-width">
-            <ng-container matColumnDef="session_date"><th mat-header-cell *matHeaderCellDef>Date</th><td mat-cell *matCellDef="let s">{{ s.session_date | date:'dd MMM yyyy' }}</td></ng-container>
-            <ng-container matColumnDef="title"><th mat-header-cell *matHeaderCellDef>Title</th><td mat-cell *matCellDef="let s">{{ s.title ?? '—' }}</td></ng-container>
-            <ng-container matColumnDef="session_type"><th mat-header-cell *matHeaderCellDef>Type</th><td mat-cell *matCellDef="let s">{{ s.session_type }}</td></ng-container>
-            <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let s"><app-status-badge [status]="s.status"></app-status-badge></td></ng-container>
-            <ng-container matColumnDef="locked"><th mat-header-cell *matHeaderCellDef>Locked</th>
-              <td mat-cell *matCellDef="let s"><mat-icon [style.color]="s.attendance_locked ? '#2e7d32' : '#999'">{{ s.attendance_locked ? 'lock' : 'lock_open' }}</mat-icon></td>
-            </ng-container>
-            <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let s">
-                <button mat-icon-button [routerLink]="['/sessions', s.id, 'attendance']" matTooltip="Attendance">
-                  <mat-icon>fact_check</mat-icon>
-                </button>
-              </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="sessionCols"></tr>
-            <tr mat-row *matRowDef="let r; columns: sessionCols;"></tr>
-            <tr class="mat-row" *matNoDataRow><td [colSpan]="sessionCols.length" class="empty-row">No sessions yet</td></tr>
+          <div class="overflow-x-auto">
+          <table class="w-full min-w-[800px]">
+            <thead>
+              <tr>
+                <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Date</th>
+                <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Title</th>
+                <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Type</th>
+                <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Status</th>
+                <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Locked</th>
+                <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let s of sessions()">
+                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ s.session_date | date:'dd MMM yyyy' }}</td>
+                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ s.title ?? '—' }}</td>
+                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ s.session_type }}</td>
+                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200"><app-status-badge [status]="s.status"></app-status-badge></td>
+                <td class="!px-4 !py-3 !text-sm"><app-icon [name]="s.attendance_locked ? 'lock' : 'lock_open'" class="h-6 w-6" [class.text-green-700]="s.attendance_locked" [class.text-gray-400]="!s.attendance_locked" [attr.aria-label]="s.attendance_locked ? 'Attendance locked' : 'Attendance unlocked'"></app-icon></td>
+                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">
+                  <button type="button" [routerLink]="['/sessions', s.id, 'attendance']" appTooltip="Attendance" aria-label="View attendance" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:text-gray-300 dark:hover:bg-gray-800">
+                    <app-icon name="fact_check" aria-hidden="true" class="h-6 w-6"></app-icon>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="sessions().length === 0"><td colspan="6" class="!px-4 !py-12"><div class="text-center text-sm text-gray-500 dark:text-gray-400">No sessions yet</div></td></tr>
+            </tbody>
           </table>
+          </div>
         </div>
-      </mat-tab>
-    </mat-tab-group>
-  `,
-  styles: [`
-    .tab-content { padding: 16px 0; }
-    .tab-actions { margin-bottom: 16px; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 0; }
-    .info-item { display: flex; flex-direction: column; gap: 4px; }
-    .info-label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; }
-    .full-width { width: 100%; }
-    .empty-row { text-align: center; padding: 24px; color: #999; }
-  `]
+      </div>
+    </section>
+  `
 })
 export class BatchDetailComponent implements OnInit {
   private readonly batchService = inject(BatchService);
   private readonly sessionService = inject(SessionService);
   private readonly route = inject(ActivatedRoute);
-  private readonly dialog = inject(MatDialog);
+  private readonly dialog = inject(TailwindDialogService);
 
   readonly loading = signal(false);
+  readonly activeTab = signal<'info' | 'members' | 'sessions'>('info');
   readonly batch = signal<Batch | null>(null);
   readonly members = signal<MemberProfile[]>([]);
   readonly sessions = signal<Session[]>([]);
-  readonly memberCols = ['name', 'email', 'status'];
-  readonly sessionCols = ['session_date', 'title', 'session_type', 'status', 'locked', 'actions'];
-
   ngOnInit(): void { this.load(); }
+
+  onTabKeydown(event: KeyboardEvent): void {
+    if (!(event.currentTarget instanceof HTMLElement)) return;
+    const tabs = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    const currentIndex = tabs.indexOf(event.target as HTMLButtonElement);
+    if (currentIndex < 0) return;
+
+    let nextIndex: number | undefined;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+    if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = tabs.length - 1;
+    if (nextIndex === undefined) return;
+
+    event.preventDefault();
+    tabs[nextIndex].click();
+    tabs[nextIndex].focus();
+  }
 
   load(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -133,9 +176,10 @@ export class BatchDetailComponent implements OnInit {
   }
 
   addSession(): void {
-    const ref = this.dialog.open(SessionFormComponent, {
+    const ref = this.dialog.open<SessionFormComponent, { batch_id: number }, boolean>(SessionFormComponent, {
       width: '560px',
-      data: { batch_id: this.batch()!.id }
+      data: { batch_id: this.batch()!.id },
+      ariaLabel: 'Add session to batch',
     });
     ref.afterClosed().subscribe(saved => { if (saved) this.load(); });
   }

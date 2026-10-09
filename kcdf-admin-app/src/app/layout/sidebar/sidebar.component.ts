@@ -1,11 +1,9 @@
-import { Component, computed } from '@angular/core';
+import { Component, computed, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatListModule } from '@angular/material/list';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
 import { authStore } from '../../core/store/auth.store';
 import { AdminRole } from '../../core/models';
+import { AppIconComponent } from '../../shared/components/icon/app-icon.component';
 
 interface NavItem {
   label: string;
@@ -22,53 +20,92 @@ interface NavSection {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatListModule, MatIconModule, MatDividerModule],
+  imports: [CommonModule, RouterModule, AppIconComponent],
   template: `
-    <div class="sidebar-header">
-      <img src="assets/logo.png" alt="KCDF" class="sidebar-logo" onerror="this.style.display='none'">
-      <span class="sidebar-title">KCDF Admin</span>
-    </div>
-    <mat-divider></mat-divider>
-    <mat-nav-list dense>
-      <ng-container *ngFor="let section of visibleSections()">
-        <div class="nav-section-title">{{ section.title }}</div>
-        <ng-container *ngFor="let item of section.items">
-          <a mat-list-item [routerLink]="item.route" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.label }}</span>
+    <aside
+      class="sidebar-panel fixed inset-y-0 left-0 z-50 flex w-[290px] flex-col border-r border-gray-200 bg-white transition-transform duration-300 dark:border-gray-800 dark:bg-gray-900"
+      [class.sidebar-mobile-open]="mobileNavOpen">
+      <div class="flex h-16 shrink-0 items-center gap-3 border-b border-gray-200 px-6 dark:border-gray-800">
+        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
+          <app-icon name="admin_panel_settings" aria-hidden="true" class="h-6 w-6"></app-icon>
+        </span>
+        <span class="min-w-0">
+          <span class="block truncate text-base font-semibold text-gray-900 dark:text-white">KCDF Admin</span>
+          <span class="block text-xs text-gray-500 dark:text-gray-400">Administration portal</span>
+        </span>
+      </div>
+
+      <nav aria-label="Main navigation" class="flex-1 overflow-y-auto px-4 py-5">
+        <ng-container *ngFor="let section of visibleSections()">
+          <h2 class="mb-2 mt-5 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 first:mt-0 dark:text-gray-500">
+            {{ section.title }}
+          </h2>
+          <a
+            *ngFor="let item of section.items"
+            [routerLink]="item.route"
+            routerLinkActive="nav-active"
+            [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+            class="nav-link mb-1 flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+            (click)="navigate.emit()">
+            <app-icon [name]="item.icon" aria-hidden="true" class="h-5 w-5"></app-icon>
+            <span>{{ item.label }}</span>
           </a>
         </ng-container>
-        <mat-divider></mat-divider>
-      </ng-container>
-    </mat-nav-list>
+      </nav>
+
+      <div class="shrink-0 border-t border-gray-200 px-6 py-4 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+        KCDF Admin Portal
+      </div>
+    </aside>
   `,
   styles: [`
-    :host { display: flex; flex-direction: column; height: 100%; }
-    .sidebar-header {
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: #1a237e;
-      color: white;
+    .sidebar-panel {
+      transform: translateX(-100%);
+      visibility: hidden;
     }
-    .sidebar-logo { height: 32px; width: 32px; border-radius: 50%; }
-    .sidebar-title { font-size: 18px; font-weight: 600; }
-    .nav-section-title {
-      padding: 12px 16px 4px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+
+    .sidebar-panel.sidebar-mobile-open {
+      transform: translateX(0);
+      visibility: visible;
     }
-    .active-link { background: #e8eaf6 !important; color: #1a237e !important; font-weight: 600; }
-    .active-link mat-icon { color: #1a237e !important; }
-    mat-nav-list { overflow-y: auto; flex: 1; }
+
+    @media (min-width: 1280px) {
+      .sidebar-panel {
+        transform: translateX(0);
+        visibility: visible;
+      }
+    }
+
+    .nav-link.nav-active {
+      background: #eef2ff;
+      color: #4338ca;
+    }
+
+    .nav-link.nav-active app-icon {
+      color: #4f46e5;
+    }
+
+    :host-context(.dark) .nav-link.nav-active {
+      background: #312e81;
+      color: #e0e7ff;
+    }
+
+    :host-context(.dark) .nav-link.nav-active app-icon {
+      color: #c7d2fe;
+    }
   `]
 })
 export class SidebarComponent {
+  @Input() mobileNavOpen = false;
+  @Output() readonly navigate = new EventEmitter<void>();
+
   private readonly sections: NavSection[] = [
+    {
+      title: 'Overview',
+      items: [
+        { label: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: ['super_admin', 'program_manager', 'accounts', 'readonly'] },
+      ]
+    },
     {
       title: 'People',
       items: [
@@ -114,7 +151,7 @@ export class SidebarComponent {
     },
   ];
 
-  visibleSections = computed(() => {
+  readonly visibleSections = computed(() => {
     const role = authStore.adminRole();
     if (!role) return [];
     return this.sections

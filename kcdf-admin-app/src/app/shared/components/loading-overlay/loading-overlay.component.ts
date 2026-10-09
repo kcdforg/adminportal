@@ -1,21 +1,23 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @Component({
   selector: 'app-loading-overlay',
   standalone: true,
-  imports: [CommonModule, MatProgressBarModule],
+  imports: [CommonModule],
   template: `
-    <mat-progress-bar *ngIf="loading" mode="indeterminate" class="loading-bar"></mat-progress-bar>
+    <div
+      *ngIf="loading"
+      class="fixed inset-x-0 top-0 z-[9999] h-1 overflow-hidden bg-indigo-100 dark:bg-indigo-950"
+      role="progressbar"
+      aria-label="Loading">
+      <span class="block h-full w-1/3 animate-[loading-slide_1.4s_ease-in-out_infinite] bg-indigo-600"></span>
+    </div>
   `,
   styles: [`
-    .loading-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 9999;
+    @keyframes loading-slide {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(300%); }
     }
   `]
 })

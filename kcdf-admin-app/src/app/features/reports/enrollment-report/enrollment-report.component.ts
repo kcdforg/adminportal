@@ -1,20 +1,14 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTableModule } from '@angular/material/table';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../../../core/services/api.service';
 import { BatchService } from '../../../core/services/batch.service';
 import { Enrollment, Batch } from '../../../core/models';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { LoadingOverlayComponent } from '../../../shared/components/loading-overlay/loading-overlay.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
+import { AppIconComponent } from '../../../shared/components/icon/app-icon.component';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 
 interface EnrollmentSummary {
   by_status: Record<string, number>;
@@ -25,82 +19,54 @@ interface EnrollmentSummary {
 @Component({
   selector: 'app-enrollment-report',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTableModule, PageHeaderComponent, LoadingOverlayComponent, StatusBadgeComponent],
+  imports: [CommonModule, ReactiveFormsModule, AppIconComponent, PageHeaderComponent, LoadingOverlayComponent, StatusBadgeComponent],
   template: `
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
     <app-page-header title="Enrollment Report">
-      <button mat-stroked-button (click)="exportCsv()" [disabled]="!enrollments().length"><mat-icon>download</mat-icon> Export CSV</button>
+      <button type="button" (click)="exportCsv()" [disabled]="!enrollments().length" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"><app-icon name="download" aria-hidden="true" class="h-6 w-6"></app-icon> Export CSV</button>
     </app-page-header>
-    <mat-card>
-      <mat-card-content>
-        <form [formGroup]="filterForm" class="filters">
-          <mat-form-field appearance="outline">
-            <mat-label>Batch</mat-label>
-            <mat-select formControlName="batch_id">
-              <mat-option value="">All</mat-option>
-              <mat-option *ngFor="let b of batches()" [value]="b.id">{{ b.batch_name }}</mat-option>
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Status</mat-label>
-            <mat-select formControlName="status">
-              <mat-option value="">All</mat-option>
-              <mat-option value="active">Active</mat-option>
-              <mat-option value="cancelled">Cancelled</mat-option>
-              <mat-option value="completed">Completed</mat-option>
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>From Date</mat-label>
-            <input matInput type="date" formControlName="date_from" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>To Date</mat-label>
-            <input matInput type="date" formControlName="date_to" />
-          </mat-form-field>
-          <button mat-flat-button color="primary" (click)="load()"><mat-icon>search</mat-icon> Generate</button>
+    <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <form [formGroup]="filterForm" class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Batch
+            <select formControlName="batch_id" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+              <option [ngValue]="''">All</option><option *ngFor="let b of batches()" [ngValue]="b.id">{{ b.batch_name }}</option>
+            </select>
+          </label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Status
+            <select formControlName="status" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+              <option value="">All</option><option value="active">Active</option><option value="cancelled">Cancelled</option><option value="completed">Completed</option>
+            </select>
+          </label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">From Date<input type="date" formControlName="date_from" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" /></label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">To Date<input type="date" formControlName="date_to" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" /></label>
+          <button type="button" (click)="load()" class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"><app-icon name="search" aria-hidden="true" class="h-6 w-6"></app-icon> Generate</button>
         </form>
-      </mat-card-content>
-    </mat-card>
+    </section>
 
-    <div class="summary-grid mt-16" *ngIf="summary()">
-      <mat-card>
-        <mat-card-header><mat-card-title>Total Enrollments</mat-card-title></mat-card-header>
-        <mat-card-content><div class="big-number">{{ summary()!.total }}</div></mat-card-content>
-      </mat-card>
-      <mat-card *ngFor="let e of statusEntries()">
-        <mat-card-header><mat-card-title>{{ e[0] | titlecase }}</mat-card-title></mat-card-header>
-        <mat-card-content><div class="big-number">{{ e[1] }}</div></mat-card-content>
-      </mat-card>
+    <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" *ngIf="summary()">
+      <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"><h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Enrollments</h2><p class="mt-3 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{{ summary()!.total }}</p></article>
+      <article *ngFor="let e of statusEntries()" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"><h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ e[0] | titlecase }}</h2><p class="mt-3 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{{ e[1] }}</p></article>
     </div>
 
-    <mat-card class="mt-16" *ngIf="enrollments().length">
-      <mat-card-content>
-        <table mat-table [dataSource]="enrollments()" class="full-width">
-          <ng-container matColumnDef="member"><th mat-header-cell *matHeaderCellDef>Member</th><td mat-cell *matCellDef="let e">{{ e.member?.first_name }} {{ e.member?.last_name }}</td></ng-container>
-          <ng-container matColumnDef="batch"><th mat-header-cell *matHeaderCellDef>Batch</th><td mat-cell *matCellDef="let e">{{ e.batch?.batch_name ?? '—' }}</td></ng-container>
-          <ng-container matColumnDef="family"><th mat-header-cell *matHeaderCellDef>Family</th><td mat-cell *matCellDef="let e">{{ e.family?.family_name ?? '—' }}</td></ng-container>
-          <ng-container matColumnDef="enrolled_at"><th mat-header-cell *matHeaderCellDef>Enrolled</th><td mat-cell *matCellDef="let e">{{ e.enrolled_at | date:'dd MMM yyyy' }}</td></ng-container>
-          <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let e"><app-status-badge [status]="e.status"></app-status-badge></td></ng-container>
-          <ng-container matColumnDef="payment_status"><th mat-header-cell *matHeaderCellDef>Payment</th><td mat-cell *matCellDef="let e"><app-status-badge [status]="e.payment_status"></app-status-badge></td></ng-container>
-          <tr mat-header-row *matHeaderRowDef="cols"></tr>
-          <tr mat-row *matRowDef="let r; columns: cols;"></tr>
+    <section class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900" *ngIf="enrollments().length">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+          <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-300"><tr><th class="px-4 py-3">Member</th><th class="px-4 py-3">Batch</th><th class="px-4 py-3">Family</th><th class="px-4 py-3">Enrolled</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Payment</th></tr></thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-800"><tr *ngFor="let e of enrollments()" class="text-gray-700 dark:text-gray-200"><td class="whitespace-nowrap px-4 py-3">{{ e.member?.first_name }} {{ e.member?.last_name }}</td><td class="whitespace-nowrap px-4 py-3">{{ e.batch?.batch_name ?? '—' }}</td><td class="whitespace-nowrap px-4 py-3">{{ e.family?.family_name ?? '—' }}</td><td class="whitespace-nowrap px-4 py-3">{{ e.enrolled_at | date:'dd MMM yyyy' }}</td><td class="whitespace-nowrap px-4 py-3"><app-status-badge [status]="e.status"></app-status-badge></td><td class="whitespace-nowrap px-4 py-3"><app-status-badge [status]="e.payment_status"></app-status-badge></td></tr></tbody>
         </table>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </section>
   `,
-  styles: [`.filters{display:flex;gap:16px;flex-wrap:wrap;align-items:center}.mt-16{margin-top:16px}.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}.big-number{font-size:28px;font-weight:700;color:#1a237e;padding:8px 0}.full-width{width:100%}`]
 })
 export class EnrollmentReportComponent implements OnInit {
   private readonly apiService = inject(ApiService);
   private readonly batchService = inject(BatchService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly toastService = inject(ToastService);
 
   readonly loading = signal(false);
   readonly batches = signal<Batch[]>([]);
   readonly summary = signal<EnrollmentSummary | null>(null);
   readonly enrollments = signal<Enrollment[]>([]);
-  readonly cols = ['member', 'batch', 'family', 'enrolled_at', 'status', 'payment_status'];
 
   statusEntries = () => Object.entries(this.summary()?.by_status ?? {});
 
@@ -129,7 +95,7 @@ export class EnrollmentReportComponent implements OnInit {
         this.enrollments.set(res.data.enrollments ?? []);
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.snackBar.open('Failed to load report', 'Close', { duration: 3000 }); }
+      error: () => { this.loading.set(false); this.toastService.show('Failed to load report', { variant: 'error', durationMs: 3000, actionLabel: 'Close' }); }
     });
   }
 
