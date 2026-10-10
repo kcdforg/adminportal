@@ -10,76 +10,8 @@ import { AppIconComponent } from '../../shared/components/icon/app-icon.componen
   selector: 'app-main-layout',
   standalone: true,
   imports: [CommonModule, RouterModule, SidebarComponent, AppIconComponent],
-  template: `
-    <div class="min-h-screen bg-gray-50 text-gray-800 dark:bg-gray-950 dark:text-gray-100">
-      <app-sidebar
-        [mobileNavOpen]="mobileNavOpen()"
-        (navigate)="closeMobileNav()">
-      </app-sidebar>
-
-      <button
-        *ngIf="mobileNavOpen()"
-        type="button"
-        aria-label="Close navigation menu"
-        class="fixed inset-0 z-40 bg-gray-900/50 xl:hidden"
-        (click)="closeMobileNav()">
-      </button>
-
-      <div class="min-h-screen transition-[padding] duration-300 xl:pl-[290px]">
-        <header class="sticky top-0 z-30 border-b border-gray-200 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
-          <div class="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-            <div class="flex min-w-0 items-center gap-3">
-              <button
-                type="button"
-                [attr.aria-label]="mobileNavOpen() ? 'Close navigation menu' : 'Open navigation menu'"
-                [attr.aria-expanded]="mobileNavOpen()"
-                class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 xl:hidden dark:text-gray-300 dark:hover:bg-gray-800"
-                (click)="toggleMobileNav()">
-                <app-icon name="menu" aria-hidden="true" class="h-6 w-6"></app-icon>
-              </button>
-              <h1 class="truncate text-lg font-semibold text-gray-900 dark:text-white">KCDF Admin Portal</h1>
-            </div>
-
-            <details class="relative shrink-0">
-              <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:gap-3 sm:px-3 dark:hover:bg-gray-800">
-                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                  {{ userInitials() }}
-                </span>
-                <span class="hidden text-left sm:block">
-                  <span class="block max-w-44 truncate text-sm font-medium text-gray-900 dark:text-white">
-                    {{ user()?.first_name }} {{ user()?.last_name }}
-                  </span>
-                  <span *ngIf="adminRole()" class="block text-xs text-gray-500 dark:text-gray-400">
-                    {{ roleLabel() }}
-                  </span>
-                </span>
-                <app-icon name="expand_more" aria-hidden="true" class="h-5 w-5 text-gray-500"></app-icon>
-              </summary>
-              <div class="absolute right-0 mt-2 w-48 rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-800 dark:bg-gray-900">
-                <div class="px-3 py-2 sm:hidden">
-                  <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
-                    {{ user()?.first_name }} {{ user()?.last_name }}
-                  </p>
-                  <p *ngIf="adminRole()" class="text-xs text-gray-500 dark:text-gray-400">{{ roleLabel() }}</p>
-                </div>
-                <button
-                  type="button"
-                  class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-indigo-600 dark:text-gray-200 dark:hover:bg-gray-800"
-                  (click)="logout()">
-                  <app-icon name="logout" aria-hidden="true" class="h-5 w-5"></app-icon>
-                  <span>Logout</span>
-                </button>
-              </div>
-            </details>
-          </div>
-        </header>
-
-        <main class="mx-auto w-full max-w-screen-2xl p-4 sm:p-6 lg:p-8">
-          <router-outlet></router-outlet>
-        </main>
-      </div>
-    </div>
-  `
+  templateUrl: './main-layout.component.html',
+  styleUrl: './main-layout.component.scss'
 })
 export class MainLayoutComponent {
   private readonly authService = inject(AuthService);

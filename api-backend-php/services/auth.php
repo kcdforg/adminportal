@@ -51,12 +51,10 @@ function createToken(array $claims, string $type = 'access', ?string $algorithm 
     $algorithm = strtoupper($algorithm ?? $jwtConfig['algorithm']);
     $normalizedClaims = $claims;
 
-    if (isset($normalizedClaims['profile_id']) && !isset($normalizedClaims['sub'])) {
-        $normalizedClaims['sub'] = (string) $normalizedClaims['profile_id'];
-    }
-
-    if (!isset($normalizedClaims['profile_id']) && isset($normalizedClaims['sub'])) {
-        $normalizedClaims['profile_id'] = (int) $normalizedClaims['sub'];
+    if (!isset($normalizedClaims['sub'])) {
+        $normalizedClaims['sub'] = (string) (
+            $normalizedClaims['login_id'] ?? $normalizedClaims['profile_id'] ?? ''
+        );
     }
 
     $normalizedClaims['type'] = $type === 'refresh' ? 'refresh' : 'access';
@@ -119,8 +117,8 @@ function decodeJwtToken(string $token, bool $allowRefreshToken = false): array
             throw new RuntimeException('The token payload could not be decoded.', 401);
         }
 
-        $decoded['profile_id'] = (int) ($decoded['profile_id'] ?? $decoded['sub'] ?? 0);
-        $decoded['sub'] = (string) ($decoded['sub'] ?? $decoded['profile_id']);
+        $decoded['profile_id'] = (int) ($decoded['profile_id'] ?? 0);
+        $decoded['sub'] = (string) ($decoded['sub'] ?? $decoded['login_id'] ?? '');
         $decoded['roles'] = array_values(array_filter(
             array_map('strval', (array) ($decoded['roles'] ?? [])),
             static fn ($value) => $value !== ''
@@ -132,7 +130,10 @@ function decodeJwtToken(string $token, bool $allowRefreshToken = false): array
             throw new RuntimeException('Refresh tokens are not valid for this request.', 401);
         }
 
-        if ($decoded['profile_id'] <= 0) {
+        if ((int) ($decoded['login_id'] ?? 0) <= 0
+            || !in_array(($decoded['user_type'] ?? null), ['admin', 'member'], true)
+            || ($decoded['portal'] ?? null) !== $decoded['user_type']
+            || ($decoded['user_type'] === 'member' && $decoded['profile_id'] <= 0)) {
             throw new RuntimeException('Invalid token payload.', 401);
         }
 
@@ -149,4 +150,3 @@ function checkAuth(?string $authorizationHeader = null, bool $allowRefreshToken 
 {
     return decodeJwtToken(extractBearerToken($authorizationHeader), $allowRefreshToken);
 }
-

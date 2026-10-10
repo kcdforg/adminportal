@@ -1,0 +1,53 @@
+
+    <app-page-header title="Create Batch">
+      <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800" routerLink="/batches"><app-icon name="arrow_back" class="h-6 w-6"></app-icon> Back</button>
+    </app-page-header>
+    <section class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="p-4 sm:p-6">
+        <form [formGroup]="form" class="form-grid">
+          <label for="batch-name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Batch Name
+            <input id="batch-name" formControlName="batch_name" required [attr.aria-invalid]="form.controls.batch_name.touched && form.controls.batch_name.invalid ? 'true' : null" [attr.aria-describedby]="form.controls.batch_name.touched && form.controls.batch_name.hasError('required') ? 'batch-name-error' : null" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+            <span *ngIf="form.controls.batch_name.touched && form.controls.batch_name.hasError('required')" id="batch-name-error" class="mt-1 block text-sm text-red-600" role="alert">Required</span>
+          </label>
+          <label for="batch-program" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Program
+            <select id="batch-program" formControlName="program_id" required [attr.aria-invalid]="form.controls.program_id.touched && form.controls.program_id.invalid ? 'true' : null" [attr.aria-describedby]="form.controls.program_id.touched && form.controls.program_id.hasError('required') ? 'batch-program-error' : null" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+              <option [ngValue]="null"></option>
+              <option *ngFor="let p of programs()" [ngValue]="p.id">{{ p.name }}</option>
+            </select>
+            <span *ngIf="form.controls.program_id.touched && form.controls.program_id.hasError('required')" id="batch-program-error" class="mt-1 block text-sm text-red-600" role="alert">Required</span>
+          </label>
+          <label for="batch-trainer" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Trainer
+            <select id="batch-trainer" formControlName="trainer_id" required [attr.aria-invalid]="form.controls.trainer_id.touched && form.controls.trainer_id.invalid ? 'true' : null" [attr.aria-describedby]="form.controls.trainer_id.touched && form.controls.trainer_id.hasError('required') ? 'batch-trainer-error' : null" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+              <option [ngValue]="null"></option>
+              <option *ngFor="let t of trainers()" [ngValue]="t.id">{{ t.member?.first_name }} {{ t.member?.last_name }}</option>
+            </select>
+            <span *ngIf="form.controls.trainer_id.touched && form.controls.trainer_id.hasError('required')" id="batch-trainer-error" class="mt-1 block text-sm text-red-600" role="alert">Required</span>
+          </label>
+          <label for="batch-capacity" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Capacity
+            <input id="batch-capacity" formControlName="capacity" type="number" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+          </label>
+          <label for="batch-start-date" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Start Date
+            <input id="batch-start-date" formControlName="start_date" type="date" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+          </label>
+          <label for="batch-end-date" class="block text-sm font-medium text-gray-700 dark:text-gray-200">End Date
+            <input id="batch-end-date" formControlName="end_date" type="date" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+          </label>
+          <label for="batch-start-time" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Start Time
+            <input id="batch-start-time" formControlName="start_time" type="time" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+          </label>
+          <label for="batch-end-time" class="block text-sm font-medium text-gray-700 dark:text-gray-200">End Time
+            <input id="batch-end-time" formControlName="end_time" type="time" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+          </label>
+          <label for="batch-schedule-days" class="col-span-full block text-sm font-medium text-gray-700 dark:text-gray-200">Schedule Days (e.g. Mon, Wed, Fri)
+            <input id="batch-schedule-days" formControlName="schedule_days" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+          </label>
+        </form>
+      </div>
+      <div class="flex justify-end gap-2 border-t border-gray-200 px-4 py-4 dark:border-gray-800 sm:px-6">
+        <button type="button" class="inline-flex min-h-10 items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:text-gray-200 dark:hover:bg-gray-800" routerLink="/batches">Cancel</button>
+        <button type="button" class="inline-flex min-h-10 items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Create Batch' }}
+        </button>
+      </div>
+    </section>
+  

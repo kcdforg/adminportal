@@ -83,7 +83,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "Log in",
+        "summary": "Log in to the member portal",
         "operationId": "post_auth_login",
         "responses": {
           "200": {
@@ -191,6 +191,71 @@
                   "username",
                   "password"
                 ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/admin/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Log in to the admin portal",
+        "operationId": "post_auth_admin_login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "password"
+                ],
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "writeOnly": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Admin login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials or account is not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
               }
             }
           }
@@ -9285,7 +9350,7 @@
             }
           },
           {
-            "name": "admin_role",
+            "name": "role",
             "in": "query",
             "required": false,
             "description": "Filter by admin role.",
@@ -9308,7 +9373,7 @@
               "type": "string",
               "enum": [
                 "id",
-                "admin_role",
+                "role",
                 "created_at"
               ]
             }
@@ -9333,7 +9398,7 @@
         "tags": [
           "admins"
         ],
-        "summary": "Create admins",
+        "summary": "Create an admin login account",
         "operationId": "post_admins",
         "responses": {
           "200": {
@@ -9444,14 +9509,41 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "JSON request body.",
+          "description": "Super-admin only. Creates an admin login with an optional linked profile. A profile can have only one login.",
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "username",
+                  "password",
+                  "role"
+                ],
                 "properties": {
-                  "admin_role": {
-                    "description": "Admin role.",
+                  "profile_id": {
+                    "description": "Optional linked member profile id.",
+                    "type": "integer",
+                    "format": "int64",
+                    "minimum": 1,
+                    "nullable": true
+                  },
+                  "username": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "maxLength": 150,
+                    "description": "Optional display name; defaults to the linked profile name or username."
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 12,
+                    "writeOnly": true
+                  },
+                  "role": {
+                    "description": "Role in the admin portal.",
                     "type": "string",
                     "enum": [
                       "super_admin",
@@ -9459,18 +9551,9 @@
                       "accounts",
                       "readonly"
                     ]
-                  },
-                  "profile_id": {
-                    "description": "Profile id.",
-                    "type": "integer",
-                    "format": "int64"
                   }
                 },
-                "additionalProperties": true,
-                "required": [
-                  "profile_id",
-                  "admin_role"
-                ]
+                "additionalProperties": false
               }
             }
           }
@@ -9717,8 +9800,8 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "admin_role": {
-                    "description": "Admin role.",
+                  "role": {
+                    "description": "Admin portal role.",
                     "type": "string",
                     "enum": [
                       "super_admin",
@@ -9726,6 +9809,11 @@
                       "accounts",
                       "readonly"
                     ]
+                  },
+                  "display_name": {
+                    "description": "Optional display name for the admin account.",
+                    "type": "string",
+                    "maxLength": 150
                   },
                   "status": {
                     "description": "Status.",
@@ -9737,6 +9825,120 @@
                   }
                 },
                 "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admins/login-accounts": {
+      "post": {
+        "tags": [
+          "admins"
+        ],
+        "summary": "Create an admin login account",
+        "description": "Super-admin only. Creates an admin login with an optional linked profile. A profile can have only one login.",
+        "operationId": "post_admin_login_accounts",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "password",
+                  "role"
+                ],
+                "properties": {
+                  "profile_id": {
+                    "description": "Optional linked member profile id.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "nullable": true
+                  },
+                  "username": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "maxLength": 150,
+                    "description": "Optional display name; defaults to the linked profile name or username."
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 12,
+                    "writeOnly": true
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "super_admin",
+                      "program_manager",
+                      "accounts",
+                      "readonly"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Admin login account created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only a super-admin may create admin login accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Profile already has a login or username is taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
               }
             }
           }

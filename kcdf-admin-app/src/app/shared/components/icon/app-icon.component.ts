@@ -48,19 +48,8 @@ const ICON_PATHS: Readonly<Record<string, readonly string[]>> = {
   host: {
     class: 'inline-flex shrink-0 align-middle'
   },
-  template: `
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      class="h-full w-full">
-      <path *ngFor="let path of paths" [attr.d]="path"></path>
-    </svg>
-  `
+  templateUrl: './icon.component.html',
+  styleUrl: './icon.component.scss'
 })
 export class AppIconComponent {
   @Input() name = '';

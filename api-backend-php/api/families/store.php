@@ -9,23 +9,19 @@ $jwt = checkAuth();
 requirePermission(isElevatedAdmin($jwt));
 $body = getJsonBody();
 validateOrFail(validateIdentityFields($body, 'family'));
+if (isset($body['family_code']) && is_string($body['family_code'])
+    && recordExists($database, 'families', ['family_code' => trim($body['family_code'])])) {
+    validateOrFail(['family_code' => ['The family_code has already been taken.']]);
+}
 
-$family = databaseTransaction($database, static function () use ($database, $body, $jwt): array {
-        $addressId = !empty($body['address']) ? createAddress($database, $body['address']) : null;
-        $database->insert('families', [
-            'family_code' => 'KCDF-TEMP-' . bin2hex(random_bytes(8)),
-            'family_name' => $body['family_name'],
-            'address_id' => $addressId,
-            'status' => 'active',
-        ]);
-        $id = (int) $database->id();
-        $database->update('families', [
-            'family_code' => 'KCDF-' . str_pad((string) $id, 4, '0', STR_PAD_LEFT),
-        ], ['id' => $id]);
-        $family = getFamily($database, $id);
-        logActivity($database, $jwt, 'create', 'families', $id, null, $family);
-        return $family;
-    });
+$database->insert('families', [
+    'family_code' => trim($body['family_code']),
+    'family_name' => trim($body['family_name']),
+    'address_id' => null,
+    'status' => 'active',
+]);
+$id = (int) $database->id();
+$family = getFamily($database, $id);
+logActivity($database, $jwt, 'create', 'families', $id, null, $family);
 
 successResponse($family, 'Family created successfully.', 201);
-

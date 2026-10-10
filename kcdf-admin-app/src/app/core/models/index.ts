@@ -41,9 +41,12 @@ export interface AuthTokens {
 }
 
 export interface JwtPayload {
-  sub: number;
-  profile_id: number;
+  sub: string;
+  profile_id: number | null;
+  login_id: number;
   username: string;
+  user_type: 'admin' | 'member';
+  portal: 'admin' | 'member';
   roles: string[];
   family_ids: number[];
   iat: number;
@@ -52,8 +55,9 @@ export interface JwtPayload {
 
 export interface AdminUser {
   id: number;
-  profile_id: number;
+  profile_id: number | null;
   username: string;
+  display_name: string;
   admin_role: AdminRole;
   first_name: string;
   last_name: string;
@@ -129,9 +133,20 @@ export interface Address {
   country: string;
 }
 
+export interface CreateAddressRequest {
+  address_line_1: string;
+  city: string;
+  country: string;
+  address_line_2?: string;
+  state?: string;
+  postal_code?: string;
+}
+
 export interface CreateFamilyRequest {
+  family_code: string;
   family_name: string;
-  address?: Partial<Address>;
+  status?: FamilyStatus;
+  address?: CreateAddressRequest;
 }
 
 // ─── Trainer ─────────────────────────────────────────────────────────────────

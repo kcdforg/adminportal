@@ -7,10 +7,7 @@ import { TailwindDialogHostComponent } from './shared/components/modal/tailwind-
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, ToastRegionComponent, TailwindDialogHostComponent],
-  template: `
-    <router-outlet></router-outlet>
-    <app-toast-region></app-toast-region>
-    <app-tailwind-dialog-host></app-tailwind-dialog-host>
-  `
+  templateUrl: './root.component.html',
+  styleUrl: './root.component.scss'
 })
 export class App {}

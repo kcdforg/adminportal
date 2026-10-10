@@ -1,0 +1,78 @@
+
+    <div class="relative overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <div
+        *ngIf="loading"
+        class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 dark:bg-gray-950/70"
+        role="status"
+        aria-live="polite">
+        <span class="h-10 w-10 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" aria-hidden="true"></span>
+        <span class="sr-only">Loading records</span>
+      </div>
+
+      <div class="w-full overflow-x-auto">
+        <table class="w-full min-w-[640px]">
+          <thead>
+            <tr>
+              <th
+                *ngFor="let col of columns"
+                scope="col"
+                [attr.aria-sort]="ariaSort(col)"
+                class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">
+                <button
+                  *ngIf="col.sortable !== false"
+                  type="button"
+                  [attr.aria-label]="'Sort by ' + col.label"
+                  class="inline-flex min-h-10 items-center gap-1 border-0 bg-transparent p-0 text-left font-[inherit] text-inherit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  (click)="toggleSort(col)">
+                  {{ col.label }}
+                  <span *ngIf="sortKey === col.key" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                </button>
+                <span *ngIf="col.sortable === false">{{ col.label }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let row of sortedData"
+              class="transition-colors hover:!bg-gray-50 dark:hover:!bg-gray-800/50"
+              [class.clickable]="rowClickable"
+              (click)="rowClick.emit(row)">
+              <td *ngFor="let col of columns" class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">
+                <ng-container [ngSwitch]="col.type">
+                  <ng-container *ngSwitchCase="'date'">
+                    {{ dateValue(row, col.key) | date:'dd MMM yyyy' }}
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'boolean'">
+                    <app-icon [name]="cellValue(row, col.key) ? 'check_circle' : 'cancel'" [style.color]="cellValue(row, col.key) ? '#2e7d32' : '#c62828'" aria-hidden="true" class="h-6 w-6"></app-icon>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'actions'">
+                    <ng-content select="[slot=actions]"></ng-content>
+                  </ng-container>
+                  <ng-container *ngSwitchDefault>{{ cellValue(row, col.key) ?? '—' }}</ng-container>
+                </ng-container>
+              </td>
+            </tr>
+            <tr *ngIf="sortedData.length === 0">
+              <td [attr.colspan]="displayedColumns.length" class="!px-4 !py-12">
+                <div class="flex flex-col items-center gap-2 text-center text-sm text-gray-500 dark:text-gray-400">
+                  <app-icon name="inbox" aria-hidden="true" class="!h-12 !w-12 !text-5xl opacity-40"></app-icon>
+                  <span>No records found</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="border-t border-gray-200 dark:border-gray-800">
+        <app-tailwind-paginator
+          [length]="totalCount"
+          [pageIndex]="pageIndex"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[10, 20, 50, 100]"
+          selectId="data-table-page-size"
+          (page)="onPage($event)">
+        </app-tailwind-paginator>
+      </div>
+    </div>
+  

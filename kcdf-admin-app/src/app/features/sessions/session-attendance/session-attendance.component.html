@@ -1,0 +1,47 @@
+
+    <app-loading-overlay [loading]="loading()"></app-loading-overlay>
+    <app-page-header [title]="'Attendance: ' + (session()?.title ?? sessionDate())" subtitle="Mark session attendance">
+      <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800" (click)="goBack()"><app-icon name="arrow_back" class="h-6 w-6"></app-icon> Back</button>
+      <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-amber-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed disabled:opacity-60" (click)="lockSession()" [disabled]="session()?.attendance_locked" *ngIf="session()">
+        <app-icon name="lock" class="h-6 w-6"></app-icon> {{ session()!.attendance_locked ? 'Locked' : 'Lock Session' }}
+      </button>
+      <button type="button" class="inline-flex min-h-10 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60" (click)="saveAll()" [disabled]="saving || !!session()?.attendance_locked">
+        <app-icon name="save" class="h-6 w-6"></app-icon> {{ saving ? 'Saving...' : 'Save All' }}
+      </button>
+    </app-page-header>
+
+    <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-gray-200 p-4 text-sm text-gray-600 dark:border-gray-800 dark:text-gray-300 sm:p-6" *ngIf="session()">
+          <span>Date: <strong class="font-semibold text-gray-900 dark:text-gray-100">{{ session()!.session_date | date:'dd MMM yyyy' }}</strong></span>
+          <span>Time: <strong class="font-semibold text-gray-900 dark:text-gray-100">{{ session()!.start_time }} – {{ session()!.end_time }}</strong></span>
+          <span>Status: <app-status-badge [status]="session()!.status"></app-status-badge></span>
+          <span *ngIf="session()!.attendance_locked" class="flex items-center gap-1 font-semibold text-indigo-700 dark:text-indigo-300"><app-icon name="lock" class="h-6 w-6"></app-icon> Locked</span>
+      </div>
+
+      <div class="w-full overflow-x-auto">
+        <table class="w-full min-w-[600px]">
+          <thead>
+            <tr>
+              <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Member</th>
+              <th scope="col" class="!bg-gray-50 !px-4 !py-3 !text-left !text-xs !font-semibold !uppercase !tracking-wide !text-gray-500 dark:!bg-gray-800/60 dark:!text-gray-300">Attendance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of rows()">
+              <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ r.name }}</td>
+              <td class="!px-4 !py-2 !text-sm">
+              <label class="sr-only" [for]="'attendance-status-' + r.member_id">Attendance for {{ r.name }}</label>
+              <select [id]="'attendance-status-' + r.member_id" [formControl]="r.statusCtrl" [disabled]="!!session()?.attendance_locked" class="min-h-10 min-w-[130px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                <option value="present">Present</option>
+                <option value="absent">Absent</option>
+                <option value="late">Late</option>
+                <option value="excused">Excused</option>
+              </select>
+              </td>
+            </tr>
+            <tr *ngIf="rows().length === 0"><td colspan="2" class="!px-4 !py-12"><div class="text-center text-sm text-gray-500 dark:text-gray-400">No enrolled members</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  

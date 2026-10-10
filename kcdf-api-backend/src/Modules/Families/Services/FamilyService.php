@@ -45,6 +45,12 @@ class FamilyService
             throw new ValidationException($errors);
         }
 
+        if (Family::where('family_code', trim($data['family_code']))->exists()) {
+            throw new ValidationException([
+                'family_code' => ['The family_code has already been taken.'],
+            ]);
+        }
+
         return DB::transaction(function () use ($data, $jwt) {
             $addressId = null;
             if (!empty($data['address'])) {
@@ -53,13 +59,12 @@ class FamilyService
             }
 
             $family = Family::create([
-                'family_code' => 'KCDF-TEMP-' . time(),
+                'family_code' => trim($data['family_code']),
                 'family_name' => $data['family_name'],
                 'address_id'  => $addressId,
                 'status'      => 'active',
             ]);
 
-            $family->update(['family_code' => FamilyRepository::generateFamilyCode($family->id)]);
             $family = $this->familyRepo->findWithAddress($family->id);
 
             $actorId = (int) ($jwt['profile_id'] ?? 0) ?: null;

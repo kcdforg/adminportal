@@ -1,4 +1,4 @@
-import { DestroyableInjector, InjectionToken, Injector, Injectable, Type, inject, signal } from '@angular/core';
+import { ApplicationRef, InjectionToken, Injector, Injectable, Type, inject, signal } from '@angular/core';
 import { Observable, ReplaySubject } from 'rxjs';
 
 export const TAILWIND_DIALOG_DATA = new InjectionToken<unknown>('TAILWIND_DIALOG_DATA');
@@ -13,7 +13,7 @@ export interface TailwindDialogConfig<D> {
 
 export interface ActiveTailwindDialog {
   component: Type<unknown>;
-  injector: DestroyableInjector;
+  injector: Injector;
   ref: TailwindDialogRef<unknown>;
   ariaLabel: string;
   maxWidth: string;
@@ -45,14 +45,17 @@ export class TailwindDialogRef<R = unknown> {
 @Injectable({ providedIn: 'root' })
 export class TailwindDialogService {
   readonly activeDialog = signal<ActiveTailwindDialog | null>(null);
+  private readonly applicationRef = inject(ApplicationRef);
   private readonly parentInjector = inject(Injector);
+  private renderScheduled = false;
 
   open<C, D = unknown, R = unknown>(
     component: Type<C>,
     config: TailwindDialogConfig<D> = {},
   ): TailwindDialogRef<R> {
-    if (this.activeDialog()) {
-      throw new Error('A dialog is already open.');
+    const active = this.activeDialog();
+    if (active) {
+      this.close(active.ref);
     }
 
     let ref!: TailwindDialogRef<R>;
@@ -63,7 +66,7 @@ export class TailwindDialogService {
         { provide: TAILWIND_DIALOG_REF, useValue: ref },
       ],
       parent: this.parentInjector,
-    }) as DestroyableInjector;
+    });
 
     this.activeDialog.set({
       component,
@@ -73,6 +76,7 @@ export class TailwindDialogService {
       maxWidth: config.width ?? '36rem',
       closeOnBackdrop: config.closeOnBackdrop ?? true,
     });
+    this.scheduleRender();
 
     return ref;
   }
@@ -82,7 +86,16 @@ export class TailwindDialogService {
     if (!active || active.ref !== ref) return;
 
     this.activeDialog.set(null);
-    active.injector.destroy();
     ref.complete(result);
+    this.scheduleRender();
+  }
+
+  private scheduleRender(): void {
+    if (this.renderScheduled) return;
+    this.renderScheduled = true;
+    queueMicrotask(() => {
+      this.renderScheduled = false;
+      this.applicationRef.tick();
+    });
   }
 }

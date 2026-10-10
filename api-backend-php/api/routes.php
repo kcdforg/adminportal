@@ -6,6 +6,7 @@ use FastRoute\RouteCollector;
 
 return function (RouteCollector $routeCollector): void {
     $routeCollector->addRoute('POST', '/api/v1/auth/login', 'auth/login.php');
+    $routeCollector->addRoute('POST', '/api/v1/auth/admin/login', 'auth/admin-login.php');
     $routeCollector->addRoute('POST', '/api/v1/auth/refresh', 'auth/refresh.php');
     $routeCollector->addRoute('POST', '/api/v1/auth/logout', 'auth/logout.php');
     $routeCollector->addRoute('GET', '/api/v1/auth/me', 'auth/me.php');
@@ -82,6 +83,7 @@ return function (RouteCollector $routeCollector): void {
 
     $routeCollector->addRoute('GET', '/api/v1/admins', 'admins/index.php');
     $routeCollector->addRoute('POST', '/api/v1/admins', 'admins/store.php');
+    $routeCollector->addRoute('POST', '/api/v1/admins/login-accounts', 'admins/store.php');
     $routeCollector->addRoute('GET', '/api/v1/admins/{id:[0-9]+}', 'admins/show.php');
     $routeCollector->addRoute('PUT', '/api/v1/admins/{id:[0-9]+}', 'admins/update.php');
 

@@ -19,7 +19,7 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<ApiResponse<{ tokens: AuthTokens; user: AdminUser }>> {
     return this.http
       .post<any>(
-        `${environment.apiUrl}/auth/login`,
+        `${environment.apiUrl}/auth/admin/login`,
         credentials
       )
       .pipe(
@@ -38,12 +38,13 @@ export class AuthService {
                 },
                 user: {
                   id: profile.id,
-                  profile_id: profile.id,
-                  username: '',
-                  admin_role: 'super_admin',
+                  profile_id: profile.profile_id,
+                  username: profile.username,
+                  display_name: profile.display_name,
+                  admin_role: profile.role,
                   first_name: profile.first_name,
                   last_name: profile.last_name,
-                  email: '',
+                  email: profile.email,
                 } as AdminUser,
               },
             };

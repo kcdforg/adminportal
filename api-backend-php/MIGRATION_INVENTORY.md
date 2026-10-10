@@ -15,6 +15,7 @@ The current Slim source registers all routes under `/api/v1` and groups them by 
 | HTTP method | Public URL | FastRoute registration | Direct endpoint |
 | --- | --- | --- | --- |
 | POST | `/api/v1/auth/login` | `POST /api/v1/auth/login` | `api/auth/login.php` |
+| POST | `/api/v1/auth/admin/login` | `POST /api/v1/auth/admin/login` | `api/auth/admin-login.php` |
 | POST | `/api/v1/auth/refresh` | `POST /api/v1/auth/refresh` | `api/auth/refresh.php` |
 | POST | `/api/v1/auth/logout` | `POST /api/v1/auth/logout` | `api/auth/logout.php` |
 | GET | `/api/v1/auth/me` | `GET /api/v1/auth/me` | `api/auth/me.php` |
@@ -79,6 +80,7 @@ The current Slim source registers all routes under `/api/v1` and groups them by 
 | PUT | `/api/v1/trainers/{id}` | `PUT /api/v1/trainers/{id}` | `api/trainers/update.php` |
 | GET | `/api/v1/admins` | `GET /api/v1/admins` | `api/admins/index.php` |
 | POST | `/api/v1/admins` | `POST /api/v1/admins` | `api/admins/store.php` |
+| POST | `/api/v1/admins/login-accounts` | `POST /api/v1/admins/login-accounts` | `api/admins/store.php` |
 | GET | `/api/v1/admins/{id}` | `GET /api/v1/admins/{id}` | `api/admins/show.php` |
 | PUT | `/api/v1/admins/{id}` | `PUT /api/v1/admins/{id}` | `api/admins/update.php` |
 | GET | `/api/v1/entities` | `GET /api/v1/entities` | `api/entities/index.php` |

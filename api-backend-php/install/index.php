@@ -454,28 +454,26 @@ function installerCreateInitialAccounts(PDO $pdo, array $adminAccount, array $us
             $profileId = (int) $pdo->lastInsertId();
 
             $login = $pdo->prepare(
-                'INSERT INTO user_logins (profile_id, username, password_hash, is_active) VALUES (:profile_id, :username, :password_hash, 1)'
+                'INSERT INTO user_logins (profile_id, username, password_hash, user_type, role, is_active) ' .
+                'VALUES (:profile_id, :username, :password_hash, :user_type, :role, 1)'
             );
             $login->execute([
                 ':profile_id' => $profileId,
                 ':username' => $account['username'],
                 ':password_hash' => password_hash($account['password'], PASSWORD_DEFAULT),
+                ':user_type' => $account['user_type'],
+                ':role' => $account['role'],
             ]);
 
             return $profileId;
         };
 
-        $adminProfileId = $createLogin($adminAccount);
+        $adminAccount['user_type'] = 'admin';
+        $adminAccount['role'] = 'super_admin';
+        $userAccount['user_type'] = 'member';
+        $userAccount['role'] = null;
+        $createLogin($adminAccount);
         $createLogin($userAccount);
-
-        $admin = $pdo->prepare(
-            'INSERT INTO admins (profile_id, admin_role, status) VALUES (:profile_id, :admin_role, :status)'
-        );
-        $admin->execute([
-            ':profile_id' => $adminProfileId,
-            ':admin_role' => 'super_admin',
-            ':status' => 'active',
-        ]);
         $pdo->commit();
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) {

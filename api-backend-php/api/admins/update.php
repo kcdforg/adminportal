@@ -12,27 +12,38 @@ if ($admin === null) {
     errorResponse('NOT_FOUND', 'Admin not found.', 404);
 }
 $body = getJsonBody();
+$roleInput = $body['role'] ?? $body['admin_role'] ?? null;
 $errors = [];
-if (!empty($body['admin_role']) && !in_array($body['admin_role'], ['super_admin', 'program_manager', 'accounts', 'readonly'], true)) {
-    $errors['admin_role'] = ['The admin_role must be one of: super_admin, program_manager, accounts, readonly.'];
+if ($roleInput !== null && !in_array($roleInput, ['super_admin', 'program_manager', 'accounts', 'readonly'], true)) {
+    $errors['role'] = ['The role must be one of: super_admin, program_manager, accounts, readonly.'];
 }
-if (!empty($body['status']) && !in_array($body['status'], ['active', 'inactive'], true)) {
+if (isset($body['status']) && !in_array($body['status'], ['active', 'inactive'], true)) {
     $errors['status'] = ['The status must be one of: active, inactive.'];
 }
+if (array_key_exists('display_name', $body)
+    && (!is_string($body['display_name'])
+        || trim($body['display_name']) === ''
+        || strlen(trim($body['display_name'])) > 150
+        || preg_match('/[\x00-\x1F\x7F]/', trim($body['display_name'])))) {
+    $errors['display_name'] = ['The display_name must be a non-empty string of at most 150 characters without control characters.'];
+}
 validateOrFail($errors);
-$updated = databaseTransaction($database, static function () use ($database, $body, $admin, $jwt, $id): array {
+$updated = databaseTransaction($database, static function () use ($database, $body, $roleInput, $admin, $jwt, $id): array {
     $update = [];
-    foreach (['admin_role', 'status'] as $field) {
-        if (array_key_exists($field, $body)) {
-            $update[$field] = $body[$field];
-        }
+    if ($roleInput !== null) {
+        $update['role'] = $roleInput;
+    }
+    if (isset($body['status'])) {
+        $update['is_active'] = $body['status'] === 'active' ? 1 : 0;
+    }
+    if (array_key_exists('display_name', $body)) {
+        $update['display_name'] = trim($body['display_name']);
     }
     if ($update !== []) {
-        $database->update('admins', $update, ['id' => $id]);
+        $database->update('user_logins', $update, ['id' => $id, 'user_type' => 'admin']);
     }
     $row = getAdmin($database, $id);
-    logActivity($database, $jwt, 'update', 'admins', $id, $admin, $row);
+    logActivity($database, $jwt, 'update', 'user_logins', $id, $admin, $row);
     return $row;
 });
 successResponse($updated, 'Admin updated successfully.');
-

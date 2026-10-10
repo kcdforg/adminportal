@@ -1,0 +1,26 @@
+
+    <app-loading-overlay [loading]="loading()"></app-loading-overlay>
+    <app-page-header title="Dashboard" subtitle="Welcome to KCDF Admin Portal"></app-page-header>
+
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <a *ngFor="let stat of stats()" [routerLink]="stat.route" class="group flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-800 dark:bg-gray-900">
+          <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl" [style.background]="stat.color + '20'">
+            <app-icon [name]="stat.icon" aria-hidden="true" [style.color]="stat.color" class="!h-7 !w-7 !text-[28px]"></app-icon>
+          </div>
+          <div class="min-w-0">
+            <div class="text-2xl font-bold leading-none text-gray-900 dark:text-white">{{ stat.value }}</div>
+            <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</div>
+          </div>
+      </a>
+    </div>
+
+    <section>
+      <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Quick Navigation</h2>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        <a *ngFor="let nav of quickNav" [routerLink]="nav.route" class="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-5 text-center text-sm font-medium text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">
+            <app-icon [name]="nav.icon" aria-hidden="true" [style.color]="nav.color" class="!h-8 !w-8 !text-[32px]"></app-icon>
+            <span>{{ nav.label }}</span>
+        </a>
+      </div>
+    </section>
+  

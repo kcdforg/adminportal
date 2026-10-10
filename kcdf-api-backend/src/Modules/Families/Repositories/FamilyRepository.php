@@ -46,8 +46,4 @@ class FamilyRepository extends BaseRepository
         ];
     }
 
-    public static function generateFamilyCode(int $id): string
-    {
-        return 'KCDF-' . str_pad((string) $id, 4, '0', STR_PAD_LEFT);
-    }
 }

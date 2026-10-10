@@ -21,7 +21,7 @@ $pdo->exec('CREATE TABLE group_members (id INTEGER PRIMARY KEY, group_id INTEGER
 $pdo->exec('CREATE TABLE invitations (id INTEGER PRIMARY KEY, invited_by_member_id INTEGER NOT NULL, invite_mobile TEXT NULL, invite_email TEXT NULL, invite_code TEXT NOT NULL UNIQUE, status TEXT NOT NULL, sent_at TEXT NOT NULL, accepted_at TEXT NULL)');
 $pdo->exec('CREATE TABLE notifications (id INTEGER PRIMARY KEY, member_id INTEGER NOT NULL, title TEXT NOT NULL, message TEXT NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, read_at TEXT NULL)');
 $pdo->exec('CREATE TABLE member_profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, first_name TEXT NOT NULL, last_name TEXT NOT NULL, mobile TEXT NOT NULL, email TEXT NOT NULL, status TEXT NOT NULL)');
-$pdo->exec('CREATE TABLE user_logins (id INTEGER PRIMARY KEY AUTOINCREMENT, profile_id INTEGER NOT NULL, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, is_active INTEGER NOT NULL)');
+$pdo->exec("CREATE TABLE user_logins (id INTEGER PRIMARY KEY AUTOINCREMENT, profile_id INTEGER NULL UNIQUE, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, user_type TEXT NOT NULL DEFAULT 'member', role TEXT NULL, is_active INTEGER NOT NULL)");
 $pdo->exec('CREATE TABLE activity_logs (id INTEGER PRIMARY KEY, actor_profile_id INTEGER NULL, action TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id INTEGER NOT NULL, old_values TEXT NULL, new_values TEXT NULL)');
 $pdo->exec("INSERT INTO parent_groups VALUES (1, 'Public', NULL, 'public', 'active'), (2, 'Private', NULL, 'private', 'active'), (3, 'Invite only', NULL, 'invite_only', 'active')");
 $pdo->exec("INSERT INTO group_members VALUES (1, 2, 10, '2026-01-01 00:00:00', 'active'), (2, 3, 11, '2026-01-01 00:00:00', 'left'), (3, 2, 12, '2026-01-01 00:00:00', 'banned')");

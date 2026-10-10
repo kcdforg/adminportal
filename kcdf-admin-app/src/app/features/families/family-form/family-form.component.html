@@ -1,0 +1,84 @@
+
+    <h2 class="border-b border-gray-200 px-6 py-5 text-lg font-semibold text-gray-900 dark:border-gray-800 dark:text-white">{{ family ? 'Edit Family' : 'Create Family' }}</h2>
+    <div class="max-h-[75vh] overflow-y-auto px-6 py-5">
+      <form [formGroup]="form" class="space-y-4">
+        <div *ngIf="saveError()" role="alert" class="rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
+          <p class="font-medium">{{ saveError() }}</p>
+          <ul *ngIf="saveErrorDetails().length" class="mt-1 list-inside list-disc">
+            <li *ngFor="let detail of saveErrorDetails()">{{ detail }}</li>
+          </ul>
+        </div>
+        <div *ngIf="!family">
+          <label for="family-code" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Family Code</label>
+          <input id="family-code" type="text" formControlName="family_code" required maxlength="50"
+            [attr.aria-invalid]="form.controls.family_code.touched && form.controls.family_code.invalid"
+            [attr.aria-describedby]="form.controls.family_code.touched && form.controls.family_code.invalid ? 'family-code-error' : null"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
+            [class.border-rose-500]="form.controls.family_code.touched && form.controls.family_code.invalid" />
+          <p *ngIf="form.controls.family_code.touched && form.controls.family_code.invalid" id="family-code-error" class="mt-1 text-sm text-rose-600 dark:text-rose-400">
+            {{ form.controls.family_code.hasError('required') ? 'Family code is required' : form.controls.family_code.hasError('pattern') ? 'Family code cannot be empty' : 'Family code must be 50 characters or fewer' }}
+          </p>
+        </div>
+        <div>
+          <label for="family-name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Family Name</label>
+          <input id="family-name" type="text" formControlName="family_name" required
+            [attr.aria-invalid]="form.controls.family_name.touched && form.controls.family_name.invalid"
+            [attr.aria-describedby]="form.controls.family_name.touched && form.controls.family_name.hasError('required') ? 'family-name-error' : null"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
+            [class.border-rose-500]="form.controls.family_name.touched && form.controls.family_name.invalid" />
+          <p *ngIf="form.controls.family_name.touched && form.controls.family_name.hasError('required')" id="family-name-error" class="mt-1 text-sm text-rose-600 dark:text-rose-400">Required</p>
+        </div>
+        <div *ngIf="family">
+          <label for="family-status" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Status</label>
+          <select id="family-status" formControlName="status"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white">
+            <option value="active">Active</option><option value="inactive">Inactive</option><option value="suspended">Suspended</option>
+          </select>
+        </div>
+        <ng-container *ngIf="family">
+        <div class="border-t border-gray-200 pt-4 dark:border-gray-800"></div>
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Address</p>
+        <div class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2" formGroupName="address">
+          <div>
+            <label for="family-address-line1" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Line 1</label>
+            <input id="family-address-line1" type="text" formControlName="line1"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-address-line2" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Line 2</label>
+            <input id="family-address-line2" type="text" formControlName="line2"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-city" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">City</label>
+            <input id="family-city" type="text" formControlName="city"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-state" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">State</label>
+            <input id="family-state" type="text" formControlName="state"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-pincode" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Pincode</label>
+            <input id="family-pincode" type="text" formControlName="pincode"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-country" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Country</label>
+            <input id="family-country" type="text" formControlName="country"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+        </div>
+        </ng-container>
+      </form>
+    </div>
+    <div class="flex justify-end gap-2 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+      <button type="button" (click)="dialogRef.close()"
+        class="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800">Cancel</button>
+      <button type="button" (click)="save()" [disabled]="saving"
+        class="inline-flex min-h-10 items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60">
+        {{ saving ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  

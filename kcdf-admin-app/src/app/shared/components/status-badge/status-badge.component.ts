@@ -5,13 +5,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-status-badge',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <span
-      class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize"
-      [ngClass]="toneClasses">
-      {{ status | titlecase }}
-    </span>
-  `
+  templateUrl: './status-badge.component.html',
+  styleUrl: './status-badge.component.scss'
 })
 export class StatusBadgeComponent {
   @Input() status = '';

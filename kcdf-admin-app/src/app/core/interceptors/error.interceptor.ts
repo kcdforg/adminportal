@@ -15,7 +15,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !req.url.includes('/auth/refresh') && !req.url.includes('/auth/login')) {
+      if (error.status === 401
+        && !req.url.includes('/auth/refresh')
+        && !req.url.includes('/auth/login')
+        && !req.url.includes('/auth/admin/login')) {
         if (!isRefreshing && authStore.refreshToken()) {
           isRefreshing = true;
           return authService.refresh().pipe(

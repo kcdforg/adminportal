@@ -1,0 +1,9 @@
+
+    dialog::backdrop {
+      backdrop-filter: blur(2px);
+    }
+
+    :host ::ng-deep .dialog-content > :first-child {
+      padding-right: 3.5rem;
+    }
+  

@@ -25,14 +25,15 @@ try {
     errorResponse('UNAUTHENTICATED', $exception->getMessage(), 401);
 }
 
-if ((int) ($refreshClaims['profile_id'] ?? 0) !== (int) ($user['profile_id'] ?? 0)) {
+if ((int) ($refreshClaims['login_id'] ?? 0) !== (int) ($user['login_id'] ?? 0)
+    || ($refreshClaims['portal'] ?? null) !== ($user['portal'] ?? null)) {
     errorResponse('UNAUTHENTICATED', 'Refresh token does not match the current user.', 401);
 }
 
 $database->update('refresh_tokens', [
     'revoked_at' => date('Y-m-d H:i:s'),
 ], [
-    'profile_id' => (int) $user['profile_id'],
+    'login_id' => (int) $user['login_id'],
     'token_hash' => hash('sha256', $refreshToken),
     'revoked_at' => null,
 ]);

@@ -1,0 +1,36 @@
+
+    .sidebar-panel {
+      transform: translateX(-100%);
+      visibility: hidden;
+    }
+
+    .sidebar-panel.sidebar-mobile-open {
+      transform: translateX(0);
+      visibility: visible;
+    }
+
+    @media (min-width: 1280px) {
+      .sidebar-panel {
+        transform: translateX(0);
+        visibility: visible;
+      }
+    }
+
+    .nav-link.nav-active {
+      background: #eef2ff;
+      color: #4338ca;
+    }
+
+    .nav-link.nav-active app-icon {
+      color: #4f46e5;
+    }
+
+    :host-context(.dark) .nav-link.nav-active {
+      background: #312e81;
+      color: #e0e7ff;
+    }
+
+    :host-context(.dark) .nav-link.nav-active app-icon {
+      color: #c7d2fe;
+    }
+  

@@ -56,8 +56,8 @@ try {
         ]);
         $profileId = (int) $pdo->lastInsertId();
         $insertLogin = $pdo->prepare(
-            'INSERT INTO user_logins (profile_id, username, password_hash, is_active) ' .
-            'VALUES (:profile_id, :username, :password_hash, 1)'
+            'INSERT INTO user_logins (profile_id, username, password_hash, user_type, role, is_active) ' .
+            "VALUES (:profile_id, :username, :password_hash, 'member', NULL, 1)"
         );
         $insertLogin->execute([
             ':profile_id' => $profileId,
@@ -90,4 +90,3 @@ if ($result['expired']) {
     errorResponse('INVALID_INVITE_CODE', 'This invitation has expired.', 422);
 }
 successResponse($result['tokens'], 'Invitation accepted. Account created successfully.');
-

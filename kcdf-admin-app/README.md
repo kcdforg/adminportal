@@ -60,6 +60,8 @@ If the production API host changes, update this environment value before buildin
 
 Tailwind CSS 4 is configured through `.postcssrc.json` and `src/tailwind.css`. Tailwind preflight remains disabled to preserve the application's existing global element styles. The UI uses native Angular form controls, accessible Tailwind dialogs, toasts, tables, pagination, and inline SVG icons; Angular Material and CDK are not runtime dependencies.
 
+Each standalone component keeps its Tailwind utility classes in a neighboring HTML template and has a neighboring SCSS file for component-specific styles. Tailwind utilities remain generated globally from the templates.
+
 ---
 
 ## Development

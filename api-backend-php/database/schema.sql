@@ -60,20 +60,28 @@ CREATE TABLE `member_profiles` (
 
 -- =============================================================================
 -- TABLE: user_logins
--- Login credentials. One per person. Profile without a login cannot authenticate.
+-- Login credentials. Member logins require a profile; admin logins may stand alone.
 -- =============================================================================
 CREATE TABLE `user_logins` (
     `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `profile_id`    BIGINT UNSIGNED NOT NULL,
+    `profile_id`    BIGINT UNSIGNED NULL,
     `username`      VARCHAR(100) NOT NULL,
+    `display_name`  VARCHAR(150) NULL,
     `password_hash` VARCHAR(255) NOT NULL,
+    `user_type`     ENUM('admin', 'member') NOT NULL DEFAULT 'member',
+    `role`          ENUM('super_admin', 'program_manager', 'accounts', 'readonly') NULL DEFAULT NULL,
     `is_active`     TINYINT(1) NOT NULL DEFAULT 1,
     `last_login_at` TIMESTAMP NULL,
     `created_at`    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_user_logins_username` (`username`),
-    INDEX `idx_user_logins_profile_id` (`profile_id`),
+    UNIQUE KEY `uq_user_logins_profile_id` (`profile_id`),
+    INDEX `idx_user_logins_type_role` (`user_type`, `role`),
+    CONSTRAINT `chk_user_logins_type_role` CHECK (
+        (`user_type` = 'admin' AND `role` IS NOT NULL)
+        OR (`user_type` = 'member' AND `role` IS NULL)
+    ),
     CONSTRAINT `fk_user_logins_profile` FOREIGN KEY (`profile_id`) REFERENCES `member_profiles` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -83,14 +91,17 @@ CREATE TABLE `user_logins` (
 -- =============================================================================
 CREATE TABLE `refresh_tokens` (
     `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `profile_id` BIGINT UNSIGNED NOT NULL,
+    `login_id`   BIGINT UNSIGNED NOT NULL,
+    `profile_id` BIGINT UNSIGNED NULL,
     `token_hash` VARCHAR(255) NOT NULL,
     `expires_at` TIMESTAMP NOT NULL,
     `revoked_at` TIMESTAMP NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     INDEX `idx_refresh_tokens_token_hash` (`token_hash`),
+    INDEX `idx_refresh_tokens_login_id` (`login_id`),
     INDEX `idx_refresh_tokens_profile_id` (`profile_id`),
+    CONSTRAINT `fk_refresh_tokens_login` FOREIGN KEY (`login_id`) REFERENCES `user_logins` (`id`),
     CONSTRAINT `fk_refresh_tokens_profile` FOREIGN KEY (`profile_id`) REFERENCES `member_profiles` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -160,24 +171,6 @@ CREATE TABLE `trainers` (
     INDEX `idx_trainers_status` (`status`),
     CONSTRAINT `fk_trainers_profile` FOREIGN KEY (`profile_id`) REFERENCES `member_profiles` (`id`),
     CONSTRAINT `fk_trainers_address` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =============================================================================
--- TABLE: admins
--- Admin role record. admin_role controls access level within the admin portal.
--- =============================================================================
-CREATE TABLE `admins` (
-    `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `profile_id` BIGINT UNSIGNED NOT NULL,
-    `admin_role` ENUM('super_admin', 'program_manager', 'accounts', 'readonly') NOT NULL DEFAULT 'readonly',
-    `status`     ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
-    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    INDEX `idx_admins_profile_id` (`profile_id`),
-    INDEX `idx_admins_admin_role` (`admin_role`),
-    INDEX `idx_admins_status` (`status`),
-    CONSTRAINT `fk_admins_profile` FOREIGN KEY (`profile_id`) REFERENCES `member_profiles` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================

@@ -59,6 +59,8 @@ $login = databaseTransaction($database, static function () use ($database, $prof
         'profile_id' => $profileId,
         'username' => $username,
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        'user_type' => 'member',
+        'role' => null,
         'is_active' => 1,
     ]);
     $loginId = (int) $database->id();
@@ -66,6 +68,8 @@ $login = databaseTransaction($database, static function () use ($database, $prof
         'id',
         'profile_id',
         'username',
+        'user_type',
+        'role',
         'is_active',
         'created_at',
     ]);

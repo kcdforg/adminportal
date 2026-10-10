@@ -21,79 +21,8 @@ interface NavSection {
   selector: 'app-sidebar',
   standalone: true,
   imports: [CommonModule, RouterModule, AppIconComponent],
-  template: `
-    <aside
-      class="sidebar-panel fixed inset-y-0 left-0 z-50 flex w-[290px] flex-col border-r border-gray-200 bg-white transition-transform duration-300 dark:border-gray-800 dark:bg-gray-900"
-      [class.sidebar-mobile-open]="mobileNavOpen">
-      <div class="flex h-16 shrink-0 items-center gap-3 border-b border-gray-200 px-6 dark:border-gray-800">
-        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
-          <app-icon name="admin_panel_settings" aria-hidden="true" class="h-6 w-6"></app-icon>
-        </span>
-        <span class="min-w-0">
-          <span class="block truncate text-base font-semibold text-gray-900 dark:text-white">KCDF Admin</span>
-          <span class="block text-xs text-gray-500 dark:text-gray-400">Administration portal</span>
-        </span>
-      </div>
-
-      <nav aria-label="Main navigation" class="flex-1 overflow-y-auto px-4 py-5">
-        <ng-container *ngFor="let section of visibleSections()">
-          <h2 class="mb-2 mt-5 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 first:mt-0 dark:text-gray-500">
-            {{ section.title }}
-          </h2>
-          <a
-            *ngFor="let item of section.items"
-            [routerLink]="item.route"
-            routerLinkActive="nav-active"
-            [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-            class="nav-link mb-1 flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-            (click)="navigate.emit()">
-            <app-icon [name]="item.icon" aria-hidden="true" class="h-5 w-5"></app-icon>
-            <span>{{ item.label }}</span>
-          </a>
-        </ng-container>
-      </nav>
-
-      <div class="shrink-0 border-t border-gray-200 px-6 py-4 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
-        KCDF Admin Portal
-      </div>
-    </aside>
-  `,
-  styles: [`
-    .sidebar-panel {
-      transform: translateX(-100%);
-      visibility: hidden;
-    }
-
-    .sidebar-panel.sidebar-mobile-open {
-      transform: translateX(0);
-      visibility: visible;
-    }
-
-    @media (min-width: 1280px) {
-      .sidebar-panel {
-        transform: translateX(0);
-        visibility: visible;
-      }
-    }
-
-    .nav-link.nav-active {
-      background: #eef2ff;
-      color: #4338ca;
-    }
-
-    .nav-link.nav-active app-icon {
-      color: #4f46e5;
-    }
-
-    :host-context(.dark) .nav-link.nav-active {
-      background: #312e81;
-      color: #e0e7ff;
-    }
-
-    :host-context(.dark) .nav-link.nav-active app-icon {
-      color: #c7d2fe;
-    }
-  `]
+  templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
   @Input() mobileNavOpen = false;

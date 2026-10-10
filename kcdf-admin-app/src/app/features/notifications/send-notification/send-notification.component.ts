@@ -18,53 +18,8 @@ import { ToastService } from '../../../shared/components/toast/toast.service';
     AppIconComponent,
     PageHeaderComponent,
   ],
-  template: `
-    <app-page-header title="Send Notification">
-      <button type="button" routerLink="/notifications" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"><app-icon name="arrow_back" aria-hidden="true" class="h-6 w-6"></app-icon> Back</button>
-    </app-page-header>
-    <section class="max-w-2xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <form [formGroup]="form" class="flex flex-col gap-6">
-          <fieldset>
-            <legend class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">Send To</legend>
-            <div class="flex flex-wrap gap-x-5 gap-y-3">
-              <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200"><input type="radio" formControlName="target_type" value="specific_members" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500" /> Specific Members</label>
-              <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200"><input type="radio" formControlName="target_type" value="batch" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500" /> Batch</label>
-              <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200"><input type="radio" formControlName="target_type" value="group" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500" /> Group</label>
-              <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200"><input type="radio" formControlName="target_type" value="all_families" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500" /> All Families</label>
-            </div>
-          </fieldset>
-          <label *ngIf="form.controls.target_type.value === 'batch'" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Select Batch
-            <select formControlName="target_id" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-              <option [ngValue]="null">Select a batch</option><option *ngFor="let b of batches()" [ngValue]="b.id">{{ b.batch_name }}</option>
-            </select>
-          </label>
-          <label *ngIf="form.controls.target_type.value === 'group'" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Select Group
-            <select formControlName="target_id" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-              <option [ngValue]="null">Select a group</option><option *ngFor="let g of groups()" [ngValue]="g.id">{{ g.group_name }}</option>
-            </select>
-          </label>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Title
-            <input formControlName="title" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-            <span *ngIf="form.controls.title.touched && form.controls.title.invalid" class="mt-1 block text-sm text-red-600">Required</span>
-          </label>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Message
-            <textarea formControlName="body" rows="4" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
-            <span *ngIf="form.controls.body.touched && form.controls.body.invalid" class="mt-1 block text-sm text-red-600">Required</span>
-          </label>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Channel
-            <select formControlName="channel" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-              <option value="in_app">In-App</option><option value="email">Email</option><option value="sms">SMS</option>
-            </select>
-          </label>
-          <div class="flex justify-end gap-2">
-            <button type="button" routerLink="/notifications" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800">Cancel</button>
-            <button type="button" (click)="send()" [disabled]="sending" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">
-              <app-icon name="send" aria-hidden="true" class="h-6 w-6"></app-icon> {{ sending ? 'Sending...' : 'Send' }}
-            </button>
-          </div>
-        </form>
-    </section>
-  `,
+  templateUrl: './send-notification.component.html',
+  styleUrl: './send-notification.component.scss',
 })
 export class SendNotificationComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);

@@ -117,9 +117,12 @@ The browser installer offers two database modes. For a new database, it
 creates the database and schema and creates the initial super-admin and member
 profile/login accounts. Their profile names are assigned as “Admin Account”
 and “Member Account”; usernames, emails, and passwords are entered in the
-installer. Passwords may be any non-empty value, although strong passwords
-are strongly recommended. The initial member has no admin role or family
-membership; assign family access separately after installation.
+installer. The accounts are separate: the admin login has `user_type=admin`
+and `role=super_admin`; the member login has `user_type=member` and no
+admin-role value. A profile can have only one login account. Passwords may be
+any non-empty value, although strong passwords are strongly recommended. The
+initial member has no family membership; assign family access separately
+after installation.
 
 For an existing database, the installer only connects and verifies that all
 tables in the bundled API schema exist. It does not import or modify schema
@@ -142,10 +145,24 @@ a random JWT secret, write production settings to `.env`, and create
    requires initial super-admin and member login credentials. Existing-
    database mode verifies the current API tables but leaves all database
    contents unchanged.
-4. After setup completes, verify `/api/v1/auth/login` and confirm that
+4. After setup completes, verify the member `/api/v1/auth/login` and admin
+   `/api/v1/auth/admin/login` flows, and confirm that
    `/install/` and all private directories return HTTP 403 before exposing
    the API publicly. The lock file blocks repeat setup; the installer will not
    overwrite `.env`.
+
+For an existing installation, review and run
+`database/migrations/20261010_user_login_types.sql` after taking a database
+backup and before deploying the updated API. Resolve duplicate profile login
+accounts first. The migration assigns existing admin roles to matching login
+rows, revokes existing refresh tokens, makes profile links optional, and drops
+the old `admins` table. Review and resolve the migration's admin-without-login
+preflight query before running it: the old table is removed, and admin records
+without matching login credentials cannot be automatically migrated. Old
+tokens without portal/login claims are no longer accepted, so users must sign
+in again. If there is no migrated super-admin login, use a reviewed one-time
+DBA bootstrap for the first admin. The browser installer does not run this
+migration.
 
 The bundled install schema contains no `DROP TABLE` statements. Do not use
 new-database mode to migrate an existing Slim database or any database
@@ -172,9 +189,44 @@ Content-Type: application/json
 }
 ```
 
-The profile must exist and must not already have a login. Usernames must be
-unique. Success returns HTTP 201 and safe login metadata only; the password
-hash is never included. A duplicate login or username returns HTTP 409.
+The profile must exist and must not already have a login. This creates a
+`user_type=member` account. Usernames must be unique. Success returns HTTP 201
+and safe login metadata only; the password hash is never included. A duplicate
+login or username returns HTTP 409.
+
+## Admin portal login and account provisioning
+
+The member login endpoint `POST /api/v1/auth/login` accepts only member
+accounts. The admin application must use `POST /api/v1/auth/admin/login`,
+which accepts only accounts with `user_type=admin`. Both endpoints issue
+portal-scoped tokens; an admin login does not authenticate through the member
+login endpoint, or vice versa.
+
+To provision an admin login, with or without linking a member profile, a
+super-admin calls:
+
+```http
+POST /api/v1/admins/login-accounts
+Authorization: ******
+Content-Type: application/json
+```
+
+```json
+{
+  "username": "portal.admin",
+  "password": "<at-least-12-characters>",
+  "role": "program_manager"
+}
+```
+
+To link the account to an existing profile, include `"profile_id": 123`.
+If omitted, the admin login is standalone. Optionally set `display_name`;
+otherwise it defaults to the linked profile's name, or the username for a
+standalone account. A profile may have at most one login. Supported admin roles are
+`super_admin`, `program_manager`, `accounts`, and `readonly`. The `role` is
+stored on `user_logins`; member access roles continue to be derived from
+family/trainer membership. Only a super-admin may provision admin logins or
+change admin roles.
 
 ## Staging acceptance
 
@@ -188,6 +240,7 @@ data. Never use production credentials or records for these checks.
    php tests/phase5-payments.php
    php tests/phase6-community-notifications.php
    php tests/phase7-parity.php
+   php tests/phase8-auth-account-types.php
    ```
 
    The feature checks require PHP with PDO SQLite. Run the broader feature

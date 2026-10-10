@@ -6,7 +6,7 @@
         RewriteCond %{HTTP:Authorization} .
         RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-        RewriteRule ^(?:\.[^/]+|config|database|http|install|libraries|repositories|services|storage|tests)(?:/|$) - [F,L,NC]
+        RewriteRule ^(?:\.[^/]+|config|database|http|libraries|repositories|services|storage|tests)(?:/|$) - [F,L,NC]
         RewriteRule ^api/.*\.php(?:/.*)?$ - [F,L,NC]
         RewriteRule ^api/v1(?:/.*)?$ api/index.php [END,QSA,NC]
     </IfModule>

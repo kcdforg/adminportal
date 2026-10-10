@@ -4,7 +4,18 @@ declare(strict_types=1);
 
 function getUserRoles(array $jwt): array
 {
-    return array_values(array_unique(array_map('strval', (array) ($jwt['roles'] ?? []))));
+    $portal = (string) ($jwt['portal'] ?? '');
+    $userType = (string) ($jwt['user_type'] ?? '');
+    if (!in_array($portal, ['admin', 'member'], true) || $portal !== $userType) {
+        return [];
+    }
+
+    $roles = array_values(array_unique(array_map('strval', (array) ($jwt['roles'] ?? []))));
+    return array_values(array_filter($roles, static function (string $role) use ($portal): bool {
+        return $portal === 'admin'
+            ? str_starts_with($role, 'admin_')
+            : !str_starts_with($role, 'admin_');
+    }));
 }
 
 function isAdmin(array $jwt): bool
@@ -162,24 +173,6 @@ function getProfileRoles(Medoo\Medoo $database, int $profileId): array
         $roles[] = 'trainer';
     }
 
-    $adminRoles = $database->select('admins', 'admin_role', [
-        'profile_id' => $profileId,
-        'status' => 'active',
-    ]) ?? [];
-
-    $roleMap = [
-        'super_admin' => 'admin_super',
-        'program_manager' => 'admin_program_manager',
-        'accounts' => 'admin_accounts',
-        'readonly' => 'admin_readonly',
-    ];
-
-    foreach ($adminRoles as $adminRole) {
-        if (isset($roleMap[$adminRole])) {
-            $roles[] = $roleMap[$adminRole];
-        }
-    }
-
     $roles = array_values(array_unique($roles));
     sort($roles);
     $familyIds = array_values(array_unique($familyIds));
@@ -228,11 +221,205 @@ function getTrainerRecord(Medoo\Medoo $database, int $id): ?array
 
 function getAdmin(Medoo\Medoo $database, int $id): ?array
 {
-    $admin = findOne($database, 'admins', ['id' => $id]);
+    $admin = findOne($database, 'user_logins', ['id' => $id, 'user_type' => 'admin'], [
+        'id',
+        'profile_id',
+        'username',
+        'display_name',
+        'role',
+        'is_active',
+        'last_login_at',
+        'created_at',
+        'updated_at',
+    ]);
     if ($admin !== null) {
-        $admin['profile'] = getProfile($database, (int) $admin['profile_id']);
+        $admin['admin_role'] = $admin['role'];
+        $admin['status'] = (int) $admin['is_active'] === 1 ? 'active' : 'inactive';
+        $admin['profile'] = $admin['profile_id'] === null
+            ? null
+            : getProfile($database, (int) $admin['profile_id']);
+        $admin['display_name'] = resolveLoginDisplayName(
+            $database,
+            $admin['profile_id'] === null ? null : (int) $admin['profile_id'],
+            (string) $admin['username'],
+            is_string($admin['display_name']) ? $admin['display_name'] : null
+        );
     }
     return $admin;
+}
+
+function resolveLoginDisplayName(
+    Medoo\Medoo $database,
+    ?int $profileId,
+    string $username,
+    ?string $displayName = null
+): string {
+    if ($displayName !== null && trim($displayName) !== '') {
+        return trim($displayName);
+    }
+
+    $profile = $profileId !== null ? getProfileById($database, $profileId) : null;
+    if ($profile !== null) {
+        $name = trim(implode(' ', array_filter([
+            (string) $profile['first_name'],
+            (string) ($profile['middle_name'] ?? ''),
+            (string) $profile['last_name'],
+        ])));
+        if ($name !== '') {
+            return $name;
+        }
+    }
+
+    return $username;
+}
+
+function issueLoginTokens(
+    Medoo\Medoo $database,
+    array $bootstrap,
+    array $login,
+    ?array $profile,
+    bool $markLogin = true
+): array
+{
+    $profileId = (int) ($login['profile_id'] ?? 0);
+    $loginId = (int) $login['id'];
+    $userType = (string) $login['user_type'];
+    if (!in_array($userType, ['admin', 'member'], true)) {
+        throw new RuntimeException('The login account has an unsupported user type.');
+    }
+    if ($userType === 'member' && ($profileId <= 0 || $profile === null)) {
+        throw new RuntimeException('The member login account has no valid profile.');
+    }
+
+    if ($userType === 'admin') {
+        $roleMap = [
+            'super_admin' => 'admin_super',
+            'program_manager' => 'admin_program_manager',
+            'accounts' => 'admin_accounts',
+            'readonly' => 'admin_readonly',
+        ];
+        $role = (string) ($login['role'] ?? '');
+        if (!isset($roleMap[$role])) {
+            throw new RuntimeException('The admin login account has no valid role.');
+        }
+        $roles = [$roleMap[$role]];
+        $familyIds = [];
+    } else {
+        $roleData = getProfileRoles($database, $profileId);
+        $roles = $roleData['roles'];
+        $familyIds = $roleData['family_ids'];
+    }
+
+    $portal = $userType;
+    $now = time();
+    $accessTtl = (int) ($bootstrap['config']['jwt']['access_ttl'] ?? 900);
+    $refreshTtl = (int) ($bootstrap['config']['jwt']['refresh_ttl'] ?? 2592000);
+    $accessToken = createToken([
+        'profile_id' => $profileId > 0 ? $profileId : null,
+        'login_id' => $loginId,
+        'sub' => (string) $loginId,
+        'username' => (string) $login['username'],
+        'user_type' => $userType,
+        'portal' => $portal,
+        'roles' => $roles,
+        'family_ids' => $familyIds,
+        'iat' => $now,
+        'exp' => $now + $accessTtl,
+    ], 'access');
+
+    $refreshToken = createToken([
+        'profile_id' => $profileId > 0 ? $profileId : null,
+        'login_id' => $loginId,
+        'sub' => (string) $loginId,
+        'username' => (string) $login['username'],
+        'user_type' => $userType,
+        'portal' => $portal,
+        'iat' => $now,
+        'exp' => $now + $refreshTtl,
+    ], 'refresh');
+
+    $database->insert('refresh_tokens', [
+        'login_id' => $loginId,
+        'profile_id' => $profileId > 0 ? $profileId : null,
+        'token_hash' => hash('sha256', $refreshToken),
+        'expires_at' => date('Y-m-d H:i:s', time() + $refreshTtl),
+        'created_at' => date('Y-m-d H:i:s'),
+    ]);
+    if ($markLogin) {
+        $database->update('user_logins', [
+            'last_login_at' => date('Y-m-d H:i:s'),
+        ], [
+            'id' => $loginId,
+        ]);
+    }
+
+    return [
+        'access_token' => $accessToken,
+        'refresh_token' => $refreshToken,
+        'token_type' => 'Bearer',
+        'expires_in' => $accessTtl,
+        'profile' => [
+            'id' => $profileId > 0 ? $profileId : $loginId,
+            'profile_id' => $profileId > 0 ? $profileId : null,
+            'login_id' => $loginId,
+            'username' => (string) $login['username'],
+            'display_name' => resolveLoginDisplayName(
+                $database,
+                $profileId > 0 ? $profileId : null,
+                (string) $login['username'],
+                isset($login['display_name']) ? (string) $login['display_name'] : null
+            ),
+            'first_name' => (string) ($profile['first_name'] ?? resolveLoginDisplayName(
+                $database,
+                null,
+                (string) $login['username'],
+                isset($login['display_name']) ? (string) $login['display_name'] : null
+            )),
+            'last_name' => (string) ($profile['last_name'] ?? ''),
+            'email' => (string) ($profile['email'] ?? ''),
+            'user_type' => $userType,
+            'role' => $userType === 'admin' ? (string) $login['role'] : null,
+            'roles' => $roles,
+            'family_ids' => $familyIds,
+        ],
+    ];
+}
+
+function authenticatePortalLogin(
+    Medoo\Medoo $database,
+    array $bootstrap,
+    string $username,
+    string $password,
+    string $expectedUserType
+): array {
+    $login = $database->get('user_logins', [
+        'id',
+        'profile_id',
+        'username',
+        'display_name',
+        'password_hash',
+        'user_type',
+        'role',
+        'is_active',
+    ], [
+        'username' => $username,
+    ]);
+
+    if (!is_array($login)
+        || !password_verify($password, (string) $login['password_hash'])
+        || (int) $login['is_active'] !== 1
+        || (string) $login['user_type'] !== $expectedUserType) {
+        errorResponse('UNAUTHENTICATED', 'Invalid credentials.', 401);
+    }
+
+    $profileId = (int) ($login['profile_id'] ?? 0);
+    $profile = $profileId > 0 ? getProfileById($database, $profileId) : null;
+    if (($expectedUserType === 'member' && $profile === null)
+        || ($expectedUserType === 'admin' && $profileId > 0 && $profile === null)) {
+        errorResponse('UNAUTHENTICATED', 'The user profile could not be found.', 401);
+    }
+
+    return issueLoginTokens($database, $bootstrap, castIds($login), $profile);
 }
 
 function getEntity(Medoo\Medoo $database, int $id): ?array
@@ -564,6 +751,12 @@ function validateIdentityFields(array $data, string $kind, bool $update = false)
             }
         }
     } elseif ($kind === 'family') {
+        if (!$update) {
+            $requiredText('family_code', 'The family_code field is required.', 50, 'The family_code may not be greater than 50 characters.');
+            if (array_key_exists('family_code', $data) && $data['family_code'] !== null && $data['family_code'] !== [] && $data['family_code'] !== false && trim((string) $data['family_code']) === '') {
+                $errors['family_code'] = ['The family_code field cannot be empty.'];
+            }
+        }
         $requiredText('family_name', 'The family_name field is required.', 255, 'The family_name may not be greater than 255 characters.');
         if (array_key_exists('family_name', $data) && $data['family_name'] !== null && $data['family_name'] !== [] && $data['family_name'] !== false && trim((string) $data['family_name']) === '') {
             $errors['family_name'] = ['The family_name field cannot be empty.'];

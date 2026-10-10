@@ -297,23 +297,26 @@ function lockInvitation(Medoo\Medoo $database, string $code): ?array
 
 function issueInvitationTokens(Medoo\Medoo $database, array $bootstrap, int $profileId, string $email): array
 {
-    $roleData = getProfileRoles($database, $profileId);
-    $now = time();
-    $accessToken = createToken([
+    $login = $database->get('user_logins', [
+        'id',
+        'profile_id',
+        'username',
+        'user_type',
+        'role',
+        'is_active',
+    ], [
         'profile_id' => $profileId,
         'username' => $email,
-        'roles' => $roleData['roles'],
-        'family_ids' => $roleData['family_ids'],
-        'iat' => $now,
-        'exp' => $now + (int) ($bootstrap['config']['jwt']['access_ttl'] ?? 900),
-    ], 'access');
-    $refreshExpiry = $now + (int) ($bootstrap['config']['jwt']['refresh_ttl'] ?? 2592000);
-    $refreshToken = createToken(['profile_id' => $profileId, 'iat' => $now, 'exp' => $refreshExpiry], 'refresh');
-    $database->insert('refresh_tokens', [
-        'profile_id' => $profileId,
-        'token_hash' => hash('sha256', $refreshToken),
-        'expires_at' => date('Y-m-d H:i:s', $refreshExpiry),
-        'created_at' => date('Y-m-d H:i:s'),
+        'user_type' => 'member',
+        'is_active' => 1,
     ]);
-    return ['access_token' => $accessToken, 'refresh_token' => $refreshToken];
+    $profile = getProfileById($database, $profileId);
+    if (!is_array($login) || $profile === null) {
+        throw new RuntimeException('The new member login could not be retrieved.');
+    }
+    $tokens = issueLoginTokens($database, $bootstrap, castIds($login), $profile);
+    return [
+        'access_token' => $tokens['access_token'],
+        'refresh_token' => $tokens['refresh_token'],
+    ];
 }

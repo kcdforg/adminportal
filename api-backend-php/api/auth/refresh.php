@@ -23,11 +23,20 @@ if (($claims['type'] ?? 'access') !== 'refresh') {
 }
 
 $profileId = (int) ($claims['profile_id'] ?? 0);
+$loginId = (int) ($claims['login_id'] ?? 0);
+$userType = (string) ($claims['user_type'] ?? '');
+$portal = (string) ($claims['portal'] ?? '');
+if ($loginId <= 0
+    || !in_array($userType, ['admin', 'member'], true)
+    || $portal !== $userType
+    || ($userType === 'member' && $profileId <= 0)) {
+    errorResponse('UNAUTHENTICATED', 'Invalid or expired refresh token.', 401);
+}
 $tokenHash = hash('sha256', $refreshToken);
 
-$storedToken = $database->get('refresh_tokens', ['id', 'profile_id', 'expires_at'], [
+$storedToken = $database->get('refresh_tokens', ['id', 'login_id', 'profile_id', 'expires_at'], [
     'token_hash' => $tokenHash,
-    'profile_id' => $profileId,
+    'login_id' => $loginId,
     'revoked_at' => null,
     'expires_at[>]' => date('Y-m-d H:i:s'),
 ]);
@@ -47,28 +56,31 @@ try {
         'revoked_at' => null,
     ]);
 
-    $profile = getProfileById($database, $profileId);
-    if ($profile === null) {
-        throw new RuntimeException('Profile not found.');
+    $login = $database->get('user_logins', [
+        'id',
+        'profile_id',
+        'username',
+        'display_name',
+        'user_type',
+        'role',
+        'is_active',
+    ], [
+        'id' => $loginId,
+        'user_type' => $userType,
+        'is_active' => 1,
+    ]);
+    if (!is_array($login)) {
+        throw new RuntimeException('The login account is no longer active.');
+    }
+    $currentProfileId = (int) ($login['profile_id'] ?? 0);
+    $profile = $currentProfileId > 0 ? getProfileById($database, $currentProfileId) : null;
+    if ($currentProfileId !== $profileId
+        || ($userType === 'member' && $profile === null)
+        || ($userType === 'admin' && $currentProfileId > 0 && $profile === null)) {
+        throw new RuntimeException('The login account is no longer active.');
     }
 
-    $roleData = getProfileRoles($database, $profileId);
-
-    $accessToken = createToken([
-        'profile_id' => $profileId,
-        'username' => (string) ($claims['username'] ?? $profile['email'] ?? 'user'),
-        'roles' => $roleData['roles'],
-        'family_ids' => $roleData['family_ids'],
-    ], 'access');
-
-    $newRefreshToken = createToken(['profile_id' => $profileId], 'refresh');
-
-    $database->insert('refresh_tokens', [
-        'profile_id' => $profileId,
-        'token_hash' => hash('sha256', $newRefreshToken),
-        'expires_at' => date('Y-m-d H:i:s', time() + (int) ($bootstrap['config']['jwt']['refresh_ttl'] ?? 2592000)),
-        'created_at' => date('Y-m-d H:i:s'),
-    ]);
+    $tokens = issueLoginTokens($database, $bootstrap, castIds($login), $profile, false);
 
     $pdo->commit();
 } catch (Throwable $exception) {
@@ -79,16 +91,4 @@ try {
     errorResponse('UNAUTHENTICATED', 'Invalid or expired refresh token.', 401);
 }
 
-successResponse([
-    'access_token' => $accessToken,
-    'refresh_token' => $newRefreshToken,
-    'token_type' => 'Bearer',
-    'expires_in' => (int) ($bootstrap['config']['jwt']['access_ttl'] ?? 900),
-    'profile' => [
-        'id' => (int) $profile['id'],
-        'first_name' => $profile['first_name'],
-        'last_name' => $profile['last_name'],
-        'roles' => $roleData['roles'],
-        'family_ids' => $roleData['family_ids'],
-    ],
-], 'Token refreshed');
+successResponse($tokens, 'Token refreshed');

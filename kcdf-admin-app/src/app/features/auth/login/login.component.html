@@ -1,0 +1,69 @@
+
+    <main class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10 dark:bg-gray-950 sm:px-6">
+      <section class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl shadow-gray-900/5 dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+          <header class="mb-8 text-center">
+            <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/20">
+              <app-icon name="admin_panel_settings" aria-hidden="true" class="h-9 w-9"></app-icon>
+            </div>
+            <h1 class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">KCDF Admin Portal</h1>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Sign in to your admin account</p>
+          </header>
+
+          <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
+            <div>
+              <label for="username" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Username</label>
+              <div class="relative">
+                <input
+                  id="username"
+                  type="text"
+                  formControlName="username"
+                  autocomplete="username"
+                  class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500"
+                  [ngClass]="{ 'border-rose-500': form.controls.username.touched && form.controls.username.invalid }"
+                  [attr.aria-invalid]="form.controls.username.touched && form.controls.username.invalid">
+                <app-icon name="person" aria-hidden="true" class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"></app-icon>
+              </div>
+              <p *ngIf="form.controls.username.touched && form.controls.username.hasError('required')" class="mt-1.5 text-sm text-rose-600 dark:text-rose-400">
+                Username is required
+              </p>
+            </div>
+
+            <div>
+              <label for="password" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
+              <div class="relative">
+                <input
+                  id="password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  formControlName="password"
+                  autocomplete="current-password"
+                  class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white dark:placeholder:text-gray-500"
+                  [ngClass]="{ 'border-rose-500': form.controls.password.touched && form.controls.password.invalid }"
+                  [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid">
+                <button
+                  type="button"
+                  class="absolute inset-y-0 right-0 inline-flex w-11 items-center justify-center rounded-r-lg text-gray-400 hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-indigo-600 dark:hover:text-gray-200"
+                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                  [attr.aria-pressed]="showPassword()"
+                  (click)="showPassword.set(!showPassword())">
+                  <span class="relative inline-flex h-5 w-5" aria-hidden="true">
+                    <app-icon name="visibility" class="h-5 w-5"></app-icon>
+                    <span *ngIf="showPassword()" class="absolute left-1/2 top-1/2 h-px w-6 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-current"></span>
+                  </span>
+                </button>
+              </div>
+              <p *ngIf="form.controls.password.touched && form.controls.password.hasError('required')" class="mt-1.5 text-sm text-rose-600 dark:text-rose-400">
+                Password is required
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+              [disabled]="loading()">
+              <span *ngIf="loading()" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
+              <span>{{ loading() ? 'Signing in…' : 'Sign In' }}</span>
+            </button>
+          </form>
+      </section>
+    </main>
+  

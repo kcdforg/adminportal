@@ -14,6 +14,14 @@ class FamilyValidator
     {
         $errors = [];
 
+        if (!array_key_exists('family_code', $data) || $data['family_code'] === null) {
+            $errors['family_code'] = ['The family_code field is required.'];
+        } elseif (!is_string($data['family_code']) || trim($data['family_code']) === '') {
+            $errors['family_code'] = ['The family_code field cannot be empty.'];
+        } elseif (strlen(trim($data['family_code'])) > 50) {
+            $errors['family_code'] = ['The family_code may not be greater than 50 characters.'];
+        }
+
         if (empty($data['family_name'])) {
             $errors['family_name'] = ['The family_name field is required.'];
         } elseif (strlen($data['family_name']) > 255) {

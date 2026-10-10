@@ -1,0 +1,16 @@
+
+    <app-loading-overlay [loading]="loading()"></app-loading-overlay>
+    <app-page-header [title]="trainerName()" subtitle="Trainer Profile">
+      <button type="button" routerLink="/trainers" class="inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"><app-icon name="arrow_back" class="h-6 w-6"></app-icon> Back</button>
+      <button type="button" (click)="openEdit()" class="inline-flex min-h-10 items-center justify-center gap-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><app-icon name="edit" class="h-6 w-6"></app-icon> Edit</button>
+    </app-page-header>
+    <section *ngIf="trainer()" class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+        <div class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+          <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Trainer Code</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ trainer()!.trainer_code }}</span></div>
+          <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Name</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ trainer()!.member?.first_name }} {{ trainer()!.member?.last_name }}</span></div>
+          <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Specialization</span><span class="text-sm text-gray-900 dark:text-gray-100">{{ trainer()!.specialization ?? '—' }}</span></div>
+          <div class="flex min-w-0 flex-col gap-1.5"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</span><app-status-badge [status]="trainer()!.status"></app-status-badge></div>
+          <div class="flex min-w-0 flex-col gap-1.5 sm:col-span-2"><span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Bio</span><span class="text-sm leading-6 text-gray-700 dark:text-gray-300">{{ trainer()!.bio ?? '—' }}</span></div>
+        </div>
+    </section>
+  
