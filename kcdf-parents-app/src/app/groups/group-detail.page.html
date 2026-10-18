@@ -1,0 +1,61 @@
+<ion-content>
+  <main class="page-wrap">
+    <a class="back-link" routerLink="/groups">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+      All groups
+    </a>
+
+    @if (group; as selectedGroup) {
+      <section class="group-summary">
+        <span class="group-icon" [class]="selectedGroup.color">
+          <ion-icon [name]="selectedGroup.icon"></ion-icon>
+        </span>
+        <div>
+          <h1>{{ selectedGroup.name }}</h1>
+          <p>{{ selectedGroup.description }}</p>
+          <span class="member-count"><ion-icon name="people-outline"></ion-icon>{{ selectedGroup.members }} members</span>
+        </div>
+      </section>
+
+      <ion-segment [value]="activeSection" (ionChange)="setSection($event.detail.value)">
+        <ion-segment-button value="members"><ion-label>Members</ion-label></ion-segment-button>
+        <ion-segment-button value="announcements"><ion-label>Announcements</ion-label></ion-segment-button>
+        <ion-segment-button value="discussion"><ion-label>Discussion</ion-label></ion-segment-button>
+      </ion-segment>
+
+      @if (activeSection === 'members') {
+        <section class="detail-list" aria-label="Group members">
+          @for (member of members; track member.name) {
+            <article class="list-row">
+              <span class="avatar">{{ member.name.charAt(0) }}</span>
+              <div><h2>{{ member.name }}</h2><p>{{ member.role }}</p></div>
+            </article>
+          }
+        </section>
+      } @else if (activeSection === 'announcements') {
+        <section class="detail-list" aria-label="Group announcements">
+          @for (announcement of announcements; track announcement.title) {
+            <article class="list-row announcement">
+              <div><span class="row-meta">{{ announcement.date }}</span><h2>{{ announcement.title }}</h2><p>{{ announcement.body }}</p></div>
+            </article>
+          }
+        </section>
+      } @else {
+        <section class="detail-list" aria-label="Group discussions">
+          @for (discussion of discussions; track discussion.title) {
+            <article class="list-row discussion">
+              <div><h2>{{ discussion.title }}</h2><p>{{ discussion.author }} · {{ discussion.date }} · {{ discussion.replies }} replies</p></div>
+              <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+            </article>
+          }
+        </section>
+      }
+    } @else {
+      <section class="empty-state">
+        <h1>Group not found</h1>
+        <p>This group may no longer be available.</p>
+        <a routerLink="/groups">Return to groups</a>
+      </section>
+    }
+  </main>
+</ion-content>

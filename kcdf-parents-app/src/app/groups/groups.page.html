@@ -1,44 +1,27 @@
 <ion-content>
   <main class="page-wrap">
-    <section class="page-intro">
-      <p class="eyebrow">BETTER, TOGETHER</p>
-      <h1>Find your people.</h1>
-      <p>Join a group to meet families, share what matters and grow together.</p>
-    </section>
-
-    <div class="group-summary">
-      <span class="summary-mark"><ion-icon name="people-outline"></ion-icon></span>
-      <div>
-        <strong>A place for every family</strong>
-        <p>Explore welcoming circles built around learning, wellbeing and community.</p>
-      </div>
-    </div>
-
     <section class="group-grid" aria-label="Community groups">
       @for (group of groups; track group.id) {
-        <ion-card class="group-card">
+        <ion-card class="group-card" [routerLink]="['/groups', group.id]" button>
           <ion-card-content>
-            <div class="card-top">
-              <span class="group-icon" [class]="group.color">
-                <ion-icon [name]="group.icon"></ion-icon>
-              </span>
-              <span class="category">{{ group.category }}</span>
+            <span class="group-icon" [class]="group.color" aria-hidden="true">
+              <ion-icon [name]="group.icon"></ion-icon>
+            </span>
+            <div class="group-copy">
+              <div class="group-heading">
+                <h1>{{ group.name }}</h1>
+                <span class="category">{{ group.category }}</span>
+              </div>
+              <p class="description">{{ group.description }}</p>
+              <div class="group-details">
+                <span><ion-icon name="people-outline"></ion-icon>{{ group.members }} members</span>
+                <span><ion-icon name="calendar-outline"></ion-icon>{{ group.meeting }}</span>
+              </div>
             </div>
-            <h2>{{ group.name }}</h2>
-            <p class="description">{{ group.description }}</p>
-            <div class="group-details">
-              <span><ion-icon name="people-outline"></ion-icon>{{ group.members }} families</span>
-              <span><ion-icon name="calendar-outline"></ion-icon>{{ group.meeting }}</span>
-            </div>
-            <ion-button expand="block" fill="outline" shape="round" [routerLink]="['/posts']">
-              Explore community
-              <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
-            </ion-button>
+            <ion-icon class="card-arrow" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
           </ion-card-content>
         </ion-card>
       }
     </section>
-
-    <p class="footnote">More groups are coming soon. Keep an eye on community updates.</p>
   </main>
 </ion-content>

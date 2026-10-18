@@ -1,0 +1,142 @@
+ion-content {
+  --background: #f7f8f4;
+}
+
+.page-wrap {
+  width: min(100% - 2rem, 54rem);
+  margin: 0 auto;
+  padding: 1rem 0 1.5rem;
+}
+
+.back-link,
+.empty-state a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #477251;
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.group-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #e8eee7;
+  border-radius: 0.9rem;
+  background: white;
+}
+
+.group-icon,
+.avatar {
+  display: grid;
+  flex: 0 0 2.6rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  place-items: center;
+  border-radius: 0.8rem;
+  background: #e7f0e4;
+  color: #365c41;
+}
+
+.peach { background: #f7e8da; color: #946b4b; }
+.blue { background: #e5edf1; color: #4b6978; }
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0.3rem;
+  color: #263c2e;
+  font-size: 1.1rem;
+}
+
+.group-summary p,
+.list-row p {
+  margin-bottom: 0;
+  color: #6e7a71;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.member-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.55rem;
+  color: #65756a;
+  font-size: 0.75rem;
+}
+
+ion-segment {
+  margin: 0.8rem 0;
+  --background: #eaf0e8;
+}
+
+ion-segment-button {
+  min-height: 2.5rem;
+  font-size: 0.75rem;
+  text-transform: none;
+}
+
+.detail-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid #edf0eb;
+  border-radius: 0.8rem;
+  background: white;
+}
+
+.list-row > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.avatar {
+  flex-basis: 2.3rem;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+h2 {
+  margin-bottom: 0.2rem;
+  color: #2b4032;
+  font-size: 0.9rem;
+}
+
+.row-meta {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #829087;
+  font-size: 0.7rem;
+}
+
+.discussion > ion-icon {
+  color: #66806c;
+  font-size: 1.1rem;
+}
+
+.empty-state {
+  padding: 2rem 0;
+}
+
+@media (max-width: 560px) {
+  .page-wrap {
+    width: min(100% - 1.25rem, 54rem);
+  }
+}

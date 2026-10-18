@@ -63,5 +63,25 @@
     </ng-template>
   </ion-popover>
 
-  <ion-router-outlet></ion-router-outlet>
+  <ion-tabs class="app-tabs">
+    <ion-router-outlet></ion-router-outlet>
+    <ion-tab-bar slot="bottom" class="bottom-tabs">
+      <ion-tab-button tab="home" routerLink="/home">
+        <ion-icon name="home-outline"></ion-icon>
+        <ion-label>Home</ion-label>
+      </ion-tab-button>
+      <ion-tab-button tab="groups" routerLink="/groups">
+        <ion-icon name="people-outline"></ion-icon>
+        <ion-label>Groups</ion-label>
+      </ion-tab-button>
+      <ion-tab-button tab="courses" routerLink="/courses">
+        <ion-icon name="school-outline"></ion-icon>
+        <ion-label>Courses</ion-label>
+      </ion-tab-button>
+      <ion-tab-button tab="me" routerLink="/me">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <ion-label>Me</ion-label>
+      </ion-tab-button>
+    </ion-tab-bar>
+  </ion-tabs>
 </div>

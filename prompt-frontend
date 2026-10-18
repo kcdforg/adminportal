@@ -3,11 +3,23 @@ You are working on frontend app in /Users/apple/development/php/kcdf-parents/kcd
 The backend api code is at /Users/apple/development/php/kcdf-parents/api-backend-php
 
 this app is developed in angular and ionic framework
+1. The bottom tab bar is not displayed.
 
-1. You have to restore the bottom toolbar with same tabs - Home, Groups, Courses, Me
+2. In groups page, on clicking a group, it should go to group details page, with all the navigation structure i mentioned in previous chat messages.  same for courses page.
 
-2. Groups page should be compact. The top description can be removed.  The page should just show the groups card, with small group icon, group name, group description, total members.  On clicking, it should go to group page.  Create if not available.  The group page should have group member page, group announcements page and a group discussion page.  You decide on menu structure for these page.  can it be shown as tabs at top of groups page, below header? 
+2. In browser, the below error occurs.
 
-3. The courses page should also be made compact.  Each course should course name, and trainer name.  On clicking, it should go to course page.  Create if not available.  The courses page should have list of classes conducted with date as one tab, and list of students enrolled.  You decide on the navigation structure for these pages.  Can it be a tab?  or any other suggestion?
+TypeError: Failed to construct 'URL': Invalid base URL
+    at q (p-CHqRYvYm.js:4:3331)
+    at p-DqLB8yFQ.js:4:1969
+    at p-DqLB8yFQ.js:4:2209
+    at Vn.mode.loadIcon (p-DqLB8yFQ.js:4:2299)
+    at Vn.mode.componentDidLoad (p-DqLB8yFQ.js:4:1310)
+    at Bn (p-CHqRYvYm.js:4:30257)
+    at Rn (p-CHqRYvYm.js:4:29866)
+    at e3 (p-CHqRYvYm.js:4:29543)
+    at p-CHqRYvYm.js:4:29562
 
-3. In Home page, the recent updates shouldbe compact.  
+
+    
+

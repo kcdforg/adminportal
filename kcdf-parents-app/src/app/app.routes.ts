@@ -16,8 +16,16 @@ export const routes: Routes = [
         loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
       },
       {
+        path: 'groups/:id',
+        loadComponent: () => import('./groups/group-detail.page').then((m) => m.GroupDetailPage),
+      },
+      {
         path: 'groups',
         loadComponent: () => import('./groups/groups.page').then((m) => m.GroupsPage),
+      },
+      {
+        path: 'courses/:id',
+        loadComponent: () => import('./courses/course-detail.page').then((m) => m.CourseDetailPage),
       },
       {
         path: 'courses',

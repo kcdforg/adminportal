@@ -1,0 +1,50 @@
+<ion-content>
+  <main class="page-wrap">
+    <a class="back-link" routerLink="/courses">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+      All courses
+    </a>
+
+    @if (course; as selectedCourse) {
+      <section class="course-summary">
+        <span class="course-icon" [class]="selectedCourse.color"><ion-icon name="school-outline"></ion-icon></span>
+        <div>
+          <h1>{{ selectedCourse.title }}</h1>
+          <p>{{ selectedCourse.trainer }} · Trainer</p>
+          <span class="student-count"><ion-icon name="people-outline"></ion-icon>{{ selectedCourse.students }} students enrolled</span>
+        </div>
+      </section>
+
+      <ion-segment [value]="activeSection" (ionChange)="setSection($event.detail.value)">
+        <ion-segment-button value="classes"><ion-label>Classes</ion-label></ion-segment-button>
+        <ion-segment-button value="students"><ion-label>Students</ion-label></ion-segment-button>
+      </ion-segment>
+
+      @if (activeSection === 'classes') {
+        <section class="detail-list" aria-label="Classes conducted">
+          @for (session of classes; track session.title) {
+            <article class="list-row">
+              <span class="row-icon"><ion-icon name="calendar-outline"></ion-icon></span>
+              <div><h2>{{ session.title }}</h2><p>{{ session.date }} · {{ session.status }}</p></div>
+            </article>
+          }
+        </section>
+      } @else {
+        <section class="detail-list" aria-label="Enrolled students">
+          @for (student of students; track student.name) {
+            <article class="list-row">
+              <span class="avatar">{{ student.name.charAt(0) }}</span>
+              <div><h2>{{ student.name }}</h2><p>{{ student.status }}</p></div>
+            </article>
+          }
+        </section>
+      }
+    } @else {
+      <section class="empty-state">
+        <h1>Course not found</h1>
+        <p>This course may no longer be available.</p>
+        <a routerLink="/courses">Return to courses</a>
+      </section>
+    }
+  </main>
+</ion-content>

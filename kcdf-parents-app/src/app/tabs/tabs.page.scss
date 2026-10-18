@@ -4,16 +4,42 @@
 }
 
 .main-layout {
+  display: flex;
+  flex-direction: column;
   height: 100%;
 }
 
-.main-layout > ion-router-outlet {
-  top: calc(56px + var(--ion-safe-area-top, 0px));
+.app-header {
+  flex: 0 0 auto;
+}
+
+.main-layout > .app-tabs {
+  position: relative;
+  inset: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.bottom-tabs {
+  --background: white;
+  border-top: 1px solid #e9eee9;
+  box-shadow: 0 -3px 14px rgb(32 56 43 / 5%);
+}
+
+.bottom-tabs ion-tab-button {
+  --color: #78857b;
+  --color-selected: #315f45;
+  font-size: 0.7rem;
+}
+
+.bottom-tabs ion-tab-button ion-icon {
+  font-size: 1.2rem;
 }
 
 .app-header {
   box-shadow: 0 2px 12px rgb(24 49 37 / 7%);
-  z-index: 2;
+  z-index: 1;
 }
 
 .brand {

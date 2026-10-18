@@ -30,14 +30,9 @@
       <div class="post-grid">
         @for (post of posts; track post.id) {
           <ion-card class="post-card">
-            <div class="post-visual" [class]="post.visual">
-              <span class="visual-orbit"></span>
-              <ion-icon [name]="post.icon" aria-hidden="true"></ion-icon>
-              <span class="category">{{ post.category }}</span>
-            </div>
             <ion-card-content>
               <div class="post-meta">
-                <span>{{ post.publishedAt }}</span>
+                <span>{{ post.category }} · {{ post.publishedAt }}</span>
                 <span>{{ post.readTime }}</span>
               </div>
               <h3>{{ post.title }}</h3>

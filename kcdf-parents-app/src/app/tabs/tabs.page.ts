@@ -14,6 +14,9 @@ import {
   IonMenuToggle,
   IonPopover,
   IonRouterOutlet,
+  IonTabBar,
+  IonTabButton,
+  IonTabs,
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { MemberAuthService } from '../core/member-auth.service';
@@ -37,6 +40,9 @@ import { MemberAuthService } from '../core/member-auth.service';
     IonMenuToggle,
     IonPopover,
     IonRouterOutlet,
+    IonTabBar,
+    IonTabButton,
+    IonTabs,
     IonToolbar,
   ],
 })
