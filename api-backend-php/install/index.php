@@ -152,16 +152,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !$installed && $requirem
             $databaseExists->execute([':database' => $input['db_name']]);
             $databaseAlreadyExists = $databaseExists->fetchColumn() !== false;
             if ($input['db_mode'] === 'new') {
-                if ($databaseAlreadyExists) {
-                    throw new DomainException(
-                        'That database already exists. Choose a new, empty database name; existing databases are never modified.'
-                    );
-                }
-
                 $databaseName = '`' . $input['db_name'] . '`';
-                $pdo->exec("CREATE DATABASE {$databaseName} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                $createdDatabase = true;
+                if (!$databaseAlreadyExists) {
+                    $pdo->exec("CREATE DATABASE {$databaseName} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                    $createdDatabase = true;
+                }
                 $pdo->exec("USE {$databaseName}");
+                installerEnsureEmptyDatabase($pdo);
                 installerImportSchema($pdo, $root . '/database/schema.sql');
                 installerCreateInitialAccounts(
                     $pdo,
@@ -181,7 +178,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !$installed && $requirem
                     ]
                 );
             } else {
-                if (!$databaseAlreadyExists) {
+                if ($input['db_mode'] === 'existing' && !$databaseAlreadyExists) {
                     throw new DomainException('The selected existing database does not exist.');
                 }
                 $pdo->exec('USE `' . $input['db_name'] . '`');
@@ -408,6 +405,18 @@ function installerImportSchema(PDO $pdo, string $schemaPath): void
     }
 }
 
+function installerEnsureEmptyDatabase(PDO $pdo): void
+{
+    $tableCount = $pdo->query(
+        'SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()'
+    )->fetchColumn();
+    if ((int) $tableCount !== 0) {
+        throw new DomainException(
+            'New installation requires an empty database. The selected database already contains tables; no schema or account changes were made.'
+        );
+    }
+}
+
 function installerVerifyExistingSchema(PDO $pdo, string $schemaPath): void
 {
     $schema = file_get_contents($schemaPath);
@@ -559,7 +568,7 @@ $post = static fn (string $key): string => installerEscape(installerPostString($
 <body>
 <main>
     <h1>KCDF Parents API setup</h1>
-    <p class="hint">This one-time installer configures the API to use MySQL. Choose whether to create a new database with initial accounts or connect to an existing API database without modifying it.</p>
+    <p class="hint">This one-time installer configures the API to use MySQL. In new installation mode, it creates the schema and initial accounts in a new or already-created empty database. Existing database mode verifies the API schema without changing the database or creating accounts.</p>
 
     <?php if ($installed || $success): ?>
         <section class="success">
@@ -594,10 +603,10 @@ $post = static fn (string $key): string => installerEscape(installerPostString($
                     <h2>Database setup</h2>
                     <label for="db_mode">Database option</label>
                     <select id="db_mode" name="db_mode" required>
-                        <option value="new" <?= $input['db_mode'] === 'new' ? 'selected' : '' ?>>Create a new database and initial accounts</option>
+                        <option value="new" <?= $input['db_mode'] === 'new' ? 'selected' : '' ?>>New installation (create schema and initial accounts)</option>
                         <option value="existing" <?= $input['db_mode'] === 'existing' ? 'selected' : '' ?>>Connect to an existing API database (no schema or account changes)</option>
                     </select>
-                    <p class="hint">Use a MySQL account permitted to connect to the selected database. Creating a new database also requires permission to create databases and tables.</p>
+                    <p class="hint">Use a MySQL account permitted to connect to the selected database and create tables. Creating a database also requires permission to create databases.</p>
                     <div class="grid">
                         <div><label for="db_host">Database host</label><input id="db_host" name="db_host" required value="<?= $post('db_host') ?: '127.0.0.1' ?>"></div>
                         <div><label for="db_port">Port</label><input id="db_port" name="db_port" type="number" min="1" max="65535" required value="<?= $post('db_port') ?: '3306' ?>"></div>
@@ -611,8 +620,8 @@ $post = static fn (string $key): string => installerEscape(installerPostString($
                 </section>
 
                 <fieldset id="initial-accounts">
-                    <legend>Initial accounts for new database</legend>
-                    <p class="hint">First and last names are assigned automatically as “Admin Account” and “Member Account.” Passwords may be any non-empty value. Choose strong passwords for real deployments.</p>
+                    <legend>Initial accounts for new installation</legend>
+                    <p class="hint">These accounts are created for a new installation, including when using an already-created empty database. First and last names are assigned automatically as “Admin Account” and “Member Account.” Passwords may be any non-empty value. Choose strong passwords for real deployments.</p>
                     <section>
                         <h2>Initial super admin</h2>
                         <label for="admin_username">Login username</label><input id="admin_username" name="admin_username" required maxlength="100" autocomplete="username" value="<?= $post('admin_username') ?>">

@@ -113,12 +113,15 @@ is unset; production configuration must explicitly set `APP_DEBUG=false`.
 
 ## First-time web installation
 
-The browser installer offers two database modes. For a new database, it
-creates the database and schema and creates the initial super-admin and member
-profile/login accounts. Their profile names are assigned as “Admin Account”
-and “Member Account”; usernames, emails, and passwords are entered in the
-installer. The accounts are separate: the admin login has `user_type=admin`
-and `role=super_admin`; the member login has `user_type=member` and no
+The browser installer offers two database modes. In new-installation mode, it
+creates the database if needed, then creates the schema and initial super-admin
+and member profile/login accounts. This mode also works with an already-created
+empty database, as commonly provided on production servers; it refuses to
+install into a database that already contains tables. Their profile names are
+assigned as “Admin Account” and “Member Account”; usernames, emails, and
+passwords are entered in the installer. The accounts are separate: the admin
+login has `user_type=admin` and `role=super_admin`; the member login has
+`user_type=member` and no
 admin-role value. A profile can have only one login account. Passwords may be
 any non-empty value, although strong passwords are strongly recommended. The
 initial member has no family membership; assign family access separately
@@ -126,8 +129,9 @@ after installation.
 
 For an existing database, the installer only connects and verifies that all
 tables in the bundled API schema exist. It does not import or modify schema
-and does not create accounts. Select this mode only for a database that
-already has the API schema and login accounts configured. Both modes generate
+and does not create accounts. Select this mode when you want to explicitly
+connect to a database that already has the API schema and login accounts
+configured. Both modes generate
 a random JWT secret, write production settings to `.env`, and create
 `storage/installed.lock`.
 
