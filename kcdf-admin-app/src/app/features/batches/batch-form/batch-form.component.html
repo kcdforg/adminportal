@@ -19,7 +19,7 @@
           <label for="batch-trainer" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Trainer
             <select id="batch-trainer" formControlName="trainer_id" required [attr.aria-invalid]="form.controls.trainer_id.touched && form.controls.trainer_id.invalid ? 'true' : null" [attr.aria-describedby]="form.controls.trainer_id.touched && form.controls.trainer_id.hasError('required') ? 'batch-trainer-error' : null" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
               <option [ngValue]="null"></option>
-              <option *ngFor="let t of trainers()" [ngValue]="t.id">{{ t.member?.first_name }} {{ t.member?.last_name }}</option>
+              <option *ngFor="let t of trainers()" [ngValue]="t.id">{{ t.profile.first_name }} {{ t.profile.last_name }}</option>
             </select>
             <span *ngIf="form.controls.trainer_id.touched && form.controls.trainer_id.hasError('required')" id="batch-trainer-error" class="mt-1 block text-sm text-red-600" role="alert">Required</span>
           </label>

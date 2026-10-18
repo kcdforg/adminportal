@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Member sign in</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <main class="login-card">
+    <p class="eyebrow">KCDF PARENTS</p>
+    <h1>Welcome back</h1>
+    <p class="intro">Sign in to view your family, groups and courses.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <ion-item>
+        <ion-label position="stacked">Username</ion-label>
+        <ion-input
+          formControlName="username"
+          autocomplete="username"
+          inputmode="text"
+          required
+        ></ion-input>
+      </ion-item>
+      @if (form.controls.username.touched && form.controls.username.invalid) {
+        <p class="field-error">Enter your username.</p>
+      }
+
+      <ion-item>
+        <ion-label position="stacked">Password</ion-label>
+        <ion-input
+          formControlName="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        ></ion-input>
+      </ion-item>
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <p class="field-error">Enter your password.</p>
+      }
+
+      @if (errorMessage()) {
+        <p class="form-error" role="alert">{{ errorMessage() }}</p>
+      }
+      <ion-button class="submit-button" type="submit" expand="block" [disabled]="loading()">
+        {{ loading() ? 'Signing in…' : 'Sign in' }}
+      </ion-button>
+    </form>
+  </main>
+</ion-content>

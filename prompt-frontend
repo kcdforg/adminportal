@@ -1,0 +1,13 @@
+You are working on frontend app in /Users/apple/development/php/kcdf-parents/kcdf-parents-app
+
+The backend api code is at /Users/apple/development/php/kcdf-parents/api-backend-php
+
+this app is developed in angular and ionic framework
+
+1. You have to restore the bottom toolbar with same tabs - Home, Groups, Courses, Me
+
+2. Groups page should be compact. The top description can be removed.  The page should just show the groups card, with small group icon, group name, group description, total members.  On clicking, it should go to group page.  Create if not available.  The group page should have group member page, group announcements page and a group discussion page.  You decide on menu structure for these page.  can it be shown as tabs at top of groups page, below header? 
+
+3. The courses page should also be made compact.  Each course should course name, and trainer name.  On clicking, it should go to course page.  Create if not available.  The courses page should have list of classes conducted with date as one tab, and list of students enrolled.  You decide on the navigation structure for these pages.  Can it be a tab?  or any other suggestion?
+
+3. In Home page, the recent updates shouldbe compact.  

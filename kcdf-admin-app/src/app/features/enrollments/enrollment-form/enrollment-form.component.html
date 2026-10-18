@@ -12,8 +12,8 @@
         <label for="enrollment-member" class="block w-full text-sm font-medium text-gray-700 dark:text-gray-200">Member
           <select id="enrollment-member" formControlName="member_id" required [disabled]="!familyMembers().length" [attr.aria-invalid]="form.controls.member_id.touched && form.controls.member_id.invalid ? 'true' : null" [attr.aria-describedby]="form.controls.member_id.touched && form.controls.member_id.hasError('required') ? 'enrollment-member-error' : null" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
             <option [ngValue]="null">Select Member</option>
-            <option *ngFor="let m of familyMembers()" [ngValue]="m.member_id">
-              {{ m.member?.first_name }} {{ m.member?.last_name }}
+            <option *ngFor="let m of familyMembers()" [ngValue]="m.profile_id">
+              {{ m.profile.first_name }} {{ m.profile.last_name }}
             </option>
           </select>
           <span *ngIf="form.controls.member_id.touched && form.controls.member_id.hasError('required')" id="enrollment-member-error" class="mt-1 block text-sm text-red-600" role="alert">Required</span>

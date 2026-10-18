@@ -8,6 +8,7 @@ build/
 .env.*.local
 .vscode/
 .idea/
+.angular/
 *.swp
 *.swo
 *~

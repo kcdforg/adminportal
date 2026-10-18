@@ -1,0 +1,56 @@
+<h2 class="border-b border-gray-200 px-6 py-5 text-lg font-semibold text-gray-900 dark:border-gray-800 dark:text-white">
+  {{ data.member ? 'Edit Family Member' : (data.title ?? 'Add Family Member') }}
+</h2>
+<div class="max-h-[75vh] overflow-y-auto px-6 py-5">
+  <form [formGroup]="form" class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+    <div>
+      <label for="family-member-first-name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">First Name</label>
+      <input id="family-member-first-name" type="text" formControlName="first_name" required
+        class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+      <p *ngIf="form.controls.first_name.touched && form.controls.first_name.invalid" class="mt-1 text-sm text-rose-600">First name is required.</p>
+    </div>
+    <div>
+      <label for="family-member-last-name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Last Name</label>
+      <input id="family-member-last-name" type="text" formControlName="last_name" required
+        class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+      <p *ngIf="form.controls.last_name.touched && form.controls.last_name.invalid" class="mt-1 text-sm text-rose-600">Last name is required.</p>
+    </div>
+    <div>
+      <label for="family-member-email" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
+      <input id="family-member-email" type="email" formControlName="email"
+        class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+    </div>
+    <div>
+      <label for="family-member-mobile" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Mobile</label>
+      <input id="family-member-mobile" type="tel" formControlName="mobile"
+        class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+    </div>
+    <div *ngIf="data.member">
+      <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Gender</span>
+      <p class="min-h-10 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">{{ genderLabel(data.member.profile.gender) }}</p>
+    </div>
+    <div>
+      <label for="family-member-dob" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Date of Birth</label>
+      <input id="family-member-dob" type="date" formControlName="date_of_birth"
+        class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+    </div>
+    <div *ngIf="data.member">
+      <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Relationship</span>
+      <p class="min-h-10 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">{{ relationshipLabel(data.member.relationship_type) }}</p>
+    </div>
+    <div class="sm:col-span-2">
+      <label for="family-member-role" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Family Access Role</label>
+      <select id="family-member-role" formControlName="member_role" required
+        class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none dark:border-gray-700 dark:bg-gray-950 dark:text-white">
+        <option value="">Choose a role</option><option value="primary">Primary (can manage family)</option><option value="normal">Normal (family access)</option><option value="student">Student (self-only access)</option>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Choose explicitly; primary access is limited to one member per family.</p>
+    </div>
+  </form>
+</div>
+<div class="flex justify-end gap-2 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+  <button type="button" (click)="dialogRef.close()"
+    class="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">Cancel</button>
+  <button type="button" (click)="save()" [disabled]="saving"
+    class="inline-flex min-h-10 items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{{ saving ? 'Saving...' : 'Save Member' }}</button>
+</div>

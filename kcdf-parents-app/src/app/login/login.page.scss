@@ -1,0 +1,39 @@
+.login-card {
+  max-width: 28rem;
+  margin: 10vh auto 0;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  background: var(--ion-card-background, #fff);
+  box-shadow: 0 0.5rem 2rem #12331b14;
+}
+
+.eyebrow {
+  color: var(--ion-color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+h1 {
+  margin-bottom: 0.5rem;
+}
+
+.intro {
+  color: var(--ion-color-medium);
+  margin-bottom: 2rem;
+}
+
+ion-item {
+  --padding-start: 0;
+  margin-bottom: 0.75rem;
+}
+
+.submit-button {
+  margin-top: 1.5rem;
+}
+
+.field-error,
+.form-error {
+  color: var(--ion-color-danger);
+  font-size: 0.875rem;
+}

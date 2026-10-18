@@ -35,7 +35,6 @@
             <option value="active">Active</option><option value="inactive">Inactive</option><option value="suspended">Suspended</option>
           </select>
         </div>
-        <ng-container *ngIf="family">
         <div class="border-t border-gray-200 pt-4 dark:border-gray-800"></div>
         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Address</p>
         <div class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2" formGroupName="address">
@@ -47,6 +46,16 @@
           <div>
             <label for="family-address-line2" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Line 2</label>
             <input id="family-address-line2" type="text" formControlName="line2"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-taluk" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Taluk</label>
+            <input id="family-taluk" type="text" formControlName="taluk"
+              class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          </div>
+          <div>
+            <label for="family-village" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Village</label>
+            <input id="family-village" type="text" formControlName="village"
               class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
           </div>
           <div>
@@ -70,7 +79,6 @@
               class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
           </div>
         </div>
-        </ng-container>
       </form>
     </div>
     <div class="flex justify-end gap-2 border-t border-gray-200 px-6 py-4 dark:border-gray-800">

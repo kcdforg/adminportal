@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { ApiListResponse, ApiResponse, Trainer, CreateTrainerRequest, ListParams } from '../models';
+import { ApiListResponse, ApiResponse, Trainer, CreateTrainerRequest, UpdateTrainerRequest, ListParams } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class TrainerService {
@@ -19,7 +19,7 @@ export class TrainerService {
     return this.api.post<Trainer>('/trainers', data);
   }
 
-  update(id: number, data: Partial<CreateTrainerRequest & { status: string }>): Observable<ApiResponse<Trainer>> {
+  update(id: number, data: UpdateTrainerRequest): Observable<ApiResponse<Trainer>> {
     return this.api.patch<Trainer>(`/trainers/${id}`, data);
   }
 }

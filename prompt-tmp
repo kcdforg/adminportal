@@ -1,0 +1,18 @@
+You are working on admin app in /Users/apple/development/php/kcdf-parents/kcdf-admin-app
+
+The backend api code is at /Users/apple/development/php/kcdf-parents/api-backend-php
+
+this app is developed in angular with tailwind css.
+
+you are working on family module, family view page.
+
+1. when creating member login, remove password length validation. By default populate the family code in user_login field.
+2. In all edit popup, show gender and relationship as readonly label
+3. remove the middle name field in all the add/edit popup.
+4. the delete member popup is not displaying properly. there is no padding around the popup border.  same issue with deactive popup.
+5. For addresses, the schema to be changed to add taluk and village. make these fileds in the add/edit family popup.  create a patch sql for updating db in production.
+6. For add trainer, analyse the trainer schema, and design the popup accordingly. trainer has profile details, address details, and trainer details.  Also design the edit trainer popup  Implement the save functionality for add/edit trainer.  Check if appropriate apis are availabe in backend.
+
+
+
+

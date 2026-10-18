@@ -89,7 +89,7 @@ function validateOrFail(array $errors): void
     }
 }
 
-function findOne(Medoo\Medoo $database, string $table, array $where, array $columns = ['*']): ?array
+function findOne(Medoo\Medoo $database, string $table, array $where, array|string $columns = '*'): ?array
 {
     $row = $database->get($table, $columns, $where);
     return is_array($row) ? castIds($row) : null;
@@ -700,6 +700,8 @@ function createAddress(Medoo\Medoo $database, array $data): int
         'address_label' => $data['address_label'] ?? 'home',
         'address_line_1' => $data['address_line_1'],
         'address_line_2' => $data['address_line_2'] ?? null,
+        'taluk' => $data['taluk'] ?? null,
+        'village' => $data['village'] ?? null,
         'city' => $data['city'],
         'state' => $data['state'] ?? null,
         'postal_code' => $data['postal_code'] ?? null,
@@ -710,7 +712,7 @@ function createAddress(Medoo\Medoo $database, array $data): int
 
 function updateAddress(Medoo\Medoo $database, int $id, array $data): void
 {
-    $allowed = ['address_label', 'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country'];
+    $allowed = ['address_label', 'address_line_1', 'address_line_2', 'taluk', 'village', 'city', 'state', 'postal_code', 'country'];
     $update = [];
     foreach ($allowed as $field) {
         if (array_key_exists($field, $data)) {

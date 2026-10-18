@@ -73,11 +73,13 @@ export type MemberStatus = 'active' | 'inactive' | 'suspended';
 export interface MemberProfile {
   id: number;
   first_name: string;
+  middle_name?: string | null;
   last_name: string;
   email: string | null;
   mobile: string | null;
   gender: Gender | null;
   date_of_birth: string | null;
+  photo_url?: string | null;
   profile_photo_url: string | null;
   status: MemberStatus;
   has_login: boolean;
@@ -87,11 +89,14 @@ export interface MemberProfile {
 
 export interface CreateMemberRequest {
   first_name: string;
+  middle_name?: string | null;
   last_name: string;
-  email?: string;
-  mobile?: string;
-  gender?: Gender;
-  date_of_birth?: string;
+  email?: string | null;
+  mobile?: string | null;
+  gender?: Gender | null;
+  date_of_birth?: string | null;
+  photo_url?: string | null;
+  blood_group?: string | null;
 }
 
 export interface UpdateMemberRequest extends Partial<CreateMemberRequest> {
@@ -117,19 +122,56 @@ export interface Family {
 export interface FamilyMember {
   id: number;
   family_id: number;
-  member_id: number;
+  profile_id: number;
+  relationship_type: 'father' | 'mother' | 'guardian' | 'child';
   member_role: FamilyMemberRole;
-  joined_at: string;
-  member?: MemberProfile;
+  status: 'active' | 'removed';
+  created_at: string;
+  updated_at: string;
+  profile: {
+    id: number;
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
+    date_of_birth: string | null;
+    gender: Gender | null;
+    mobile: string | null;
+    email: string | null;
+    photo_url: string | null;
+    blood_group: string | null;
+    status: MemberStatus;
+    created_at: string;
+    updated_at: string;
+  };
+  login: MemberLogin | null;
+}
+
+export interface FamilyMemberRequest extends Partial<CreateMemberRequest> {
+  profile_id?: number;
+  relationship_type: FamilyMember['relationship_type'];
+  member_role: FamilyMemberRole;
+}
+
+export interface MemberLogin {
+  id: number;
+  profile_id: number;
+  username: string;
+  display_name: string | null;
+  is_active: boolean | number;
+  last_login_at: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Address {
   id: number;
-  line1: string;
-  line2: string | null;
+  address_line_1: string;
+  address_line_2: string | null;
+  taluk: string | null;
+  village: string | null;
   city: string;
   state: string;
-  pincode: string;
+  postal_code: string | null;
   country: string;
 }
 
@@ -138,6 +180,8 @@ export interface CreateAddressRequest {
   city: string;
   country: string;
   address_line_2?: string;
+  taluk?: string;
+  village?: string;
   state?: string;
   postal_code?: string;
 }
@@ -150,27 +194,52 @@ export interface CreateFamilyRequest {
 }
 
 // ─── Trainer ─────────────────────────────────────────────────────────────────
-export type TrainerStatus = 'active' | 'inactive';
+export type TrainerStatus = 'active' | 'inactive' | 'on_leave';
+
+export interface TrainerProfile {
+  id: number;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
+  date_of_birth: string | null;
+  gender: Gender | null;
+  mobile: string | null;
+  email: string | null;
+  photo_url: string | null;
+  blood_group: string | null;
+  status: MemberStatus;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Trainer {
   id: number;
   trainer_code: string;
-  member_id: number;
+  profile_id: number;
   specialization: string | null;
+  experience_years: number | null;
   bio: string | null;
   status: TrainerStatus;
   address_id: number | null;
-  address?: Address;
-  member?: MemberProfile;
+  joined_at: string | null;
+  address: Address | null;
+  profile: TrainerProfile;
   created_at: string;
   updated_at: string;
 }
 
 export interface CreateTrainerRequest {
-  member_id: number;
+  profile_id: number;
   specialization?: string;
+  experience_years?: number | null;
   bio?: string;
+  joined_at?: string | null;
+  address?: CreateAddressRequest;
 }
+
+export type UpdateTrainerRequest = Partial<Omit<CreateTrainerRequest, 'profile_id'>> & {
+  status?: TrainerStatus;
+};
 
 // ─── Program ─────────────────────────────────────────────────────────────────
 export type ProgramType = 'quran' | 'arabic' | 'islamic_studies' | 'other';

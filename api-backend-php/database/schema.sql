@@ -22,6 +22,8 @@ CREATE TABLE `addresses` (
     `address_label`  VARCHAR(50) NULL DEFAULT 'home',
     `address_line_1` VARCHAR(255) NOT NULL,
     `address_line_2` VARCHAR(255) NULL,
+    `taluk`          VARCHAR(100) NULL,
+    `village`        VARCHAR(100) NULL,
     `city`           VARCHAR(100) NOT NULL,
     `state`          VARCHAR(100) NULL,
     `postal_code`    VARCHAR(20) NULL,

@@ -35,7 +35,7 @@
               [routerLink]="['/batches', b.id]">
               <td class="px-4 py-3">{{ b.batch_name }}</td>
               <td class="px-4 py-3">{{ b.program?.name ?? '—' }}</td>
-              <td class="px-4 py-3">{{ b.trainer?.member?.first_name ?? '—' }}</td>
+              <td class="px-4 py-3">{{ b.trainer?.profile?.first_name ?? '—' }}</td>
               <td class="px-4 py-3">{{ b.start_date | date:'dd MMM yyyy' }}</td>
               <td class="px-4 py-3">{{ b.enrolled_count ?? 0 }}/{{ b.capacity }}</td>
               <td class="px-4 py-3"><app-status-badge [status]="b.status"></app-status-badge></td>

@@ -1,66 +1,149 @@
 
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
+    <a routerLink="/families"
+      class="mb-5 inline-flex min-h-10 items-center gap-2 text-sm font-medium text-indigo-700 transition hover:text-indigo-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:text-indigo-300 dark:hover:text-indigo-100">
+      <app-icon name="arrow_back" aria-hidden="true" class="h-5 w-5"></app-icon>
+      Back to Families
+    </a>
     <app-page-header [title]="family()?.family_name ?? 'Family'" subtitle="Family Detail">
-      <button type="button" routerLink="/families"
-        class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800">
-        <app-icon name="arrow_back" aria-hidden="true" class="h-6 w-6"></app-icon> Back
-      </button>
       <button type="button" (click)="openEdit()"
         class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
         <app-icon name="edit" aria-hidden="true" class="h-6 w-6"></app-icon> Edit
       </button>
     </app-page-header>
 
+    <section *ngIf="familyError()" role="alert" class="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200">
+      <p>{{ familyError() }}</p>
+      <button type="button" (click)="load()" class="mt-3 font-semibold underline">Retry family details</button>
+    </section>
+
     <div class="grid gap-5" *ngIf="family()">
       <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
-          <h2 class="text-base font-semibold text-gray-900 dark:text-white">Family Info</h2>
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white">Family Details</h2>
+        </div>
+        <div class="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Family Code</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.family_code }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Family Name</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.family_name }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</span><app-status-badge [status]="family()!.status"></app-status-badge></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Created</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.created_at | date:'dd MMM yyyy' }}</span></div>
+          <div class="sm:col-span-2 lg:col-span-4">
+            <div class="mb-3 border-t border-gray-200 dark:border-gray-800"></div>
+            <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Address</p>
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" *ngIf="family()!.address">
+              <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Line 1</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.address_line_1 }}</span></div>
+              <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Line 2</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.address_line_2 || '—' }}</span></div>
+              <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Taluk</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.taluk || '—' }}</span></div>
+              <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Village</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.village || '—' }}</span></div>
+              <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">City</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.city }}</span></div>
+              <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">State</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.state || '—' }}</span></div>
+              <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Pincode</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.postal_code || '—' }}</span></div>
+              <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Country</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.country }}</span></div>
+            </div>
+            <p *ngIf="!family()!.address" class="text-sm text-gray-500 dark:text-gray-400">No address on record</p>
+          </div>
+        </div>
+      </section>
+
+      <p *ngIf="membersError()" role="alert" class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-200">
+        {{ membersError() }}
+        <button type="button" (click)="retryMembers()" class="ml-2 font-semibold underline">Retry</button>
+      </p>
+      <p *ngIf="membersLoading()" class="text-sm text-gray-500 dark:text-gray-400">Loading family members...</p>
+
+      <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4 dark:border-gray-800">
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white">Husband / Father</h2>
+          <button *ngIf="canManageFamilyMembers() && !hasRelationship('father')" type="button" (click)="addMember('father', 'Add husband', 'male')"
+            class="inline-flex min-h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">Add Husband</button>
         </div>
         <div class="p-5">
-          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Family Code</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.family_code }}</span></div>
-            <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Family Name</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.family_name }}</span></div>
-            <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</span><app-status-badge [status]="family()!.status"></app-status-badge></div>
-            <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Created</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.created_at | date:'dd MMM yyyy' }}</span></div>
-          </div>
-          <div class="my-5 border-t border-gray-200 dark:border-gray-800"></div>
-          <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Address</p>
-          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" *ngIf="family()!.address">
-            <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Line 1</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.line1 }}</span></div>
-            <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">City</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.city }}</span></div>
-            <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">State</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.state }}</span></div>
-            <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Pincode</span><span class="text-sm text-gray-900 dark:text-white">{{ family()!.address!.pincode }}</span></div>
-          </div>
-          <p *ngIf="!family()!.address" class="text-sm text-gray-500 dark:text-gray-400">No address on record</p>
+          <ng-container *ngIf="getMemberByRelationship('father') as husband; else noHusband">
+            <ng-container *ngTemplateOutlet="memberPanel; context: { $implicit: husband }"></ng-container>
+          </ng-container>
+          <ng-template #noHusband><p *ngIf="!membersLoading() && !membersError()" class="text-sm text-gray-500 dark:text-gray-400">No husband/father has been added.</p></ng-template>
         </div>
       </section>
 
       <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
-          <h2 class="text-base font-semibold text-gray-900 dark:text-white">Members ({{ members().length }})</h2>
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4 dark:border-gray-800">
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white">Wife / Mother</h2>
+          <button *ngIf="canManageFamilyMembers() && !hasRelationship('mother')" type="button" (click)="addMember('mother', 'Add Wife', 'female')"
+            class="inline-flex min-h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">Add Wife</button>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[520px] text-left text-sm">
-            <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
-              <tr><th scope="col" class="px-5 py-3 font-medium">Name</th><th scope="col" class="px-5 py-3 font-medium">Role</th><th scope="col" class="px-5 py-3 font-medium">Joined</th><th scope="col" class="px-5 py-3 text-right font-medium"></th></tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-              <tr *ngFor="let m of members()" class="text-gray-700 dark:text-gray-300">
-                <td class="px-5 py-4 font-medium text-gray-900 dark:text-white">{{ m.member?.first_name }} {{ m.member?.last_name }}</td>
-                <td class="px-5 py-4"><app-status-badge [status]="m.member_role"></app-status-badge></td>
-                <td class="px-5 py-4">{{ m.joined_at | date:'dd MMM yyyy' }}</td>
-                <td class="px-5 py-4 text-right">
-                  <button type="button" (click)="removeMember(m)" [appTooltip]="'Remove'"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 transition hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-rose-600 dark:text-rose-400 dark:hover:bg-rose-500/10"
-                    aria-label="Remove member"><app-icon name="person_remove" aria-hidden="true" class="h-6 w-6"></app-icon></button>
-                </td>
-              </tr>
-              <tr *ngIf="members().length === 0">
-                <td colspan="4" class="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No members</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="p-5">
+          <ng-container *ngIf="getMemberByRelationship('mother') as wife; else noWife">
+            <ng-container *ngTemplateOutlet="memberPanel; context: { $implicit: wife }"></ng-container>
+          </ng-container>
+          <ng-template #noWife><p *ngIf="!membersLoading() && !membersError()" class="text-sm text-gray-500 dark:text-gray-400">No wife/mother has been added.</p></ng-template>
         </div>
       </section>
+
+      <section *ngIf="getMembersByRelationship('guardian').length > 0" class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white">Other Members (Guardians)</h2>
+        </div>
+        <div class="grid gap-4 p-5">
+          <ng-container *ngFor="let guardian of getMembersByRelationship('guardian')">
+            <ng-container *ngTemplateOutlet="memberPanel; context: { $implicit: guardian }"></ng-container>
+          </ng-container>
+        </div>
+      </section>
+
+      <section>
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Children</h2>
+          <div *ngIf="canManageFamilyMembers()" class="flex flex-wrap gap-2">
+            <button type="button" (click)="addMember('child', 'Add Son', 'male')"
+              class="inline-flex min-h-9 items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Add Son</button>
+            <button type="button" (click)="addMember('child', 'Add Daughter', 'female')"
+              class="inline-flex min-h-9 items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Add Daughter</button>
+          </div>
+        </div>
+        <div *ngIf="getMembersByRelationship('child').length > 0; else noChildren" class="grid gap-5">
+          <ng-container *ngFor="let child of getMembersByRelationship('child')">
+            <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+              <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">{{ child.profile.first_name }} {{ child.profile.last_name }}</h3>
+              </div>
+              <div class="p-5">
+                <ng-container *ngTemplateOutlet="memberPanel; context: { $implicit: child }"></ng-container>
+              </div>
+            </section>
+          </ng-container>
+        </div>
+        <ng-template #noChildren>
+          <div *ngIf="!membersLoading() && !membersError()" class="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+            No children have been added yet.
+          </div>
+        </ng-template>
+      </section>
     </div>
+
+    <ng-template #memberPanel let-member>
+      <div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <div class="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Name</span><span class="text-sm text-gray-900 dark:text-white">{{ member.profile.first_name }} {{ member.profile.middle_name }} {{ member.profile.last_name }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Access Role</span><app-status-badge [status]="member.member_role"></app-status-badge></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Member Login</span><span *ngIf="member.login" class="flex items-center gap-2 text-sm text-gray-900 dark:text-white">{{ member.login.username }} <app-status-badge [status]="isLoginActive(member.login) ? 'active' : 'inactive'"></app-status-badge></span><span *ngIf="!member.login" class="text-sm text-gray-500 dark:text-gray-400">Not set up</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Mobile</span><span class="text-sm text-gray-900 dark:text-white">{{ member.profile.mobile || '—' }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Email</span><span class="text-sm text-gray-900 dark:text-white">{{ member.profile.email || '—' }}</span></div>
+          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Date Added</span><span class="text-sm text-gray-900 dark:text-white">{{ member.created_at | date:'dd MMM yyyy' }}</span></div>
+        </div>
+        <div class="inline-flex items-center gap-1">
+          <button type="button" (click)="editMember(member)" [appTooltip]="'Edit member'"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-500/10"
+            [attr.aria-label]="'Edit ' + member.profile.first_name"><app-icon name="edit" aria-hidden="true" class="h-6 w-6"></app-icon></button>
+          <button type="button" (click)="manageLogin(member)" [appTooltip]="member.login ? 'Edit member login' : 'Create member login'"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+            [attr.aria-label]="member.login ? 'Edit member login' : 'Create member login'"><app-icon name="key" aria-hidden="true" class="h-6 w-6"></app-icon></button>
+          <button *ngIf="member.login && isLoginActive(member.login)" type="button" (click)="removeLogin(member)" [appTooltip]="'Deactivate login'"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-amber-600 transition hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-500/10"
+            aria-label="Deactivate member login"><app-icon name="lock" aria-hidden="true" class="h-6 w-6"></app-icon></button>
+          <button type="button" (click)="removeMember(member)" [appTooltip]="'Remove from family'"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 transition hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-rose-600 dark:text-rose-400 dark:hover:bg-rose-500/10"
+            aria-label="Remove member"><app-icon name="person_remove" aria-hidden="true" class="h-6 w-6"></app-icon></button>
+        </div>
+      </div>
+    </ng-template>
   

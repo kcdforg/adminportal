@@ -24,8 +24,10 @@ if ($profileId < 1) {
 $body = getJsonBody();
 $usernameInput = $body['username'] ?? null;
 $passwordInput = $body['password'] ?? null;
+$displayNameInput = $body['display_name'] ?? null;
 $username = is_string($usernameInput) ? trim($usernameInput) : '';
 $password = is_string($passwordInput) ? $passwordInput : '';
+$displayName = is_string($displayNameInput) ? trim($displayNameInput) : '';
 $errors = [];
 
 if (!is_string($usernameInput)) {
@@ -37,14 +39,18 @@ if (!is_string($usernameInput)) {
 }
 if (!is_string($passwordInput)) {
     $errors['password'] = ['The password must be a string.'];
-} elseif (strlen($password) < 12) {
-    $errors['password'] = ['The password must be at least 12 characters.'];
+} elseif ($password === '') {
+    $errors['password'] = ['The password field is required.'];
 } elseif (str_contains($password, "\0")) {
     $errors['password'] = ['The password must not contain a null byte.'];
 }
+if ($displayNameInput !== null
+    && (!is_string($displayNameInput) || $displayName === '' || strlen($displayName) > 150 || preg_match('/[\x00-\x1F\x7F]/', $displayName))) {
+    $errors['display_name'] = ['The display_name must be a non-empty string of at most 150 characters without control characters.'];
+}
 validateOrFail($errors);
 
-$login = databaseTransaction($database, static function () use ($database, $profileId, $username, $password, $jwt): array {
+$login = databaseTransaction($database, static function () use ($database, $profileId, $username, $password, $displayName, $displayNameInput, $jwt): array {
     if (!lockIdentityRecord($database, 'member_profiles', $profileId)) {
         throw new RuntimeException('Member profile not found.', 404);
     }
@@ -58,6 +64,12 @@ $login = databaseTransaction($database, static function () use ($database, $prof
     $database->insert('user_logins', [
         'profile_id' => $profileId,
         'username' => $username,
+        'display_name' => resolveLoginDisplayName(
+            $database,
+            $profileId,
+            $username,
+            $displayNameInput === null ? null : $displayName
+        ),
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
         'user_type' => 'member',
         'role' => null,
@@ -68,9 +80,11 @@ $login = databaseTransaction($database, static function () use ($database, $prof
         'id',
         'profile_id',
         'username',
+        'display_name',
         'user_type',
         'role',
         'is_active',
+        'last_login_at',
         'created_at',
     ]);
     if ($created === null) {

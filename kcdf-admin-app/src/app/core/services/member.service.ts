@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { ApiListResponse, ApiResponse, MemberProfile, CreateMemberRequest, UpdateMemberRequest, ListParams } from '../models';
+import { ApiListResponse, ApiResponse, MemberLogin, MemberProfile, CreateMemberRequest, UpdateMemberRequest, ListParams } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class MemberService {
@@ -20,10 +20,18 @@ export class MemberService {
   }
 
   update(id: number, data: UpdateMemberRequest): Observable<ApiResponse<MemberProfile>> {
-    return this.api.patch<MemberProfile>(`/members/${id}`, data);
+    return this.api.put<MemberProfile>(`/members/${id}`, data);
   }
 
-  createLogin(id: number, data: { username: string; password: string }): Observable<ApiResponse<unknown>> {
-    return this.api.post<unknown>(`/members/${id}/login`, data);
+  createLogin(id: number, data: { username: string; password: string; display_name?: string }): Observable<ApiResponse<MemberLogin>> {
+    return this.api.post<MemberLogin>(`/members/${id}/login`, data);
+  }
+
+  updateLogin(id: number, data: { username?: string; password?: string; display_name?: string; is_active?: boolean }): Observable<ApiResponse<MemberLogin>> {
+    return this.api.put<MemberLogin>(`/members/${id}/login`, data);
+  }
+
+  deleteLogin(id: number): Observable<ApiResponse<null>> {
+    return this.api.delete<null>(`/members/${id}/login`);
   }
 }

@@ -1,20 +1,55 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content>
+  <main class="page-wrap">
+    <section class="welcome">
+      <div class="welcome-copy">
+        <p class="eyebrow">YOUR COMMUNITY, CLOSER</p>
+        <h1>Welcome back,<br>{{ session.profile()?.first_name || session.profile()?.display_name || 'there' }}.</h1>
+        <p>Good things grow when families learn and thrive together.</p>
+        <ion-button routerLink="/groups" class="welcome-action" shape="round">
+          Find your community
+          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+        </ion-button>
+      </div>
+      <div class="welcome-art" aria-hidden="true">
+        <span class="sun"></span>
+        <span class="hill hill-back"></span>
+        <span class="hill hill-front"></span>
+        <span class="art-note">Together<br>we grow</span>
+      </div>
+    </section>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <section class="updates">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">WHAT'S HAPPENING</p>
+          <h2>Recent updates</h2>
+        </div>
+        <a routerLink="/posts" class="view-all">View all <span aria-hidden="true">→</span></a>
+      </div>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-  </div>
+      <div class="post-grid">
+        @for (post of posts; track post.id) {
+          <ion-card class="post-card">
+            <div class="post-visual" [class]="post.visual">
+              <span class="visual-orbit"></span>
+              <ion-icon [name]="post.icon" aria-hidden="true"></ion-icon>
+              <span class="category">{{ post.category }}</span>
+            </div>
+            <ion-card-content>
+              <div class="post-meta">
+                <span>{{ post.publishedAt }}</span>
+                <span>{{ post.readTime }}</span>
+              </div>
+              <h3>{{ post.title }}</h3>
+              <p class="excerpt">{{ post.excerpt }}</p>
+              <div class="byline">
+                <span class="author-avatar">{{ post.author.charAt(0) }}</span>
+                <ion-label>{{ post.author }}</ion-label>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    </section>
+  </main>
 </ion-content>

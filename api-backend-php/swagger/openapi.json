@@ -7168,6 +7168,11 @@
                     "format": "password",
                     "writeOnly": true
                   },
+                  "display_name": {
+                    "description": "Optional member portal display name.",
+                    "type": "string",
+                    "maxLength": 150
+                  },
                   "username": {
                     "description": "Username.",
                     "type": "string"
@@ -7181,6 +7186,66 @@
               }
             }
           }
+        }
+      },
+      "put": {
+        "tags": ["members"],
+        "summary": "Update or reactivate a member login",
+        "operationId": "put_members_id_login",
+        "description": "Updates safe login fields. Password changes and deactivation revoke active refresh tokens.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {"type": "integer", "format": "int64"},
+          "description": "Member profile identifier."
+        }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {"type": "string", "maxLength": 100},
+                  "display_name": {"type": "string", "maxLength": 150},
+                  "password": {"type": "string", "format": "password", "minLength": 12, "writeOnly": true},
+                  "is_active": {"type": "boolean"}
+                },
+                "additionalProperties": false,
+                "minProperties": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Login updated", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiSuccess"}}}},
+          "401": {"description": "Unauthenticated", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "403": {"description": "Not authorized", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "404": {"description": "Member or login not found", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "409": {"description": "Username already in use", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "422": {"description": "Validation failed", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}}
+        }
+      },
+      "delete": {
+        "tags": ["members"],
+        "summary": "Deactivate a member login",
+        "operationId": "delete_members_id_login",
+        "description": "Disables the login and revokes active refresh tokens; the login record is retained for audit and possible reactivation.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {"type": "integer", "format": "int64"},
+          "description": "Member profile identifier."
+        }],
+        "responses": {
+          "200": {"description": "Login deactivated", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiSuccess"}}}},
+          "401": {"description": "Unauthenticated", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "403": {"description": "Not authorized", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "404": {"description": "Member or login not found", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}}
         }
       }
     },
@@ -8316,8 +8381,9 @@
         "tags": [
           "families"
         ],
-        "summary": "Record families id members",
+        "summary": "Add a member to a family",
         "operationId": "post_families_id_members",
+        "description": "Provide profile_id to link an existing profile, or first_name and last_name to create a profile and membership atomically. member_role is required and must be chosen explicitly.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -8457,12 +8523,38 @@
                   "relationship_type": {
                     "description": "Relationship type.",
                     "type": "string"
+                  },
+                  "first_name": {
+                    "description": "Required when creating a profile.",
+                    "type": "string"
+                  },
+                  "middle_name": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "description": "Required when creating a profile.",
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "mobile": {
+                    "type": "string"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": ["male", "female", "other"]
+                  },
+                  "date_of_birth": {
+                    "type": "string",
+                    "format": "date"
                   }
                 },
                 "additionalProperties": true,
                 "required": [
-                  "profile_id",
-                  "relationship_type"
+                  "relationship_type",
+                  "member_role"
                 ]
               }
             }
@@ -8471,6 +8563,58 @@
       }
     },
     "/families/{id}/members/{profile_id}": {
+      "put": {
+        "tags": ["families"],
+        "summary": "Update family membership and member profile",
+        "operationId": "put_families_id_members_profile_id",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer", "format": "int64"},
+            "description": "Family identifier."
+          },
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer", "format": "int64"},
+            "description": "Member profile identifier."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "first_name": {"type": "string"},
+                  "middle_name": {"type": "string"},
+                  "last_name": {"type": "string"},
+                  "email": {"type": "string", "format": "email"},
+                  "mobile": {"type": "string"},
+                  "gender": {"type": "string", "enum": ["male", "female", "other"]},
+                  "date_of_birth": {"type": "string", "format": "date"},
+                  "relationship_type": {"type": "string", "enum": ["father", "mother", "guardian", "child"]},
+                  "member_role": {"type": "string", "enum": ["primary", "normal", "student"]}
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Family member updated", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiSuccess"}}}},
+          "401": {"description": "Unauthenticated", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "403": {"description": "Not authorized", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "404": {"description": "Family member not found", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "409": {"description": "Primary-member constraint conflict", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "422": {"description": "Validation failed", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}}
+        }
+      },
       "delete": {
         "tags": [
           "families"

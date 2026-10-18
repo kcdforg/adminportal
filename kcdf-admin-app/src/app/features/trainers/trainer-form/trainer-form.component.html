@@ -1,35 +1,131 @@
-
-    <h2 class="!mb-1 !text-xl !font-semibold !tracking-tight !text-gray-900 dark:!text-white">{{ trainer ? 'Edit Trainer' : 'Add Trainer' }}</h2>
-    <div class="!max-h-[75vh] overflow-y-auto !text-gray-700 dark:!text-gray-200">
-      <form [formGroup]="form" class="form-col">
-        <div class="full-width" *ngIf="!trainer">
-          <label for="trainer-member-id" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Member ID</label>
-          <input id="trainer-member-id" type="number" formControlName="member_id" placeholder="Enter member ID" required
-            [attr.aria-invalid]="form.controls.member_id.touched && form.controls.member_id.invalid"
-            [attr.aria-describedby]="form.controls.member_id.touched && form.controls.member_id.hasError('required') ? 'trainer-member-id-error' : null"
-            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
-            [class.border-rose-500]="form.controls.member_id.touched && form.controls.member_id.invalid" />
-          <p *ngIf="form.controls.member_id.touched && form.controls.member_id.hasError('required')" id="trainer-member-id-error" class="mt-1 text-sm text-rose-600 dark:text-rose-400">Required</p>
+<h2 class="border-b border-gray-200 px-6 py-5 text-lg font-semibold text-gray-900 dark:border-gray-800 dark:text-white">
+  {{ trainer ? 'Edit Trainer' : 'Add Trainer' }}
+</h2>
+<div class="max-h-[75vh] overflow-y-auto px-6 py-5">
+  <form [formGroup]="form" class="space-y-5">
+    <section class="space-y-4">
+      <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Profile Details</h3>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label for="trainer-first-name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">First Name</label>
+          <input id="trainer-first-name" type="text" formControlName="first_name" required
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          <p *ngIf="form.controls.first_name.touched && form.controls.first_name.invalid" class="mt-1 text-sm text-rose-600">First name is required.</p>
         </div>
-        <div class="full-width">
-          <label for="trainer-specialization" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Specialization</label>
-          <input id="trainer-specialization" type="text" formControlName="specialization" class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        <div>
+          <label for="trainer-last-name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Last Name</label>
+          <input id="trainer-last-name" type="text" formControlName="last_name" required
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+          <p *ngIf="form.controls.last_name.touched && form.controls.last_name.invalid" class="mt-1 text-sm text-rose-600">Last name is required.</p>
         </div>
-        <div class="full-width">
-          <label for="trainer-bio" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Bio</label>
-          <textarea id="trainer-bio" formControlName="bio" rows="3" class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white"></textarea>
+        <div>
+          <label for="trainer-dob" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Date of Birth</label>
+          <input id="trainer-dob" type="date" formControlName="date_of_birth"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
         </div>
-        <div class="full-width" *ngIf="trainer">
-          <label for="trainer-status" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Status</label>
-          <select id="trainer-status" formControlName="status" class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-white">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+        <div>
+          <label for="trainer-gender" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Gender</label>
+          <select id="trainer-gender" formControlName="gender"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white">
+            <option value="">Not specified</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option>
           </select>
         </div>
-      </form>
-    </div>
-    <div class="mt-6 flex justify-end gap-2">
-      <button type="button" (click)="dialogRef.close()" class="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800">Cancel</button>
-      <button type="button" (click)="save()" [disabled]="saving" class="inline-flex min-h-10 items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60">{{ saving ? 'Saving...' : 'Save' }}</button>
-    </div>
-  
+        <div>
+          <label for="trainer-mobile" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Mobile</label>
+          <input id="trainer-mobile" type="tel" formControlName="mobile"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div>
+          <label for="trainer-email" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
+          <input id="trainer-email" type="email" formControlName="email"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-800">
+      <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Address Details</h3>
+      <div formGroupName="address" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label for="trainer-address-line1" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Address Line 1</label>
+          <input id="trainer-address-line1" type="text" formControlName="line1"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div>
+          <label for="trainer-address-line2" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Address Line 2</label>
+          <input id="trainer-address-line2" type="text" formControlName="line2"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div>
+          <label for="trainer-taluk" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Taluk</label>
+          <input id="trainer-taluk" type="text" formControlName="taluk"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div>
+          <label for="trainer-village" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Village</label>
+          <input id="trainer-village" type="text" formControlName="village"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div>
+          <label for="trainer-city" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">City</label>
+          <input id="trainer-city" type="text" formControlName="city"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div>
+          <label for="trainer-state" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">State</label>
+          <input id="trainer-state" type="text" formControlName="state"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div>
+          <label for="trainer-pincode" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Pincode</label>
+          <input id="trainer-pincode" type="text" formControlName="postal_code"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div>
+          <label for="trainer-country" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Country</label>
+          <input id="trainer-country" type="text" formControlName="country"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-4 border-t border-gray-200 pt-4 dark:border-gray-800">
+      <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Trainer Details</h3>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label for="trainer-specialization" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Specialization</label>
+          <input id="trainer-specialization" type="text" formControlName="specialization"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div>
+          <label for="trainer-experience" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Experience (years)</label>
+          <input id="trainer-experience" type="number" min="0" max="60" formControlName="experience_years"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div>
+          <label for="trainer-joined-at" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Joined Date</label>
+          <input id="trainer-joined-at" type="date" formControlName="joined_at"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        </div>
+        <div *ngIf="trainer">
+          <label for="trainer-status" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Status</label>
+          <select id="trainer-status" formControlName="status"
+            class="block min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white">
+            <option value="active">Active</option><option value="inactive">Inactive</option><option value="on_leave">On Leave</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="trainer-bio" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Bio</label>
+          <textarea id="trainer-bio" formControlName="bio" rows="3"
+            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white"></textarea>
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
+<div class="flex justify-end gap-2 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+  <button type="button" (click)="dialogRef.close()"
+    class="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">Cancel</button>
+  <button type="button" (click)="save()" [disabled]="saving"
+    class="inline-flex min-h-10 items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{{ saving ? 'Saving...' : 'Save Trainer' }}</button>
+</div>

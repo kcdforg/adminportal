@@ -1,0 +1,60 @@
+.state {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  color: var(--ion-color-medium);
+}
+
+.message {
+  margin: 2rem auto;
+  max-width: 32rem;
+  color: var(--ion-color-danger);
+  text-align: center;
+}
+
+ion-card,
+.family-link,
+.logout {
+  max-width: 38rem;
+  margin-inline: auto;
+}
+
+.profile-card {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.avatar {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ion-color-primary);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.username,
+.label {
+  color: var(--ion-color-medium);
+}
+
+.details-card ion-item {
+  --padding-start: 0;
+}
+
+.label {
+  font-size: 0.8rem;
+}
+
+.family-link {
+  margin-top: 1.5rem;
+}
+
+.logout {
+  margin-top: 1rem;
+}

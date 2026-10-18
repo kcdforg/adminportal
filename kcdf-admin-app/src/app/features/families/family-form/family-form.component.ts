@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FamilyService } from '../../../core/services/family.service';
-import { CreateFamilyRequest, Family, FamilyStatus } from '../../../core/models';
+import { CreateAddressRequest, CreateFamilyRequest, Family, FamilyStatus } from '../../../core/models';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import {
   TAILWIND_DIALOG_DATA,
@@ -35,11 +35,13 @@ export class FamilyFormComponent {
     family_name: new FormControl(this.family?.family_name ?? '', { nonNullable: true, validators: [Validators.required] }),
     status: new FormControl<FamilyStatus>(this.family?.status ?? 'active', { nonNullable: true }),
     address: new FormGroup({
-      line1: new FormControl(this.family?.address?.line1 ?? ''),
-      line2: new FormControl(this.family?.address?.line2 ?? ''),
+      line1: new FormControl(this.family?.address?.address_line_1 ?? ''),
+      line2: new FormControl(this.family?.address?.address_line_2 ?? ''),
+      taluk: new FormControl(this.family?.address?.taluk ?? ''),
+      village: new FormControl(this.family?.address?.village ?? ''),
       city: new FormControl(this.family?.address?.city ?? ''),
       state: new FormControl(this.family?.address?.state ?? ''),
-      pincode: new FormControl(this.family?.address?.pincode ?? ''),
+      pincode: new FormControl(this.family?.address?.postal_code ?? ''),
       country: new FormControl(this.family?.address?.country ?? 'India'),
     })
   });
@@ -50,7 +52,7 @@ export class FamilyFormComponent {
     this.saveErrorDetails.set([]);
     const val = this.form.getRawValue();
     const address = val.address;
-    const hasAddress = this.family && [address.line1, address.line2, address.city, address.state, address.pincode]
+    const hasAddress = [address.line1, address.line2, address.taluk, address.village, address.city, address.state, address.pincode]
       .some(value => value?.trim());
 
     if (hasAddress && (!address.line1?.trim() || !address.city?.trim())) {
@@ -64,25 +66,30 @@ export class FamilyFormComponent {
     }
 
     const familyData = { family_name: val.family_name.trim() };
+    const addressData: CreateAddressRequest | undefined = hasAddress ? {
+      address_line_1: address.line1!.trim(),
+      city: address.city!.trim(),
+      country: address.country?.trim() || 'India',
+      ...(address.line2?.trim() ? { address_line_2: address.line2.trim() } : {}),
+      ...(address.taluk?.trim() ? { taluk: address.taluk.trim() } : {}),
+      ...(address.village?.trim() ? { village: address.village.trim() } : {}),
+      ...(address.state?.trim() ? { state: address.state.trim() } : {}),
+      ...(address.pincode?.trim() ? { postal_code: address.pincode.trim() } : {}),
+    } : undefined;
     const updateData = {
       ...familyData,
       status: val.status,
-      ...(hasAddress ? {
-        address: {
-          address_line_1: address.line1!.trim(),
-          city: address.city!.trim(),
-          country: address.country?.trim() || 'India',
-          ...(address.line2?.trim() ? { address_line_2: address.line2.trim() } : {}),
-          ...(address.state?.trim() ? { state: address.state.trim() } : {}),
-          ...(address.pincode?.trim() ? { postal_code: address.pincode.trim() } : {}),
-        }
-      } : {}),
+      ...(addressData ? { address: addressData } : {}),
     };
 
     this.saving = true;
     const obs = this.family
       ? this.familyService.update(this.family.id, updateData)
-      : this.familyService.create({ family_code: val.family_code.trim(), ...familyData });
+      : this.familyService.create({
+        family_code: val.family_code.trim(),
+        ...familyData,
+        ...(addressData ? { address: addressData } : {}),
+      });
 
     obs.subscribe({
       next: () => {

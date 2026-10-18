@@ -43,6 +43,12 @@ $rows = $database->select('family_members', [
 
 $members = [];
 foreach ($rows as $row) {
+        $login = $database->get('user_logins', [
+            'id', 'profile_id', 'username', 'display_name', 'is_active', 'last_login_at',
+        ], [
+            'profile_id' => (int) $row['profile_id'],
+            'user_type' => 'member',
+        ]);
         $members[] = [
             'id' => (int) $row['id'],
             'family_id' => (int) $row['family_id'],
@@ -67,8 +73,8 @@ foreach ($rows as $row) {
                 'created_at' => $row['profile_created_at'],
                 'updated_at' => $row['profile_updated_at'],
             ],
+            'login' => is_array($login) ? castIds($login) : null,
         ];
     }
 
 successResponse($members);
-

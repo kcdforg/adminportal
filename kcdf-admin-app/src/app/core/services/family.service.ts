@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { ApiListResponse, ApiResponse, Family, FamilyMember, CreateFamilyRequest, ListParams, Payment } from '../models';
+import { ApiListResponse, ApiResponse, Family, FamilyMember, FamilyMemberRequest, CreateFamilyRequest, ListParams, Payment } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class FamilyService {
@@ -20,19 +20,23 @@ export class FamilyService {
   }
 
   update(id: number, data: Partial<CreateFamilyRequest>): Observable<ApiResponse<Family>> {
-    return this.api.patch<Family>(`/families/${id}`, data);
+    return this.api.put<Family>(`/families/${id}`, data);
   }
 
-  getMembers(familyId: number): Observable<ApiListResponse<FamilyMember>> {
-    return this.api.list<FamilyMember>(`/families/${familyId}/members`);
+  getMembers(familyId: number): Observable<ApiResponse<FamilyMember[]>> {
+    return this.api.get<FamilyMember[]>(`/families/${familyId}/members`);
   }
 
-  addMember(familyId: number, data: { member_id: number; member_role: string }): Observable<ApiResponse<FamilyMember>> {
+  addMember(familyId: number, data: FamilyMemberRequest): Observable<ApiResponse<FamilyMember>> {
     return this.api.post<FamilyMember>(`/families/${familyId}/members`, data);
   }
 
-  removeMember(familyId: number, memberId: number): Observable<ApiResponse<null>> {
-    return this.api.delete<null>(`/families/${familyId}/members/${memberId}`);
+  updateMember(familyId: number, profileId: number, data: Partial<FamilyMemberRequest>): Observable<ApiResponse<FamilyMember>> {
+    return this.api.put<FamilyMember>(`/families/${familyId}/members/${profileId}`, data);
+  }
+
+  removeMember(familyId: number, profileId: number): Observable<ApiResponse<null>> {
+    return this.api.delete<null>(`/families/${familyId}/members/${profileId}`);
   }
 
   getPayments(familyId: number, params?: ListParams): Observable<ApiListResponse<Payment>> {

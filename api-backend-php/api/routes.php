@@ -64,6 +64,8 @@ return function (RouteCollector $routeCollector): void {
     $routeCollector->addRoute('GET', '/api/v1/members/{id:[0-9]+}', 'members/show.php');
     $routeCollector->addRoute('PUT', '/api/v1/members/{id:[0-9]+}', 'members/update.php');
     $routeCollector->addRoute('POST', '/api/v1/members/{id:[0-9]+}/login', 'members/login-store.php');
+    $routeCollector->addRoute('PUT', '/api/v1/members/{id:[0-9]+}/login', 'members/login-update.php');
+    $routeCollector->addRoute('DELETE', '/api/v1/members/{id:[0-9]+}/login', 'members/login-destroy.php');
     $routeCollector->addRoute('GET', '/api/v1/members/{id:[0-9]+}/entity-relations', 'members/entity-relations.php');
     $routeCollector->addRoute('POST', '/api/v1/members/{id:[0-9]+}/entity-relations', 'members/entity-relation-store.php');
     $routeCollector->addRoute('DELETE', '/api/v1/members/{id:[0-9]+}/entity-relations/{relation_id:[0-9]+}', 'members/entity-relation-delete.php');
@@ -74,6 +76,7 @@ return function (RouteCollector $routeCollector): void {
     $routeCollector->addRoute('PUT', '/api/v1/families/{id:[0-9]+}', 'families/update.php');
     $routeCollector->addRoute('GET', '/api/v1/families/{id:[0-9]+}/members', 'families/members.php');
     $routeCollector->addRoute('POST', '/api/v1/families/{id:[0-9]+}/members', 'families/members-store.php');
+    $routeCollector->addRoute('PUT', '/api/v1/families/{id:[0-9]+}/members/{profile_id:[0-9]+}', 'families/members-update.php');
     $routeCollector->addRoute('DELETE', '/api/v1/families/{id:[0-9]+}/members/{profile_id:[0-9]+}', 'families/members-destroy.php');
 
     $routeCollector->addRoute('GET', '/api/v1/trainers', 'trainers/index.php');

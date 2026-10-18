@@ -32,10 +32,9 @@
       </button>
 
       <div
-        class="dialog-content max-h-[calc(100dvh-2rem)] overflow-y-auto"
-        [class.px-5]="!visuallyHiddenTitle"
-        [class.py-5]="!visuallyHiddenTitle"
-        [class.pt-2]="visuallyHiddenTitle">
+        class="dialog-content max-h-[calc(100dvh-2rem)] overflow-y-auto px-5 pb-5"
+        [class.pt-5]="!visuallyHiddenTitle"
+        [class.pt-12]="visuallyHiddenTitle">
         <ng-content></ng-content>
       </div>
 

@@ -19,6 +19,7 @@
               <option value="">All</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
+              <option value="on_leave">On Leave</option>
             </select>
           </div>
         </div>
@@ -38,7 +39,7 @@
             <tr *ngFor="let t of trainers()" class="cursor-pointer text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/50"
               [routerLink]="['/trainers', t.id]">
               <td class="px-4 py-3">{{ t.trainer_code }}</td>
-              <td class="px-4 py-3">{{ t.member?.first_name }} {{ t.member?.last_name }}</td>
+              <td class="px-4 py-3">{{ t.profile.first_name }} {{ t.profile.last_name }}</td>
               <td class="px-4 py-3">{{ t.specialization ?? '—' }}</td>
               <td class="px-4 py-3"><app-status-badge [status]="t.status"></app-status-badge></td>
               <td class="px-4 py-3">

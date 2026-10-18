@@ -23,7 +23,7 @@ export class TrainerDetailComponent implements OnInit {
   private readonly dialog = inject(TailwindDialogService);
   readonly loading = signal(false);
   readonly trainer = signal<Trainer | null>(null);
-  trainerName = () => { const t = this.trainer(); return t ? `${t.member?.first_name ?? ''} ${t.member?.last_name ?? ''}`.trim() || t.trainer_code : 'Trainer'; };
+  trainerName = () => { const t = this.trainer(); return t ? `${t.profile.first_name} ${t.profile.last_name}`.trim() || t.trainer_code : 'Trainer'; };
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));

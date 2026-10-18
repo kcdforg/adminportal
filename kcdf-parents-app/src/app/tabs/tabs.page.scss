@@ -1,0 +1,47 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.main-layout {
+  height: 100%;
+}
+
+.main-layout > ion-router-outlet {
+  top: calc(56px + var(--ion-safe-area-top, 0px));
+}
+
+.app-header {
+  box-shadow: 0 2px 12px rgb(24 49 37 / 7%);
+  z-index: 2;
+}
+
+.brand {
+  margin-left: 0.25rem;
+  color: #1d392b;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.brand span {
+  color: var(--ion-color-primary);
+  font-weight: 500;
+}
+
+.menu-brand {
+  padding-inline: 1rem;
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+ion-menu ion-item {
+  --border-radius: 0.75rem;
+  --padding-start: 1rem;
+  margin: 0.25rem 0.6rem;
+}
+
+ion-menu ion-icon {
+  color: var(--ion-color-primary);
+}

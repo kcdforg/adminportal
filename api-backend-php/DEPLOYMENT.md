@@ -202,6 +202,24 @@ which accepts only accounts with `user_type=admin`. Both endpoints issue
 portal-scoped tokens; an admin login does not authenticate through the member
 login endpoint, or vice versa.
 
+Super administrators and program managers can add a family member with
+`POST /api/v1/families/{id}/members` by submitting profile fields, relationship
+type, and an explicit member role;
+the profile and family membership are created atomically. The same endpoint
+also accepts an existing `profile_id`. `PUT /api/v1/families/{id}/members/{profile_id}`
+updates the profile and its family-specific relationship and role. A family
+can have only one active `primary` member, and that role grants family
+management; `student` members have self-only access.
+
+Administrators with member-account management permission can manage member
+login records separately from family membership. Use
+`POST /api/v1/members/{id}/login` to create one, `PUT` on the same path to
+edit credentials/display name or reactivate it, and `DELETE` to deactivate it.
+Deactivation retains the login record for audit and possible reactivation and
+revokes all active refresh tokens. Password changes also revoke refresh tokens.
+Previously issued access tokens remain valid until their configured short
+access-token expiry.
+
 To provision an admin login, with or without linking a member profile, a
 super-admin calls:
 

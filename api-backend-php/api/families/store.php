@@ -14,14 +14,18 @@ if (isset($body['family_code']) && is_string($body['family_code'])
     validateOrFail(['family_code' => ['The family_code has already been taken.']]);
 }
 
-$database->insert('families', [
-    'family_code' => trim($body['family_code']),
-    'family_name' => trim($body['family_name']),
-    'address_id' => null,
-    'status' => 'active',
-]);
-$id = (int) $database->id();
-$family = getFamily($database, $id);
-logActivity($database, $jwt, 'create', 'families', $id, null, $family);
+$family = databaseTransaction($database, static function () use ($database, $body, $jwt): array {
+    $addressId = !empty($body['address']) ? createAddress($database, $body['address']) : null;
+    $database->insert('families', [
+        'family_code' => trim($body['family_code']),
+        'family_name' => trim($body['family_name']),
+        'address_id' => $addressId,
+        'status' => 'active',
+    ]);
+    $id = (int) $database->id();
+    $created = getFamily($database, $id);
+    logActivity($database, $jwt, 'create', 'families', $id, null, $created);
+    return $created;
+});
 
 successResponse($family, 'Family created successfully.', 201);

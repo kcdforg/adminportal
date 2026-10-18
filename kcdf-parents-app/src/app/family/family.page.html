@@ -1,0 +1,38 @@
+<ion-content class="ion-padding">
+  <a class="back-link" routerLink="/me">← Back to my profile</a>
+  <h1>My family</h1>
+  @if (loading()) {
+    <div class="state"><ion-spinner name="crescent"></ion-spinner><p>Loading family…</p></div>
+  } @else if (error()) {
+    <p class="message" role="alert">{{ error() }}</p>
+  } @else if (!hasFamilies()) {
+    <p class="message">No family details are linked to your member account.</p>
+  } @else if (members().length === 0) {
+    <p class="message">No family members were found.</p>
+  } @else {
+    @for (member of members(); track member.id) {
+      <ion-card>
+        <ion-card-content>
+          <div class="member-heading">
+            <div class="avatar">{{ member.profile.first_name.charAt(0) }}{{ member.profile.last_name.charAt(0) }}</div>
+            <div>
+              <h2>{{ member.profile.first_name }} {{ member.profile.middle_name }} {{ member.profile.last_name }}</h2>
+              <p>
+                {{ member.relationship_type }}
+                @if (member.member_role === 'primary') {
+                  · Primary contact
+                }
+              </p>
+            </div>
+          </div>
+          @if (member.profile.mobile) {
+            <p class="detail">{{ member.profile.mobile }}</p>
+          }
+          @if (member.profile.email) {
+            <p class="detail">{{ member.profile.email }}</p>
+          }
+        </ion-card-content>
+      </ion-card>
+    }
+  }
+</ion-content>

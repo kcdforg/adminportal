@@ -1,0 +1,39 @@
+<ion-content>
+  <main class="page-wrap">
+    <section class="page-intro">
+      <p class="eyebrow">LEARN AT YOUR OWN PACE</p>
+      <h1>Courses for every family.</h1>
+      <p>Friendly, practical learning to support you and the people you love.</p>
+    </section>
+
+    <section class="course-grid" aria-label="Available courses">
+      @for (course of courses; track course.id) {
+        <ion-card class="course-card">
+          <div class="course-art" [class]="course.color">
+            <span class="art-ring"></span>
+            <ion-icon name="school-outline" aria-hidden="true"></ion-icon>
+            <span class="course-category">{{ course.category }}</span>
+          </div>
+          <ion-card-content>
+            <div class="course-level">{{ course.level }}</div>
+            <h2>{{ course.title }}</h2>
+            <p class="description">{{ course.description }}</p>
+            <div class="course-facts">
+              <span><ion-icon name="time-outline"></ion-icon>{{ course.duration }}</span>
+              <span><ion-icon name="calendar-outline"></ion-icon>{{ course.schedule }}</span>
+            </div>
+            <ion-button expand="block" shape="round" [routerLink]="['/posts']">
+              Learn more
+              <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      }
+    </section>
+
+    <div class="course-note">
+      <ion-icon name="heart-outline"></ion-icon>
+      <p>New courses are added throughout the year. Check back for the latest learning opportunities.</p>
+    </div>
+  </main>
+</ion-content>
