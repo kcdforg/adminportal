@@ -36,6 +36,10 @@ export const routes: Routes = [
         loadComponent: () => import('./posts/posts.page').then((m) => m.PostsPage),
       },
       {
+        path: 'posts/:id',
+        loadComponent: () => import('./posts/post-detail.page').then((m) => m.PostDetailPage),
+      },
+      {
         path: 'me',
         loadComponent: () => import('./me/me-section.page').then((m) => m.MeSectionPage),
         children: [

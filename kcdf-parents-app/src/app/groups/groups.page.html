@@ -1,26 +1,28 @@
-<ion-content>
+<ion-content [scrollY]="true">
   <main class="page-wrap">
     <section class="group-grid" aria-label="Community groups">
       @for (group of groups; track group.id) {
-        <ion-card class="group-card" [routerLink]="['/groups', group.id]" button>
-          <ion-card-content>
-            <span class="group-icon" [class]="group.color" aria-hidden="true">
-              <ion-icon [name]="group.icon"></ion-icon>
-            </span>
-            <div class="group-copy">
-              <div class="group-heading">
-                <h1>{{ group.name }}</h1>
-                <span class="category">{{ group.category }}</span>
+        <a class="card-link" [routerLink]="['/groups', group.id]" [attr.aria-label]="'View ' + group.name">
+          <ion-card class="group-card">
+            <ion-card-content>
+              <span class="group-icon" [class]="group.color" aria-hidden="true">
+                <ion-icon [name]="group.icon"></ion-icon>
+              </span>
+              <div class="group-copy">
+                <div class="group-heading">
+                  <h1>{{ group.name }}</h1>
+                  <span class="category">{{ group.category }}</span>
+                </div>
+                <p class="description">{{ group.description }}</p>
+                <div class="group-details">
+                  <span><ion-icon name="people-outline"></ion-icon>{{ group.members }} members</span>
+                  <span><ion-icon name="calendar-outline"></ion-icon>{{ group.meeting }}</span>
+                </div>
               </div>
-              <p class="description">{{ group.description }}</p>
-              <div class="group-details">
-                <span><ion-icon name="people-outline"></ion-icon>{{ group.members }} members</span>
-                <span><ion-icon name="calendar-outline"></ion-icon>{{ group.meeting }}</span>
-              </div>
-            </div>
-            <ion-icon class="card-arrow" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
-          </ion-card-content>
-        </ion-card>
+              <ion-icon class="card-arrow" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </ion-card-content>
+          </ion-card>
+        </a>
       }
     </section>
   </main>

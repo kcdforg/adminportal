@@ -1,0 +1,40 @@
+<ion-content>
+  <main class="page-wrap">
+    <a class="back-link" routerLink="/posts">
+      <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
+      All posts
+    </a>
+
+    @if (post; as selectedPost) {
+      <article class="post-detail">
+        <div class="post-visual" [class]="selectedPost.visual" aria-hidden="true">
+          <span class="visual-orbit"></span>
+          <ion-icon [name]="selectedPost.icon"></ion-icon>
+          <span class="category">{{ selectedPost.category }}</span>
+        </div>
+        <div class="post-body">
+          <div class="post-meta">
+            <span>{{ selectedPost.publishedAt }}</span>
+            <span>{{ selectedPost.readTime }}</span>
+          </div>
+          <h1>{{ selectedPost.title }}</h1>
+          <div class="byline">
+            <span class="author-avatar">{{ selectedPost.author.charAt(0) }}</span>
+            <ion-label>{{ selectedPost.author }}</ion-label>
+          </div>
+          <div class="post-content">
+            @for (paragraph of selectedPost.content; track $index) {
+              <p>{{ paragraph }}</p>
+            }
+          </div>
+        </div>
+      </article>
+    } @else {
+      <section class="empty-state">
+        <h1>Post not found</h1>
+        <p>This post may no longer be available.</p>
+        <a routerLink="/posts">Return to posts</a>
+      </section>
+    }
+  </main>
+</ion-content>

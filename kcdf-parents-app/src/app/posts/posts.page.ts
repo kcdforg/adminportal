@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import {
   IonCard,
   IonCardContent,
@@ -12,7 +13,7 @@ import { SAMPLE_POSTS } from '../core/sample-content';
   selector: 'app-posts',
   templateUrl: './posts.page.html',
   styleUrl: './posts.page.scss',
-  imports: [IonCard, IonCardContent, IonContent, IonIcon, IonLabel],
+  imports: [RouterLink, IonCard, IonCardContent, IonContent, IonIcon, IonLabel],
 })
 export class PostsPage {
   readonly posts = SAMPLE_POSTS;

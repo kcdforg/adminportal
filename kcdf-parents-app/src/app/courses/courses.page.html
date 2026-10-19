@@ -1,19 +1,21 @@
-<ion-content>
+<ion-content [scrollY]="true">
   <main class="page-wrap">
     <section class="course-grid" aria-label="Available courses">
       @for (course of courses; track course.id) {
-        <ion-card class="course-card" [routerLink]="['/courses', course.id]" button>
-          <ion-card-content>
-            <span class="course-icon" [class]="course.color" aria-hidden="true">
-              <ion-icon name="school-outline"></ion-icon>
-            </span>
-            <div class="course-copy">
-              <h1>{{ course.title }}</h1>
-              <p>{{ course.trainer }} · Trainer</p>
-            </div>
-            <ion-icon class="card-arrow" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
-          </ion-card-content>
-        </ion-card>
+        <a class="card-link" [routerLink]="['/courses', course.id]" [attr.aria-label]="'View ' + course.title">
+          <ion-card class="course-card">
+            <ion-card-content>
+              <span class="course-icon" [class]="course.color" aria-hidden="true">
+                <ion-icon name="school-outline"></ion-icon>
+              </span>
+              <div class="course-copy">
+                <h1>{{ course.title }}</h1>
+                <p>{{ course.trainer }} · Trainer</p>
+              </div>
+              <ion-icon class="card-arrow" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </ion-card-content>
+          </ion-card>
+        </a>
       }
     </section>
   </main>

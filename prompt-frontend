@@ -3,22 +3,22 @@ You are working on frontend app in /Users/apple/development/php/kcdf-parents/kcd
 The backend api code is at /Users/apple/development/php/kcdf-parents/api-backend-php
 
 this app is developed in angular and ionic framework
-1. The bottom tab bar is not displayed.
 
-2. In groups page, on clicking a group, it should go to group details page, with all the navigation structure i mentioned in previous chat messages.  same for courses page.
+dont run build or serve command or lint command.
 
-2. In browser, the below error occurs.
+You need to only generate the code and check for syntax errors.
 
-TypeError: Failed to construct 'URL': Invalid base URL
-    at q (p-CHqRYvYm.js:4:3331)
-    at p-DqLB8yFQ.js:4:1969
-    at p-DqLB8yFQ.js:4:2209
-    at Vn.mode.loadIcon (p-DqLB8yFQ.js:4:2299)
-    at Vn.mode.componentDidLoad (p-DqLB8yFQ.js:4:1310)
-    at Bn (p-CHqRYvYm.js:4:30257)
-    at Rn (p-CHqRYvYm.js:4:29866)
-    at e3 (p-CHqRYvYm.js:4:29543)
-    at p-CHqRYvYm.js:4:29562
+1. In home page, the page is not scrollable.  no element is clickable.
+
+2. In group page, the groups are not clickable.  On clicking it has to go to group details page.
+
+3. In courses page, the courses are not clickable.  On clicking it has to go to course details page.
+
+4. When deploying new version of this ionic build, the old cache is not cleared.  enable cache avoidance in the build.
+
+5.  The signout in ME page is not clickable.
+
+6. In Posts page, the post item is not clickable. On clicking the post item, it has to go to full post page displaying the entire content.
 
 
     

@@ -69,6 +69,7 @@ h1 {
   width: 44%;
   min-width: 15rem;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .sun {
@@ -137,11 +138,13 @@ h2 {
 }
 
 .view-all {
-  padding-bottom: 0.2rem;
-  color: #38694b;
+  --color: #38694b;
+  --padding-start: 0.35rem;
+  --padding-end: 0.35rem;
+  margin: 0;
   font-size: 0.9rem;
   font-weight: 650;
-  text-decoration: none;
+  text-transform: none;
 }
 
 .post-grid {
@@ -156,6 +159,21 @@ h2 {
   border-radius: 0.85rem;
   background: white;
   box-shadow: 0 3px 12px rgb(32 56 43 / 4%);
+}
+
+.card-link {
+  position: relative;
+  z-index: 1;
+  display: block;
+  color: inherit;
+  pointer-events: auto;
+  text-decoration: none;
+}
+
+.card-link:focus-visible {
+  border-radius: 0.85rem;
+  outline: 2px solid #315f45;
+  outline-offset: 3px;
 }
 
 ion-card-content {

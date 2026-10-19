@@ -3,6 +3,7 @@ export interface SamplePost {
   category: string;
   title: string;
   excerpt: string;
+  content: string[];
   author: string;
   publishedAt: string;
   readTime: string;
@@ -112,6 +113,11 @@ export const SAMPLE_POSTS: SamplePost[] = [
     category: 'Community',
     title: 'A joyful start to our new term',
     excerpt: 'Families came together for a morning of games, conversation and new beginnings at the KCDF learning centre.',
+    content: [
+      'Families came together at the KCDF learning centre to welcome the new term with a morning of games, conversation and new beginnings. Children explored the activity spaces while parents met one another and reconnected with familiar faces.',
+      'The day was a lovely reminder that a supportive community grows through small moments: sharing ideas, celebrating each child and making room for every family to feel welcome. Thank you to everyone who joined us and helped create such a warm start to the term.',
+      'We look forward to learning, playing and growing together in the weeks ahead. Keep an eye on the community updates for details of our next gathering.',
+    ],
     author: 'KCDF Community Team',
     publishedAt: '18 Oct 2026',
     readTime: '3 min read',
@@ -123,6 +129,11 @@ export const SAMPLE_POSTS: SamplePost[] = [
     category: 'Learning',
     title: 'Small moments make big readers',
     excerpt: 'A few simple ideas to help children build a happy reading habit at home, one story at a time.',
+    content: [
+      'A love of reading does not need to begin with a long story or a perfect routine. A few relaxed minutes together can help children connect books with curiosity, comfort and time with someone they love.',
+      'Let your child choose a story, look at the pictures together and talk about what might happen next. You can reread a favourite book, tell a story from memory or notice words and letters on a walk. Following your child’s interests helps reading feel like an invitation rather than a task.',
+      'There is no single right way to share a book. Keep it enjoyable, celebrate questions and make space for stories in everyday family life. Little moments add up, one page at a time.',
+    ],
     author: 'Meera, Learning Facilitator',
     publishedAt: '14 Oct 2026',
     readTime: '4 min read',
@@ -134,6 +145,11 @@ export const SAMPLE_POSTS: SamplePost[] = [
     category: 'Events',
     title: 'Save the date: family sports day',
     excerpt: 'Bring your family along for a relaxed day of friendly games, shared snacks and plenty of cheering.',
+    content: [
+      'Bring your family along for a relaxed day of friendly games, shared snacks and plenty of cheering. Our family sports day is an opportunity to get moving, meet other families and enjoy time together—there is something for every age and ability.',
+      'You do not need to be an experienced athlete to take part. Come ready to try a game, cheer on a friend or simply enjoy the day. We will share the event schedule and any practical details with families closer to the date.',
+      'Save the date and watch this page for updates. We cannot wait to spend the day together!',
+    ],
     author: 'Events & Activities',
     publishedAt: '10 Oct 2026',
     readTime: '2 min read',

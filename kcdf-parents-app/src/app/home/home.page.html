@@ -1,4 +1,4 @@
-<ion-content>
+<ion-content [scrollY]="true">
   <main class="page-wrap">
     <section class="welcome">
       <div class="welcome-copy">
@@ -24,25 +24,29 @@
           <p class="eyebrow">WHAT'S HAPPENING</p>
           <h2>Recent updates</h2>
         </div>
-        <a routerLink="/posts" class="view-all">View all <span aria-hidden="true">→</span></a>
+        <ion-button routerLink="/posts" class="view-all" fill="clear">
+          View all <span aria-hidden="true">→</span>
+        </ion-button>
       </div>
 
       <div class="post-grid">
         @for (post of posts; track post.id) {
-          <ion-card class="post-card">
-            <ion-card-content>
-              <div class="post-meta">
-                <span>{{ post.category }} · {{ post.publishedAt }}</span>
-                <span>{{ post.readTime }}</span>
-              </div>
-              <h3>{{ post.title }}</h3>
-              <p class="excerpt">{{ post.excerpt }}</p>
-              <div class="byline">
-                <span class="author-avatar">{{ post.author.charAt(0) }}</span>
-                <ion-label>{{ post.author }}</ion-label>
-              </div>
-            </ion-card-content>
-          </ion-card>
+          <a class="card-link" [routerLink]="['/posts', post.id]" [attr.aria-label]="'Read ' + post.title">
+            <ion-card class="post-card">
+              <ion-card-content>
+                <div class="post-meta">
+                  <span>{{ post.category }} · {{ post.publishedAt }}</span>
+                  <span>{{ post.readTime }}</span>
+                </div>
+                <h3>{{ post.title }}</h3>
+                <p class="excerpt">{{ post.excerpt }}</p>
+                <div class="byline">
+                  <span class="author-avatar">{{ post.author.charAt(0) }}</span>
+                  <ion-label>{{ post.author }}</ion-label>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </a>
         }
       </div>
     </section>

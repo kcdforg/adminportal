@@ -22,6 +22,21 @@ ion-content {
   box-shadow: 0 3px 12px rgb(32 56 43 / 4%);
 }
 
+.card-link {
+  position: relative;
+  z-index: 1;
+  display: block;
+  color: inherit;
+  pointer-events: auto;
+  text-decoration: none;
+}
+
+.card-link:focus-visible {
+  border-radius: 0.9rem;
+  outline: 2px solid #315f45;
+  outline-offset: 3px;
+}
+
 .group-card ion-card-content {
   display: flex;
   align-items: center;

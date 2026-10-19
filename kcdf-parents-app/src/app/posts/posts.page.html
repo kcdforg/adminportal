@@ -8,25 +8,27 @@
 
     <section class="post-list" aria-label="Community posts">
       @for (post of posts; track post.id) {
-        <ion-card class="post-card">
-          <div class="post-visual" [class]="post.visual">
-            <span class="visual-orbit"></span>
-            <ion-icon [name]="post.icon" aria-hidden="true"></ion-icon>
-            <span class="category">{{ post.category }}</span>
-          </div>
-          <ion-card-content>
-            <div class="post-meta">
-              <span>{{ post.publishedAt }}</span>
-              <span>{{ post.readTime }}</span>
+        <a class="card-link" [routerLink]="['/posts', post.id]" [attr.aria-label]="'Read ' + post.title">
+          <ion-card class="post-card">
+            <div class="post-visual" [class]="post.visual">
+              <span class="visual-orbit"></span>
+              <ion-icon [name]="post.icon" aria-hidden="true"></ion-icon>
+              <span class="category">{{ post.category }}</span>
             </div>
-            <h2>{{ post.title }}</h2>
-            <p class="excerpt">{{ post.excerpt }}</p>
-            <div class="byline">
-              <span class="author-avatar">{{ post.author.charAt(0) }}</span>
-              <ion-label>{{ post.author }}</ion-label>
-            </div>
-          </ion-card-content>
-        </ion-card>
+            <ion-card-content>
+              <div class="post-meta">
+                <span>{{ post.publishedAt }}</span>
+                <span>{{ post.readTime }}</span>
+              </div>
+              <h2>{{ post.title }}</h2>
+              <p class="excerpt">{{ post.excerpt }}</p>
+              <div class="byline">
+                <span class="author-avatar">{{ post.author.charAt(0) }}</span>
+                <ion-label>{{ post.author }}</ion-label>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </a>
       }
     </section>
   </main>

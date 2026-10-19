@@ -1,0 +1,151 @@
+ion-content {
+  --background: #f7f8f4;
+}
+
+.page-wrap {
+  width: min(100% - 2rem, 54rem);
+  margin: 0 auto;
+  padding: 1rem 0 2rem;
+}
+
+.back-link,
+.empty-state a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #477251;
+  font-size: 0.85rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.post-detail {
+  overflow: hidden;
+  margin-top: 1rem;
+  border: 1px solid #edf0eb;
+  border-radius: 1rem;
+  background: white;
+  box-shadow: 0 8px 28px rgb(32 56 43 / 5%);
+}
+
+.post-visual {
+  position: relative;
+  display: grid;
+  height: clamp(10rem, 32vw, 17rem);
+  overflow: hidden;
+  place-items: center;
+  color: rgb(39 77 54 / 78%);
+}
+
+.post-visual > ion-icon {
+  position: relative;
+  z-index: 1;
+  font-size: 3.5rem;
+}
+
+.sunrise {
+  background: linear-gradient(135deg, #d9e8cd, #f3d6a6);
+}
+
+.books {
+  background: linear-gradient(135deg, #e1e9dc, #d4dfe9);
+  color: #4c6956;
+}
+
+.field {
+  background: linear-gradient(135deg, #d9eadb, #f0e2c5);
+}
+
+.visual-orbit {
+  position: absolute;
+  right: 15%;
+  bottom: -65%;
+  width: 75%;
+  aspect-ratio: 1;
+  border: 1px solid rgb(255 255 255 / 50%);
+  border-radius: 50%;
+}
+
+.category {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 2rem;
+  background: rgb(255 255 255 / 82%);
+  color: #31563c;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.post-body {
+  padding: clamp(1rem, 5vw, 2rem);
+}
+
+.post-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #879189;
+  font-size: 0.8rem;
+}
+
+h1 {
+  margin: 0.8rem 0;
+  color: #20382b;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #edf0eb;
+  color: #526359;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.author-avatar {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #e9f0e8;
+  color: #3c694a;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.post-content {
+  color: #526359;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.post-content p {
+  margin: 1rem 0 0;
+}
+
+.empty-state {
+  padding: 2rem 0;
+}
+
+.empty-state h1 {
+  margin-top: 1rem;
+}
+
+.empty-state p {
+  color: #68766d;
+}
+
+@media (max-width: 560px) {
+  .page-wrap {
+    width: min(100% - 1.25rem, 54rem);
+  }
+}
