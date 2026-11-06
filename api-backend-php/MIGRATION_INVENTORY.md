@@ -48,12 +48,26 @@ The current Slim source registers all routes under `/api/v1` and groups them by 
 | GET | `/api/v1/families/{id}/payments` | `GET /api/v1/families/{id}/payments` | `api/payments/family-payments.php` |
 | GET | `/api/v1/groups` | `GET /api/v1/groups` | `api/groups/index.php` |
 | POST | `/api/v1/groups` | `POST /api/v1/groups` | `api/groups/store.php` |
+| GET | `/api/v1/groups/categories` | `GET /api/v1/groups/categories` | `api/groups/categories.php` |
+| POST | `/api/v1/groups/categories` | `POST /api/v1/groups/categories` | `api/groups/category-store.php` |
+| PUT | `/api/v1/groups/categories/{category_id}` | `PUT /api/v1/groups/categories/{category_id}` | `api/groups/category-update.php` |
+| PATCH | `/api/v1/groups/categories/{category_id}/status` | `PATCH /api/v1/groups/categories/{category_id}/status` | `api/groups/category-status.php` |
 | GET | `/api/v1/groups/{id}` | `GET /api/v1/groups/{id}` | `api/groups/show.php` |
 | PUT | `/api/v1/groups/{id}` | `PUT /api/v1/groups/{id}` | `api/groups/update.php` |
 | GET | `/api/v1/groups/{id}/members` | `GET /api/v1/groups/{id}/members` | `api/groups/members.php` |
+| POST | `/api/v1/groups/{id}/members` | `POST /api/v1/groups/{id}/members` | `api/groups/add-member.php` |
 | POST | `/api/v1/groups/{id}/join` | `POST /api/v1/groups/{id}/join` | `api/groups/join.php` |
 | DELETE | `/api/v1/groups/{id}/leave` | `DELETE /api/v1/groups/{id}/leave` | `api/groups/leave.php` |
 | DELETE | `/api/v1/groups/{id}/members/{member_id}` | `DELETE /api/v1/groups/{id}/members/{member_id}` | `api/groups/remove-member.php` |
+| PUT | `/api/v1/groups/{id}/members/{member_id}/role` | `PUT /api/v1/groups/{id}/members/{member_id}/role` | `api/groups/member-role.php` |
+| GET, POST | `/api/v1/groups/{group_id}/posts` | Resource-specific group content route | `api/groups/resources.php` |
+| GET, PUT, DELETE | `/api/v1/groups/{group_id}/posts/{post_id}` | Resource-specific group content route | `api/groups/resources.php` |
+| GET, POST | `/api/v1/groups/{group_id}/polls` | Resource-specific group content route | `api/groups/resources.php` |
+| GET, PUT, DELETE | `/api/v1/groups/{group_id}/polls/{poll_id}` | Resource-specific group content route | `api/groups/resources.php` |
+| POST, GET | `/api/v1/groups/{group_id}/polls/{poll_id}/vote`, `/results` | Resource-specific group content route | `api/groups/resources.php` |
+| GET, POST | `/api/v1/groups/{group_id}/events` | Resource-specific group content route | `api/groups/resources.php` |
+| GET, PUT, DELETE | `/api/v1/groups/{group_id}/events/{event_id}` | Resource-specific group content route | `api/groups/resources.php` |
+| POST, GET, DELETE | `/api/v1/groups/{group_id}/events/{event_id}/registrations...` | Resource-specific group content route | `api/groups/resources.php` |
 | GET | `/api/v1/invitations` | `GET /api/v1/invitations` | `api/invitations/index.php` |
 | POST | `/api/v1/invitations` | `POST /api/v1/invitations` | `api/invitations/store.php` |
 | DELETE | `/api/v1/invitations/{id}` | `DELETE /api/v1/invitations/{id}` | `api/invitations/cancel.php` |
@@ -209,6 +223,9 @@ The current Slim source registers all routes under `/api/v1` and groups them by 
   FastRoute, the inventory, and an existing fixed endpoint file; it also
   checks query-string path parsing, path parameters, unknown routes, trailing
   slashes, unsupported methods, and deployment/front-controller guards.
+- `tests/phase9-groups-roles.php` exercises trusted platform-admin identity,
+  group-role authorization, separate member-list/member-management access,
+  multiple-owner parity, last-owner protection, and category/group validation.
 - The Phase 7 source scan found no embedded database/JWT secret values. SQL
   value inputs use bound parameters; dynamic lock-table identifiers are
   allowlisted and the payment update fields are selected from fixed internal

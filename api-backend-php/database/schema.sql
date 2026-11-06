@@ -398,21 +398,41 @@ CREATE TABLE `payments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================
+-- TABLE: group_categories
+-- Categories used to classify parent groups.
+-- =============================================================================
+CREATE TABLE `group_categories` (
+    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `category_name` VARCHAR(150) NOT NULL,
+    `description`   TEXT NULL,
+    `status`        ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+    `created_at`    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_group_categories_name` (`category_name`),
+    INDEX `idx_group_categories_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================================================
 -- TABLE: parent_groups
 -- Community groups for parents.
 -- visibility: public (open join), private (admin-managed), invite_only.
 -- =============================================================================
 CREATE TABLE `parent_groups` (
     `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `category_id` BIGINT UNSIGNED NULL,
     `group_name`  VARCHAR(255) NOT NULL,
+    `display_name` VARCHAR(255) NULL,
     `description` TEXT NULL,
     `visibility`  ENUM('public', 'private', 'invite_only') NOT NULL DEFAULT 'public',
     `status`      ENUM('active', 'inactive', 'archived') NOT NULL DEFAULT 'active',
     `created_at`  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
+    INDEX `idx_parent_groups_category_id` (`category_id`),
     INDEX `idx_parent_groups_visibility` (`visibility`),
-    INDEX `idx_parent_groups_status` (`status`)
+    INDEX `idx_parent_groups_status` (`status`),
+    CONSTRAINT `fk_parent_groups_category` FOREIGN KEY (`category_id`) REFERENCES `group_categories` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================
@@ -424,13 +444,72 @@ CREATE TABLE `group_members` (
     `group_id`  BIGINT UNSIGNED NOT NULL,
     `member_id` BIGINT UNSIGNED NOT NULL,
     `joined_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `status`    ENUM('active', 'left', 'banned') NOT NULL DEFAULT 'active',
+    `status`      ENUM('active', 'left', 'banned') NOT NULL DEFAULT 'active',
+    `member_role` ENUM('owner', 'admin', 'moderator', 'member') NOT NULL DEFAULT 'member',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_group_members_group_member` (`group_id`, `member_id`),
     INDEX `idx_group_members_group_id` (`group_id`),
     INDEX `idx_group_members_member_id` (`member_id`),
+    INDEX `idx_group_members_group_status_role` (`group_id`, `status`, `member_role`),
     CONSTRAINT `fk_group_members_group` FOREIGN KEY (`group_id`) REFERENCES `parent_groups` (`id`),
     CONSTRAINT `fk_group_members_member` FOREIGN KEY (`member_id`) REFERENCES `member_profiles` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================================================
+-- TABLE: group_contents
+-- Announcements, polls, and events share one group-scoped content store.
+-- =============================================================================
+CREATE TABLE `group_contents` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `group_id` BIGINT UNSIGNED NOT NULL,
+    `content_type` ENUM('announcement', 'poll', 'event') NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `content` TEXT NULL,
+    `status` ENUM('draft', 'published', 'archived') NOT NULL DEFAULT 'published',
+    `content_data` JSON NULL,
+    `created_by_user_type` ENUM('member', 'admin') NOT NULL,
+    `created_by_user_id` BIGINT UNSIGNED NOT NULL,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_group_contents_group_type_status` (`group_id`, `content_type`, `status`, `created_at`),
+    CONSTRAINT `fk_group_contents_group` FOREIGN KEY (`group_id`) REFERENCES `parent_groups` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================================================
+-- TABLE: group_poll_votes
+-- One current vote per member and poll; choices are stored as a JSON array.
+-- =============================================================================
+CREATE TABLE `group_poll_votes` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `poll_id` BIGINT UNSIGNED NOT NULL,
+    `member_id` BIGINT UNSIGNED NOT NULL,
+    `option_indexes` JSON NOT NULL,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_group_poll_votes_poll_member` (`poll_id`, `member_id`),
+    INDEX `idx_group_poll_votes_member` (`member_id`),
+    CONSTRAINT `fk_group_poll_votes_poll` FOREIGN KEY (`poll_id`) REFERENCES `group_contents` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_group_poll_votes_member` FOREIGN KEY (`member_id`) REFERENCES `member_profiles` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================================================
+-- TABLE: group_event_registrations
+-- Registration details are private; group members only see event totals.
+-- =============================================================================
+CREATE TABLE `group_event_registrations` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `event_id` BIGINT UNSIGNED NOT NULL,
+    `member_id` BIGINT UNSIGNED NOT NULL,
+    `status` ENUM('registered', 'cancelled') NOT NULL DEFAULT 'registered',
+    `registered_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_group_event_registrations_event_member` (`event_id`, `member_id`),
+    INDEX `idx_group_event_registrations_status` (`event_id`, `status`),
+    CONSTRAINT `fk_group_event_registrations_event` FOREIGN KEY (`event_id`) REFERENCES `group_contents` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_group_event_registrations_member` FOREIGN KEY (`member_id`) REFERENCES `member_profiles` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================================================

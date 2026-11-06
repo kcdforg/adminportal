@@ -1,15 +1,59 @@
 
     <app-loading-overlay [loading]="loading()"></app-loading-overlay>
     <app-page-header title="Groups" [subtitle]="'Total: ' + total()">
+      <button type="button" (click)="categoriesOpen.set(!categoriesOpen())" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800">
+        <app-icon name="category" aria-hidden="true" class="h-6 w-6"></app-icon> Manage Categories
+      </button>
       <button type="button" (click)="openForm()" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"><app-icon name="add" aria-hidden="true" class="h-6 w-6"></app-icon> Create Group</button>
     </app-page-header>
+    <p *ngIf="loadError()" class="mb-4 text-sm text-red-600" role="alert">{{ loadError() }}</p>
+    <section *ngIf="categoriesOpen()" class="mb-6 space-y-5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Group categories</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Add categories for organizing groups, or update/deactivate existing categories.</p>
+      </div>
+      <form class="grid grid-cols-1 gap-3 sm:grid-cols-3" (ngSubmit)="saveCategory()">
+        <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+          Category name
+          <input [value]="categoryName()" (input)="categoryName.set($any($event.target).value)" required maxlength="150" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" />
+        </label>
+        <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+          Description
+          <input [value]="categoryDescription()" (input)="categoryDescription.set($any($event.target).value)" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" />
+        </label>
+        <div class="flex items-end">
+          <button type="submit" [disabled]="categorySaving()" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{{ categorySaving() ? 'Saving…' : 'Add Category' }}</button>
+        </div>
+      </form>
+      <p *ngIf="categoryError()" class="text-sm text-red-600" role="alert">{{ categoryError() }}</p>
+      <div class="divide-y divide-gray-200 dark:divide-gray-800">
+        <article *ngFor="let category of categories()" class="flex flex-wrap items-center gap-3 py-3">
+          <ng-container *ngIf="editingCategoryId() === category.id; else categoryReadOnly">
+            <input [value]="editingCategoryName()" (input)="editingCategoryName.set($any($event.target).value)" aria-label="Edit category name" maxlength="150" class="min-w-48 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" />
+            <input [value]="editingCategoryDescription()" (input)="editingCategoryDescription.set($any($event.target).value)" aria-label="Edit category description" class="min-w-48 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900" />
+            <button type="button" (click)="saveCategory(category)" [disabled]="categorySaving()" class="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">Save</button>
+            <button type="button" (click)="editingCategoryId.set(null)" class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700">Cancel</button>
+          </ng-container>
+          <ng-template #categoryReadOnly>
+            <div class="min-w-48 flex-1">
+              <p class="font-medium text-gray-900 dark:text-white">{{ category.category_name }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{{ category.description || 'No description' }}</p>
+            </div>
+            <span class="rounded-full px-2.5 py-1 text-xs font-semibold" [ngClass]="category.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'">{{ category.status }}</span>
+            <button type="button" (click)="editCategory(category)" class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700">Edit</button>
+            <button type="button" (click)="toggleCategoryStatus(category)" class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700">{{ category.status === 'active' ? 'Deactivate' : 'Activate' }}</button>
+          </ng-template>
+        </article>
+        <p *ngIf="!categories().length" class="py-4 text-sm text-gray-500 dark:text-gray-400">No categories found.</p>
+      </div>
+    </section>
     <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
           <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-300"><tr><th class="px-4 py-3">Name</th><th class="px-4 py-3">Visibility</th><th class="px-4 py-3">Members</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Actions</th></tr></thead>
           <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
             <tr *ngFor="let g of groups()" class="cursor-pointer text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800/50" [routerLink]="['/groups', g.id]">
-              <td class="whitespace-nowrap px-4 py-3 font-medium">{{ g.group_name }}</td><td class="whitespace-nowrap px-4 py-3">{{ g.visibility }}</td><td class="whitespace-nowrap px-4 py-3">{{ g.member_count ?? '—' }}</td><td class="whitespace-nowrap px-4 py-3"><app-status-badge [status]="g.status"></app-status-badge></td>
+              <td class="whitespace-nowrap px-4 py-3 font-medium">{{ g.display_name || g.group_name }}<span *ngIf="g.display_name && g.display_name !== g.group_name" class="block text-xs font-normal text-gray-500">{{ g.group_name }}</span></td><td class="whitespace-nowrap px-4 py-3">{{ g.visibility }}</td><td class="whitespace-nowrap px-4 py-3">{{ g.member_count ?? '—' }}</td><td class="whitespace-nowrap px-4 py-3"><app-status-badge [status]="g.status"></app-status-badge></td>
               <td class="whitespace-nowrap px-4 py-3">
                 <button type="button" [routerLink]="['/groups', g.id]" (click)="$event.stopPropagation()" [attr.aria-label]="'View ' + g.group_name" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-indigo-600 dark:hover:bg-gray-800"><app-icon name="visibility" aria-hidden="true" class="h-6 w-6"></app-icon></button>
                 <button type="button" (click)="openForm(g); $event.stopPropagation()" [attr.aria-label]="'Edit ' + g.group_name" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-indigo-600 dark:hover:bg-gray-800"><app-icon name="edit" aria-hidden="true" class="h-6 w-6"></app-icon></button>

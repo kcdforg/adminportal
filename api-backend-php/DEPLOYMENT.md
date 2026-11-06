@@ -174,6 +174,22 @@ containing production data. Existing-database mode does not perform schema
 migrations; for a database with a different schema, perform a separately
 reviewed schema/data migration before configuring the backend.
 
+For existing deployments, take a backup and run
+`database/migrations/20261020_group_categories_roles.sql` before deploying the
+group-role API. Existing groups are assigned the active `Uncategorized`
+category, and existing memberships remain ordinary members; no owner is
+inferred or promoted automatically. Assign an approved active parent/member
+account as owner where parent-level group administration is required. A new
+group may be created without an owner; admins can add a member and assign the
+owner role later. Category assignment remains nullable for staged or legacy
+data. Deactivating a category preserves references from existing groups, but
+the inactive category cannot be assigned to a group.
+
+For existing deployments, take a backup and run
+`database/migrations/20261024_group_display_name_optional_owner.sql` before
+deploying the group display-name UI/API. Fresh installations already include
+the display-name column in `database/schema.sql`.
+
 ## Creating a login for an existing member
 
 Member creation (`POST /api/v1/members`) creates a profile only. To provision
@@ -263,9 +279,12 @@ data. Never use production credentials or records for these checks.
    php tests/phase6-community-notifications.php
    php tests/phase7-parity.php
    php tests/phase8-auth-account-types.php
+   php tests/phase9-groups-roles.php
    ```
 
-   The feature checks require PHP with PDO SQLite. Run the broader feature
+   The feature checks require PHP with PDO SQLite. The group-role checks cover
+   platform-admin identity separation, per-role permissions, multiple owners,
+   and the last-owner guard. Run the broader feature
    suites against a disposable MySQL database as well before cutover.
 2. Configure a staging virtual host with `DocumentRoot` set to this directory,
    a production-like PHP handler, required extensions, environment variables,

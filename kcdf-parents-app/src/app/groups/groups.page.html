@@ -1,5 +1,10 @@
 <ion-content [scrollY]="true">
   <main class="page-wrap">
+    @if (error) {
+      <p class="load-error" role="alert">{{ error }}</p>
+    } @else if (!groups.length) {
+      <p class="empty-groups">No groups are available yet.</p>
+    }
     <section class="group-grid" aria-label="Community groups">
       @for (group of groups; track group.id) {
         <a class="card-link" [routerLink]="['/groups', group.id]" [attr.aria-label]="'View ' + group.name">
@@ -11,12 +16,14 @@
               <div class="group-copy">
                 <div class="group-heading">
                   <h1>{{ group.name }}</h1>
-                  <span class="category">{{ group.category }}</span>
+                  <span class="category">{{ group.categoryName }}</span>
                 </div>
+                @if (group.display_name && group.display_name !== group.group_name) {
+                  <p class="internal-name">{{ group.group_name }}</p>
+                }
                 <p class="description">{{ group.description }}</p>
                 <div class="group-details">
-                  <span><ion-icon name="people-outline"></ion-icon>{{ group.members }} members</span>
-                  <span><ion-icon name="calendar-outline"></ion-icon>{{ group.meeting }}</span>
+                  <span><ion-icon name="people-outline"></ion-icon>{{ group.member_count ?? 0 }} members</span>
                 </div>
               </div>
               <ion-icon class="card-arrow" name="chevron-forward-outline" aria-hidden="true"></ion-icon>

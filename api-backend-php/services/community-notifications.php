@@ -57,7 +57,9 @@ function communityTransaction(Medoo\Medoo $database, callable $callback)
 
 function isCommunityAdmin(array $jwt): bool
 {
-    return isAdmin($jwt);
+    return ($jwt['user_type'] ?? null) === 'admin'
+        && ($jwt['portal'] ?? null) === 'admin'
+        && isAdmin($jwt);
 }
 
 function isParent(array $jwt): bool
@@ -77,6 +79,41 @@ function getGroupMember(Medoo\Medoo $database, int $groupId, int $memberId): ?ar
     return findOne($database, 'group_members', ['group_id' => $groupId, 'member_id' => $memberId]);
 }
 
+function getGroupRole(Medoo\Medoo $database, array $jwt, int $groupId): ?string
+{
+    if (($jwt['user_type'] ?? null) !== 'member' || getUserId($jwt) <= 0) {
+        return null;
+    }
+    $membership = $database->get('group_members', 'member_role', [
+        'group_id' => $groupId,
+        'member_id' => getUserId($jwt),
+        'status' => 'active',
+    ]);
+    return is_string($membership) ? $membership : null;
+}
+
+function isValidGroupMemberRole(mixed $role): bool
+{
+    return is_string($role) && in_array($role, ['owner', 'admin', 'moderator', 'member'], true);
+}
+
+function isActiveGroupMemberProfile(Medoo\Medoo $database, int $memberId): bool
+{
+    if (!recordExists($database, 'member_profiles', ['id' => $memberId, 'status' => 'active'])
+        || !recordExists($database, 'user_logins', [
+            'profile_id' => $memberId,
+            'user_type' => 'member',
+            'is_active' => 1,
+        ])) {
+        return false;
+    }
+    $familyRoles = $database->select('family_members', 'member_role', [
+        'profile_id' => $memberId,
+        'status' => 'active',
+    ]) ?? [];
+    return in_array('primary', $familyRoles, true) || in_array('normal', $familyRoles, true);
+}
+
 function isActiveGroupMember(Medoo\Medoo $database, int $groupId, int $memberId): bool
 {
     return $database->has('group_members', ['group_id' => $groupId, 'member_id' => $memberId, 'status' => 'active']);
@@ -88,12 +125,20 @@ function canViewGroup(Medoo\Medoo $database, array $jwt, array $group): bool
         return true;
     }
 
-    if ($group['visibility'] === 'public') {
-        return isParent($jwt);
+    if (($jwt['user_type'] ?? null) !== 'member' || !isParent($jwt)) {
+        return false;
     }
 
-    return getUserId($jwt) > 0
-        && isActiveGroupMember($database, (int) $group['id'], getUserId($jwt));
+    return ($group['visibility'] ?? null) === 'public'
+        || getGroupRole($database, $jwt, (int) $group['id']) !== null;
+}
+
+function canViewGroupMembers(Medoo\Medoo $database, array $jwt, array $group): bool
+{
+    if (isCommunityAdmin($jwt)) {
+        return true;
+    }
+    return getGroupRole($database, $jwt, (int) $group['id']) !== null;
 }
 
 function canManageGroupMembers(Medoo\Medoo $database, array $jwt, array $group): bool
@@ -102,15 +147,128 @@ function canManageGroupMembers(Medoo\Medoo $database, array $jwt, array $group):
         return true;
     }
 
-    return getUserId($jwt) > 0
-        && isActiveGroupMember($database, (int) $group['id'], getUserId($jwt));
+    return in_array(getGroupRole($database, $jwt, (int) $group['id']), ['owner', 'admin', 'moderator'], true);
+}
+
+function canManageGroupSettings(Medoo\Medoo $database, array $jwt, array $group): bool
+{
+    if (isCommunityAdmin($jwt)) {
+        return true;
+    }
+    return in_array(getGroupRole($database, $jwt, (int) $group['id']), ['owner', 'admin'], true);
+}
+
+function canChangeGroupRoles(Medoo\Medoo $database, array $jwt, array $group): bool
+{
+    return isCommunityAdmin($jwt)
+        || in_array(getGroupRole($database, $jwt, (int) $group['id']), ['owner', 'admin'], true);
+}
+
+function canAssignGroupOwners(Medoo\Medoo $database, array $jwt, array $group): bool
+{
+    return isCommunityAdmin($jwt) || getGroupRole($database, $jwt, (int) $group['id']) === 'owner';
+}
+
+function canAddGroupMember(Medoo\Medoo $database, array $jwt, array $group, string $memberRole): bool
+{
+    if (isCommunityAdmin($jwt)) {
+        return true;
+    }
+    $actorRole = getGroupRole($database, $jwt, (int) $group['id']);
+    return $actorRole === 'owner'
+        || ($actorRole === 'admin' && $memberRole !== 'owner');
+}
+
+function canChangeGroupMemberRole(
+    Medoo\Medoo $database,
+    array $jwt,
+    array $group,
+    string $currentRole,
+    string $newRole
+): bool {
+    if (isCommunityAdmin($jwt)) {
+        return true;
+    }
+    if ($currentRole === 'owner' || $newRole === 'owner') {
+        return canAssignGroupOwners($database, $jwt, $group);
+    }
+    $actorRole = getGroupRole($database, $jwt, (int) $group['id']);
+    return in_array($actorRole, ['owner', 'admin'], true);
+}
+
+function canRemoveGroupMember(
+    Medoo\Medoo $database,
+    array $jwt,
+    array $group,
+    string $memberRole,
+    string $action
+): bool {
+    if (isCommunityAdmin($jwt)) {
+        return true;
+    }
+    $actorRole = getGroupRole($database, $jwt, (int) $group['id']);
+    return $actorRole === 'owner'
+        || ($actorRole === 'admin' && $memberRole !== 'owner')
+        || ($actorRole === 'moderator' && $memberRole === 'member' && $action === 'remove');
+}
+
+function requireGroupPermission(Medoo\Medoo $database, array $jwt, array $group, string $scope, string $message): void
+{
+    if (!canAccessGroup($database, $jwt, $group, $scope)) {
+        errorResponse('UNAUTHORIZED', $message, 403);
+    }
+}
+
+function lockCommunityGroup(Medoo\Medoo $database, int $groupId): ?array
+{
+    $sql = 'SELECT * FROM parent_groups WHERE id = :id'
+        . ($database->type === 'sqlite' ? '' : ' FOR UPDATE');
+    $statement = $database->pdo->prepare($sql);
+    $statement->execute([':id' => $groupId]);
+    $group = $statement->fetch(PDO::FETCH_ASSOC);
+    return is_array($group) ? castIds($group) : null;
+}
+
+function assertGroupOwnerRemains(Medoo\Medoo $database, int $groupId, array $membership, string $groupStatus): void
+{
+    if (($membership['member_role'] ?? 'member') !== 'owner' || $groupStatus !== 'active') {
+        return;
+    }
+    $owners = (int) $database->count('group_members', [
+        'group_id' => $groupId,
+        'status' => 'active',
+        'member_role' => 'owner',
+    ]);
+    if ($owners <= 1) {
+        failCommunity('LAST_GROUP_OWNER', 'An active group must retain at least one owner.', 409);
+    }
+}
+
+function decorateGroupForUser(Medoo\Medoo $database, array $jwt, array $group): array
+{
+    $group = castIds($group);
+    $categoryId = (int) ($group['category_id'] ?? 0);
+    $group['category'] = $categoryId > 0
+        ? findOne($database, 'group_categories', ['id' => $categoryId], ['id', 'category_name', 'description', 'status'])
+        : null;
+    $group['member_count'] = (int) $database->count('group_members', [
+        'group_id' => (int) $group['id'],
+        'status' => 'active',
+    ]);
+    $group['my_role'] = isCommunityAdmin($jwt)
+        ? null
+        : getGroupRole($database, $jwt, (int) $group['id']);
+    return $group;
 }
 
 function canAccessGroup(Medoo\Medoo $database, array $jwt, array $group, string $scope): bool
 {
     return match ($scope) {
         'view' => canViewGroup($database, $jwt, $group),
-        'members' => canManageGroupMembers($database, $jwt, $group),
+        'members_view' => canViewGroupMembers($database, $jwt, $group),
+        'members_manage' => canManageGroupMembers($database, $jwt, $group),
+        'settings' => canManageGroupSettings($database, $jwt, $group),
+        'roles' => canChangeGroupRoles($database, $jwt, $group),
         default => canViewGroup($database, $jwt, $group),
     };
 }
@@ -147,16 +305,65 @@ function validateGroup(array $data, string $mode): array
     $statuses = ['active', 'inactive', 'archived'];
     if ($mode === 'create') {
         validateRequired($errors, 'group_name', $data['group_name'] ?? null, 'The group_name field is required.');
-        validateRequired($errors, 'visibility', $data['visibility'] ?? null, 'The visibility field is required.');
     }
-    if (isset($data['group_name']) && strlen((string) $data['group_name']) > 255) {
+    if (array_key_exists('group_name', $data) && !is_string($data['group_name'])) {
+        $errors['group_name'] = ['The group_name must be a string.'];
+    } elseif (isset($data['group_name']) && trim($data['group_name']) === '') {
+        $errors['group_name'] = ['The group_name must not be blank.'];
+    } elseif (isset($data['group_name']) && strlen($data['group_name']) > 255) {
         $errors['group_name'] = ['The group_name must not exceed 255 characters.'];
+    }
+    if (array_key_exists('description', $data) && $data['description'] !== null && !is_string($data['description'])) {
+        $errors['description'] = ['The description must be a string or null.'];
+    }
+    if (array_key_exists('display_name', $data) && $data['display_name'] !== null
+        && (!is_string($data['display_name']) || strlen($data['display_name']) > 255)) {
+        $errors['display_name'] = ['The display_name must be a string of at most 255 characters or null.'];
+    }
+    if (array_key_exists('owner_member_id', $data) && $data['owner_member_id'] !== null
+        && !isPositiveIntegerInput($data['owner_member_id'])) {
+        $errors['owner_member_id'] = ['The owner_member_id must be a positive integer or null.'];
+    }
+    if (array_key_exists('category_id', $data) && $data['category_id'] !== null && !isPositiveIntegerInput($data['category_id'])) {
+        $errors['category_id'] = ['The category_id must be a positive integer or null.'];
     }
     validateChoice($errors, 'visibility', $data['visibility'] ?? null, $visibility, 'The visibility must be one of: public, private, invite_only.');
     validateChoice($errors, 'status', $data['status'] ?? null, $statuses, 'The status must be one of: active, inactive, archived.');
     if ($mode === 'member-action') {
         validateRequired($errors, 'action', $data['action'] ?? null, 'The action field is required.');
         validateChoice($errors, 'action', $data['action'] ?? null, ['ban', 'remove'], 'The action must be one of: ban, remove.');
+    }
+    return $errors;
+}
+
+function isPositiveIntegerInput(mixed $value): bool
+{
+    return (is_int($value) && $value > 0)
+        || (is_string($value) && ctype_digit($value) && (int) $value > 0);
+}
+
+function validateGroupCategory(array $data, string $mode): array
+{
+    $errors = [];
+    if ($mode === 'create'
+        && (!isset($data['category_name']) || !is_string($data['category_name']) || trim($data['category_name']) === '')) {
+        $errors['category_name'] = ['The category_name field is required.'];
+    }
+    if (isset($data['category_name'])) {
+        if (!is_string($data['category_name']) || trim($data['category_name']) === '') {
+            $errors['category_name'] = ['The category_name field must not be empty.'];
+        } elseif (strlen($data['category_name']) > 150) {
+            $errors['category_name'] = ['The category_name must not exceed 150 characters.'];
+        }
+    }
+    if (array_key_exists('description', $data) && $data['description'] !== null && !is_string($data['description'])) {
+        $errors['description'] = ['The description must be a string or null.'];
+    }
+    if (array_key_exists('status', $data) && $mode !== 'status') {
+        $errors['status'] = ['Change category status using the status endpoint.'];
+    }
+    if (isset($data['status']) && !in_array($data['status'], ['active', 'inactive'], true)) {
+        $errors['status'] = ['The status must be active or inactive.'];
     }
     return $errors;
 }

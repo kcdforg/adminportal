@@ -1,39 +1,243 @@
+<app-loading-overlay [loading]="loading()"></app-loading-overlay>
+<app-page-header [title]="group()?.display_name || group()?.group_name || 'Group'" subtitle="Group Detail">
+  <button type="button" routerLink="/groups" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800">
+    <app-icon name="arrow_back" aria-hidden="true" class="h-6 w-6"></app-icon> Back
+  </button>
+</app-page-header>
 
-    <app-loading-overlay [loading]="loading()"></app-loading-overlay>
-    <app-page-header [title]="group()?.group_name ?? 'Group'" subtitle="Group Detail">
-      <button type="button" routerLink="/groups" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"><app-icon name="arrow_back" aria-hidden="true" class="h-6 w-6"></app-icon> Back</button>
-    </app-page-header>
+<p *ngIf="loadError()" class="mb-4 text-sm text-red-600" role="alert">{{ loadError() }}</p>
 
-    <div class="space-y-6" *ngIf="group()">
-      <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Info</h2>
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Name</span><span class="text-sm text-gray-900 dark:text-white">{{ group()!.group_name }}</span></div>
-          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Visibility</span><span class="text-sm text-gray-900 dark:text-white">{{ group()!.visibility }}</span></div>
-          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</span><app-status-badge [status]="group()!.status"></app-status-badge></div>
-          <div class="flex flex-col gap-1"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Members</span><span class="text-sm text-gray-900 dark:text-white">{{ members().length }}</span></div>
-          <div class="flex flex-col gap-1 sm:col-span-2"><span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</span><span class="text-sm text-gray-900 dark:text-white">{{ group()!.description ?? '—' }}</span></div>
-        </div>
-      </section>
-
-      <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <h2 class="border-b border-gray-200 px-5 py-4 text-lg font-semibold text-gray-900 dark:border-gray-800 dark:text-white">Members</h2>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
-            <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-300"><tr><th class="px-4 py-3">Member</th><th class="px-4 py-3">Joined</th><th class="px-4 py-3">Banned</th><th class="px-4 py-3">Actions</th></tr></thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-              <tr *ngFor="let m of members()" class="text-gray-700 dark:text-gray-200">
-                <td class="whitespace-nowrap px-4 py-3">{{ m.member?.first_name }} {{ m.member?.last_name }}</td><td class="whitespace-nowrap px-4 py-3">{{ m.joined_at | date:'dd MMM yyyy' }}</td>
-                <td class="whitespace-nowrap px-4 py-3"><app-icon [name]="m.is_banned ? 'block' : 'check_circle'" [ngClass]="m.is_banned ? 'text-red-600' : 'text-gray-400'" aria-hidden="true" class="h-6 w-6"></app-icon></td>
-                <td class="whitespace-nowrap px-4 py-3">
-                  <button type="button" (click)="banMember(m)" [disabled]="m.is_banned" [attr.aria-label]="'Ban ' + (m.member?.first_name ?? 'member')" title="Ban" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"><app-icon name="block" aria-hidden="true" class="h-6 w-6"></app-icon></button>
-                  <button type="button" (click)="removeMember(m)" [attr.aria-label]="'Remove ' + (m.member?.first_name ?? 'member')" title="Remove" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-red-600 dark:hover:bg-gray-800"><app-icon name="person_remove" aria-hidden="true" class="h-6 w-6"></app-icon></button>
-                </td>
-              </tr>
-              <tr *ngIf="!members().length"><td colspan="4" class="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400">No members</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+<ng-container *ngIf="group() as selectedGroup">
+  <section class="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ selectedGroup.display_name || selectedGroup.group_name }}</h2>
+        <p *ngIf="selectedGroup.display_name" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Group name: {{ selectedGroup.group_name }}</p>
+        <p class="mt-2 max-w-3xl whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-300">{{ selectedGroup.description || 'No description provided.' }}</p>
+      </div>
+      <button type="button" (click)="openSettingsDialog()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+        Edit group details
+      </button>
     </div>
-  
+    <dl class="mt-5 grid grid-cols-1 gap-4 border-t border-gray-100 pt-4 text-sm sm:grid-cols-2 lg:grid-cols-4 dark:border-gray-800">
+      <div>
+        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Group name</dt>
+        <dd class="mt-1 font-medium text-gray-900 dark:text-white">{{ selectedGroup.group_name }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Display name</dt>
+        <dd class="mt-1 font-medium text-gray-900 dark:text-white">{{ selectedGroup.display_name || '—' }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Category</dt>
+        <dd class="mt-1 font-medium text-gray-900 dark:text-white">{{ selectedGroup.category?.category_name || 'Uncategorized' }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Members</dt>
+        <dd class="mt-1 font-medium text-gray-900 dark:text-white">{{ activeMemberCount() }} active</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Visibility</dt>
+        <dd class="mt-1 font-medium text-gray-900 dark:text-white">{{ selectedGroup.visibility }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Status</dt>
+        <dd class="mt-1"><app-status-badge [status]="selectedGroup.status"></app-status-badge></dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4 dark:border-gray-800">
+      <nav class="flex flex-wrap gap-2" aria-label="Group detail tabs" role="tablist">
+        <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'members'" (click)="selectTab('members')" class="rounded-lg px-3 py-2 text-sm font-medium" [ngClass]="activeTab() === 'members' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200'">
+          Members ({{ activeMemberCount() }})
+        </button>
+        <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'posts'" (click)="selectTab('posts')" class="rounded-lg px-3 py-2 text-sm font-medium" [ngClass]="activeTab() === 'posts' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200'">Posts</button>
+        <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'events'" (click)="selectTab('events')" class="rounded-lg px-3 py-2 text-sm font-medium" [ngClass]="activeTab() === 'events' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200'">Events</button>
+        <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'polls'" (click)="selectTab('polls')" class="rounded-lg px-3 py-2 text-sm font-medium" [ngClass]="activeTab() === 'polls' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200'">Polls</button>
+      </nav>
+      <div class="flex flex-wrap gap-2">
+        <button *ngIf="activeTab() === 'members'" type="button" (click)="openMemberDialog()" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Add member</button>
+        <button *ngIf="activeTab() === 'posts'" type="button" (click)="openContentDialog('posts')" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Add post</button>
+        <button *ngIf="activeTab() === 'events'" type="button" (click)="openContentDialog('events')" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Add event</button>
+        <button *ngIf="activeTab() === 'polls'" type="button" (click)="openContentDialog('polls')" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Add poll</button>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab() === 'members'" role="tabpanel">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+          <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-800/60 dark:text-gray-300">
+            <tr><th class="px-4 py-3">Member</th><th class="px-4 py-3">Joined</th><th class="px-4 py-3">Role</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Actions</th></tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+            <tr *ngFor="let member of members()" class="text-gray-700 dark:text-gray-200">
+              <td class="whitespace-nowrap px-4 py-3">
+                <span class="font-medium">{{ member.member_name }}</span>
+                <span class="block text-xs text-gray-500">{{ member.email || member.mobile || '' }}</span>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3">{{ member.joined_at | date:'dd MMM yyyy' }}</td>
+              <td class="whitespace-nowrap px-4 py-3">
+                <select *ngIf="member.status === 'active'; else staticRole" [value]="member.member_role" (change)="changeMemberRole(member, $event)" [attr.aria-label]="'Role for ' + member.member_name" class="rounded border border-gray-300 bg-white px-2 py-1 dark:border-gray-700 dark:bg-gray-900">
+                  <option value="member">Member</option><option value="moderator">Moderator</option><option value="admin">Admin</option><option value="owner">Owner</option>
+                </select>
+                <ng-template #staticRole>{{ member.member_role }}</ng-template>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3">
+                <span class="rounded-full px-2.5 py-1 text-xs font-semibold" [ngClass]="member.status === 'active' ? 'bg-emerald-100 text-emerald-800' : member.status === 'banned' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'">{{ member.status }}</span>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3">
+                <ng-container *ngIf="member.status === 'active'">
+                  <button type="button" (click)="banMember(member)" [attr.aria-label]="'Ban ' + member.member_name" title="Ban member" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-red-600 dark:hover:bg-gray-800"><app-icon name="block" aria-hidden="true" class="h-6 w-6"></app-icon></button>
+                  <button type="button" (click)="removeMember(member)" [attr.aria-label]="'Remove ' + member.member_name" title="Remove member" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-red-600 dark:hover:bg-gray-800"><app-icon name="person_remove" aria-hidden="true" class="h-6 w-6"></app-icon></button>
+                </ng-container>
+                <span *ngIf="member.status === 'banned'" class="text-xs text-gray-500">Banned members cannot be re-added.</span>
+              </td>
+            </tr>
+            <tr *ngIf="!members().length"><td colspan="5" class="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400">No members</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab() !== 'members'" class="divide-y divide-gray-200 px-5 dark:divide-gray-800" role="tabpanel">
+      <p *ngIf="contentError()" class="py-3 text-sm text-red-600" role="alert">{{ contentError() }}</p>
+      <p *ngIf="contentSuccess()" class="py-3 text-sm text-emerald-700" role="status">{{ contentSuccess() }}</p>
+      <div *ngFor="let item of content()" class="flex items-start justify-between gap-4 py-4">
+        <div>
+          <h3 class="font-semibold text-gray-900 dark:text-white">{{ item.title }}</h3>
+          <p *ngIf="item.content" class="mt-1 whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-300">{{ item.content }}</p>
+          <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            {{ item.status }}
+            <ng-container *ngIf="activeTab() === 'polls'"> · {{ item.vote_count ?? 0 }} votes</ng-container>
+            <ng-container *ngIf="activeTab() === 'events'"> · {{ item.registered_count ?? 0 }} registrations · {{ item.content_data.start_at | date:'medium' }}</ng-container>
+            <ng-container *ngIf="activeTab() === 'polls' && item.content_data.options?.length"> · {{ item.content_data.options?.length }} options</ng-container>
+          </p>
+        </div>
+        <div class="flex shrink-0 gap-2">
+          <button *ngIf="item.status !== 'archived'" type="button" (click)="editContent(item)" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200">Edit</button>
+          <button *ngIf="item.status !== 'archived'" type="button" (click)="archiveContent(item)" class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950">Archive</button>
+        </div>
+      </div>
+      <p *ngIf="!content().length" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">No {{ activeTab() }} have been created for this group.</p>
+    </div>
+  </section>
+</ng-container>
+
+<div *ngIf="activeDialog()" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4" (click)="closeDialog()">
+  <section class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-xl dark:bg-gray-900" role="dialog" aria-modal="true" [attr.aria-label]="activeDialog() === 'settings' ? 'Edit group details' : activeDialog() === 'member' ? 'Add group member' : 'Manage group content'" (click)="$event.stopPropagation()">
+    <header class="mb-5 flex items-center justify-between gap-4">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+        {{ activeDialog() === 'settings' ? 'Edit group details' : activeDialog() === 'member' ? 'Add group member' : (editingContent() ? 'Edit ' : 'Add ') + (contentType() === 'posts' ? 'post' : contentType().slice(0, -1)) }}
+      </h2>
+      <button type="button" (click)="closeDialog()" class="rounded-lg px-2 py-1 text-2xl leading-none text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Close">×</button>
+    </header>
+
+    <form *ngIf="activeDialog() === 'settings'" class="grid grid-cols-1 gap-4 sm:grid-cols-2" (ngSubmit)="saveSettings()">
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Group name
+        <input name="groupName" [(ngModel)]="settingsForm.group_name" required maxlength="255" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Display name
+        <input name="displayName" [(ngModel)]="settingsForm.display_name" maxlength="255" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Category
+        <select name="categoryId" [(ngModel)]="settingsForm.category_id" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+          <option [ngValue]="null">No category</option>
+          <option *ngFor="let category of categories()" [ngValue]="category.id">{{ category.category_name }}</option>
+        </select>
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Visibility
+        <select name="visibility" [(ngModel)]="settingsForm.visibility" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+          <option value="public">Public</option><option value="private">Private</option><option value="invite_only">Invite only</option>
+        </select>
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200 sm:col-span-2">
+        Description
+        <textarea name="description" [(ngModel)]="settingsForm.description" rows="4" maxlength="20000" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900"></textarea>
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Status
+        <select name="status" [(ngModel)]="settingsForm.status" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+          <option value="active">Active</option><option value="inactive">Inactive</option><option value="archived">Archived</option>
+        </select>
+      </label>
+      <p *ngIf="settingsError()" class="text-sm text-red-600 sm:col-span-2" role="alert">{{ settingsError() }}</p>
+      <footer class="flex justify-end gap-2 sm:col-span-2">
+        <button type="button" (click)="closeDialog()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-700">Cancel</button>
+        <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Save details</button>
+      </footer>
+    </form>
+
+    <form *ngIf="activeDialog() === 'member'" class="space-y-4" (ngSubmit)="addMember()">
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Search active parent accounts
+        <span class="flex gap-2">
+          <input name="memberCandidateSearch" [(ngModel)]="memberCandidateSearch" (keyup.enter)="searchMemberCandidates(); $event.preventDefault()" class="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" />
+          <button type="button" (click)="searchMemberCandidates()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-700">Search</button>
+        </span>
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Parent account
+        <select name="newMemberId" [value]="newMemberId || ''" (change)="newMemberId = +$any($event.target).value" required class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+          <option value="">Choose an eligible account</option>
+          <option *ngFor="let candidate of availableMemberCandidates()" [value]="candidate.id">{{ candidate.first_name }} {{ candidate.last_name }} · {{ candidate.email || candidate.mobile || ('ID ' + candidate.id) }}</option>
+        </select>
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Group role
+        <select name="newMemberRole" [value]="newMemberRole" (change)="newMemberRole = $any($event.target).value" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+          <option value="member">Member</option><option value="moderator">Moderator</option><option value="admin">Admin</option><option value="owner">Owner</option>
+        </select>
+      </label>
+      <p *ngIf="memberError()" class="text-sm text-red-600" role="alert">{{ memberError() }}</p>
+      <p *ngIf="!availableMemberCandidates().length && !memberError()" class="text-sm text-gray-500">No eligible accounts available to add.</p>
+      <footer class="flex justify-end gap-2">
+        <button type="button" (click)="closeDialog()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-700">Cancel</button>
+        <button type="submit" [disabled]="!availableMemberCandidates().length" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Add member</button>
+      </footer>
+    </form>
+
+    <form *ngIf="activeDialog() === 'content'" class="grid grid-cols-1 gap-4 sm:grid-cols-2" (ngSubmit)="createContent()">
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200 sm:col-span-2">
+        Title
+        <input name="title" [(ngModel)]="contentForm.title" required maxlength="255" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200 sm:col-span-2">
+        {{ contentType() === 'polls' ? 'Description (optional)' : 'Content' }}
+        <textarea name="content" [(ngModel)]="contentForm.content" rows="3" maxlength="20000" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900"></textarea>
+      </label>
+      <ng-container *ngIf="contentType() === 'polls'">
+        <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200 sm:col-span-2">
+          Options (one per line, 2–10 options)
+          <textarea name="options" [(ngModel)]="contentForm.options" rows="4" required class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900"></textarea>
+        </label>
+        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200"><input type="checkbox" name="allowMultiple" [(ngModel)]="contentForm.allow_multiple" /> Allow multiple choices</label>
+        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200"><input type="checkbox" name="allowVoteChange" [(ngModel)]="contentForm.allow_vote_change" /> Allow changing votes</label>
+        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200 sm:col-span-2"><input type="checkbox" name="showResults" [(ngModel)]="contentForm.show_results_before_voting" /> Show results before voting</label>
+        <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">Poll closes (optional)<input name="closesAt" type="datetime-local" [(ngModel)]="contentForm.closes_at" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" /></label>
+      </ng-container>
+      <ng-container *ngIf="contentType() === 'events'">
+        <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">Starts<input name="startAt" type="datetime-local" [(ngModel)]="contentForm.start_at" required class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" /></label>
+        <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">Ends<input name="endAt" type="datetime-local" [(ngModel)]="contentForm.end_at" required class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" /></label>
+        <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">Location<input name="location" [(ngModel)]="contentForm.location" maxlength="255" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" /></label>
+        <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">Capacity (optional)<input name="capacity" type="number" min="1" [(ngModel)]="contentForm.capacity" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" /></label>
+      </ng-container>
+      <label class="flex flex-col gap-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Status
+        <select name="status" [(ngModel)]="contentForm.status" class="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+          <option value="published">Published</option><option value="draft">Draft</option>
+        </select>
+      </label>
+      <p *ngIf="contentError()" class="text-sm text-red-600 sm:col-span-2" role="alert">{{ contentError() }}</p>
+      <footer class="flex justify-end gap-2 sm:col-span-2">
+        <button type="button" (click)="closeDialog()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-700">Cancel</button>
+        <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">{{ editingContent() ? 'Save changes' : 'Create' }}</button>
+      </footer>
+    </form>
+  </section>
+</div>

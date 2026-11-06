@@ -16,5 +16,4 @@ if (!canAccessGroup($database, $jwt, $group, 'view')) {
         errorResponse('UNAUTHORIZED', 'You do not have permission to view this group.', 403);
     }
 
-successResponse($group);
-
+successResponse(decorateGroupForUser($database, $jwt, $group));

@@ -46,7 +46,7 @@
     },
     {
       "name": "groups",
-      "description": "Groups operations."
+      "description": "Authenticated platform admins can perform all group operations without membership. Member users are governed by group visibility and active membership roles: owners manage settings, members and ownership; admins manage routine settings and non-owner roles/membership; moderators can remove ordinary members; members can participate. Group membership roles never grant platform-admin API access."
     },
     {
       "name": "invitations",
@@ -4622,6 +4622,7 @@
           "groups"
         ],
         "summary": "List groups",
+        "description": "Admins can list every group. Members see public groups and groups they actively belong to. Results include category details and the caller's my_role; category_id filters results.",
         "operationId": "get_groups",
         "responses": {
           "200": {
@@ -4770,6 +4771,16 @@
                 "invite_only"
               ]
             }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "description": "Filter by group category.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
           }
         ]
       },
@@ -4778,6 +4789,7 @@
           "groups"
         ],
         "summary": "Create groups",
+        "description": "Platform admins only. Group name is required; display name, description, and category are optional. An initial owner can be assigned optionally during creation.",
         "operationId": "post_groups",
         "responses": {
           "200": {
@@ -4896,14 +4908,31 @@
                 "properties": {
                   "description": {
                     "description": "Description.",
-                    "type": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "group_name": {
-                    "description": "Group name.",
+                    "description": "Required internal group name.",
                     "type": "string"
                   },
+                  "display_name": {
+                    "description": "Optional group name shown to members.",
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "category_id": {
+                    "description": "Optional active group category id.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "nullable": true
+                  },
+                  "owner_member_id": {
+                    "description": "Optional active parent profile to assign as the initial group owner.",
+                    "type": "integer",
+                    "minimum": 1
+                  },
                   "visibility": {
-                    "description": "Visibility.",
+                    "description": "Visibility. Defaults to public.",
                     "type": "string",
                     "enum": [
                       "public",
@@ -4914,12 +4943,128 @@
                 },
                 "additionalProperties": true,
                 "required": [
-                  "group_name",
-                  "visibility"
+                  "group_name"
                 ]
               }
             }
           }
+        }
+      }
+    },
+    "/groups/categories": {
+      "get": {
+        "tags": ["groups"],
+        "summary": "List group categories",
+        "description": "Authenticated members receive active categories. Platform admins receive active and inactive categories.",
+        "operationId": "get_group_categories",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Categories returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "data": {"type": "array", "items": {"$ref": "#/components/schemas/GroupCategory"}}
+                  }
+                }
+              }
+            }
+          },
+          "401": {"description": "Missing, invalid, or expired token.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "403": {"description": "Unauthenticated platform identity type.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}}
+        }
+      },
+      "post": {
+        "tags": ["groups"],
+        "summary": "Create a group category",
+        "description": "Platform admins only. Duplicate category names return 409; invalid input returns 422.",
+        "operationId": "post_group_categories",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["category_name"],
+                "properties": {
+                  "category_name": {"type": "string", "maxLength": 150},
+                  "description": {"type": "string", "nullable": true}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Category created.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiSuccess"}}}},
+          "401": {"description": "Missing, invalid, or expired token.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "403": {"description": "Platform admin required.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "409": {"description": "Category name already exists.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "422": {"description": "Validation failed.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}}
+        }
+      }
+    },
+    "/groups/categories/{category_id}": {
+      "put": {
+        "tags": ["groups"],
+        "summary": "Update a group category",
+        "description": "Platform admins only. Name changes do not remove group references.",
+        "operationId": "put_group_categories_category_id",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "category_id", "in": "path", "required": true, "schema": {"type": "integer", "minimum": 1}}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "category_name": {"type": "string", "maxLength": 150},
+                  "description": {"type": "string", "nullable": true}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Category updated.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiSuccess"}}}},
+          "401": {"description": "Missing, invalid, or expired token.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "403": {"description": "Platform admin required.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "404": {"description": "Category not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "409": {"description": "Category name already exists.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "422": {"description": "Validation failed.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}}
+        }
+      }
+    },
+    "/groups/categories/{category_id}/status": {
+      "patch": {
+        "tags": ["groups"],
+        "summary": "Activate or deactivate a group category",
+        "description": "Platform admins only. Deactivation preserves existing group references.",
+        "operationId": "patch_group_categories_category_id_status",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "category_id", "in": "path", "required": true, "schema": {"type": "integer", "minimum": 1}}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {"status": {"type": "string", "enum": ["active", "inactive"]}}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Category status changed.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiSuccess"}}}},
+          "401": {"description": "Missing, invalid, or expired token.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "403": {"description": "Platform admin required.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "404": {"description": "Category not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "422": {"description": "Validation failed.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}}
         }
       }
     },
@@ -4929,6 +5074,7 @@
           "groups"
         ],
         "summary": "Get groups id",
+        "description": "Platform admins can retrieve any group. Members must meet the visibility and active-membership rules. The response includes category and my_role.",
         "operationId": "get_groups_id",
         "responses": {
           "200": {
@@ -5045,6 +5191,7 @@
           "groups"
         ],
         "summary": "Update groups id",
+        "description": "Platform admins and group owners/admins may update supported group settings. Activation requires an active owner; categories must be active when assigned.",
         "operationId": "put_groups_id",
         "responses": {
           "200": {
@@ -5171,6 +5318,12 @@
                     "description": "Group name.",
                     "type": "string"
                   },
+                  "category_id": {
+                    "description": "Set to an active category id, or null to clear the category.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "nullable": true
+                  },
                   "status": {
                     "description": "Status.",
                     "type": "string",
@@ -5203,6 +5356,7 @@
           "groups"
         ],
         "summary": "List groups id members",
+        "description": "Lists active group members, including member_role. Platform admins can view any group's members; active group members can view the list but cannot thereby manage membership.",
         "operationId": "get_groups_id_members",
         "responses": {
           "200": {
@@ -5313,6 +5467,37 @@
             "description": "Id identifier."
           }
         ]
+      },
+      "post": {
+        "tags": ["groups"],
+        "summary": "Add or re-add a group member",
+        "description": "Platform admins and group owners/admins can add members. Rejoining a former member resets the role to member; banned members cannot be re-added.",
+        "operationId": "post_groups_id_members",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer", "minimum": 1}}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["member_id"],
+                "properties": {
+                  "member_id": {"type": "integer", "minimum": 1},
+                  "member_role": {"type": "string", "enum": ["owner", "admin", "moderator", "member"], "default": "member"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Member added.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiSuccess"}}}},
+          "401": {"description": "Missing, invalid, or expired token.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "403": {"description": "Role or membership permission denied.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "404": {"description": "Group or active member profile not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "409": {"description": "Duplicate, inactive group, or membership conflict.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "422": {"description": "Validation failed.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}}
+        }
       }
     },
     "/groups/{id}/join": {
@@ -5711,6 +5896,39 @@
               }
             }
           }
+        }
+      }
+    },
+    "/groups/{id}/members/{member_id}/role": {
+      "put": {
+        "tags": ["groups"],
+        "summary": "Change a group member role",
+        "description": "Platform admins and owners can assign any group role. Group admins can change non-owner roles but cannot assign or alter ownership. Ownership changes lock the group and preserve at least one active owner.",
+        "operationId": "put_groups_id_members_member_id_role",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "integer", "minimum": 1}},
+          {"name": "member_id", "in": "path", "required": true, "description": "Member profile id.", "schema": {"type": "integer", "minimum": 1}}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["member_role"],
+                "properties": {"member_role": {"type": "string", "enum": ["owner", "admin", "moderator", "member"]}}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Role updated.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiSuccess"}}}},
+          "401": {"description": "Missing, invalid, or expired token.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "403": {"description": "Role hierarchy denied the change.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "404": {"description": "Group or active membership not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "409": {"description": "The change would leave an active group without an owner.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}},
+          "422": {"description": "Invalid role value.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}}
         }
       }
     },
@@ -11713,6 +11931,45 @@
                 "type": "object",
                 "additionalProperties": true
               }
+            }
+          },
+          "GroupCategory": {
+            "type": "object",
+            "required": ["id", "category_name", "status"],
+            "properties": {
+              "id": {"type": "integer", "format": "int64"},
+              "category_name": {"type": "string", "maxLength": 150},
+              "description": {"type": "string", "nullable": true},
+              "status": {"type": "string", "enum": ["active", "inactive"]},
+              "created_at": {"type": "string", "format": "date-time"},
+              "updated_at": {"type": "string", "format": "date-time"}
+            }
+          },
+          "GroupMember": {
+            "type": "object",
+            "required": ["id", "group_id", "member_id", "member_role", "status"],
+            "properties": {
+              "id": {"type": "integer", "format": "int64"},
+              "group_id": {"type": "integer", "format": "int64"},
+              "member_id": {"type": "integer", "format": "int64"},
+              "member_role": {"type": "string", "enum": ["owner", "admin", "moderator", "member"]},
+              "status": {"type": "string", "enum": ["active", "left", "banned"]},
+              "member_name": {"type": "string"}
+            }
+          },
+          "Group": {
+            "type": "object",
+            "required": ["id", "group_name", "visibility", "status", "category", "my_role"],
+            "properties": {
+              "id": {"type": "integer", "format": "int64"},
+              "group_name": {"type": "string"},
+              "display_name": {"type": "string", "nullable": true},
+              "description": {"type": "string", "nullable": true},
+              "category_id": {"type": "integer", "format": "int64", "nullable": true},
+              "category": {"allOf": [{"$ref": "#/components/schemas/GroupCategory"}], "nullable": true},
+              "visibility": {"type": "string", "enum": ["public", "private", "invite_only"]},
+              "status": {"type": "string", "enum": ["active", "inactive", "archived"]},
+              "my_role": {"type": "string", "enum": ["owner", "admin", "moderator", "member"], "nullable": true}
             }
           }
         }

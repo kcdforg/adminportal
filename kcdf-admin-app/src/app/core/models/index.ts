@@ -407,17 +407,25 @@ export interface CreatePaymentRequest {
 }
 
 // ─── Group ───────────────────────────────────────────────────────────────────
-export type GroupVisibility = 'public' | 'private';
-export type GroupStatus = 'active' | 'archived';
+export type GroupVisibility = 'public' | 'private' | 'invite_only';
+export type GroupStatus = 'active' | 'inactive' | 'archived';
 
 export interface Group {
   id: number;
+  category_id?: number | null;
   group_name: string;
+  display_name?: string | null;
   description: string | null;
   visibility: GroupVisibility;
   status: GroupStatus;
-  created_by: number;
+  created_by?: number;
   member_count?: number;
+  category?: {
+    id: number;
+    category_name: string;
+    description: string | null;
+    status: 'active' | 'inactive';
+  } | null;
   created_at: string;
   updated_at: string;
 }
@@ -427,8 +435,49 @@ export interface GroupMember {
   group_id: number;
   member_id: number;
   joined_at: string;
-  is_banned: boolean;
-  member?: MemberProfile;
+  status: 'active' | 'left' | 'banned';
+  member_role: 'owner' | 'admin' | 'moderator' | 'member';
+  member_name: string;
+  email?: string | null;
+  mobile?: string | null;
+}
+
+export interface GroupCategory {
+  id: number;
+  category_name: string;
+  description: string | null;
+  status: 'active' | 'inactive';
+}
+
+export interface GroupMemberCandidate {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  mobile: string | null;
+}
+
+export interface GroupContent {
+  id: number;
+  group_id: number;
+  content_type: 'announcement' | 'poll' | 'event';
+  title: string;
+  content: string | null;
+  status: 'draft' | 'published' | 'archived';
+  content_data: {
+    options?: string[];
+    allow_multiple?: boolean;
+    allow_vote_change?: boolean;
+    show_results_before_voting?: boolean;
+    closes_at?: string | null;
+    start_at?: string;
+    end_at?: string;
+    location?: string | null;
+    capacity?: number | null;
+  };
+  created_at: string;
+  vote_count?: number;
+  registered_count?: number;
 }
 
 // ─── Notification ─────────────────────────────────────────────────────────────

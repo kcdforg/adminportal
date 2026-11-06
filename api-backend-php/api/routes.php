@@ -46,12 +46,33 @@ return function (RouteCollector $routeCollector): void {
 
     $routeCollector->addRoute('GET', '/api/v1/groups', 'groups/index.php');
     $routeCollector->addRoute('POST', '/api/v1/groups', 'groups/store.php');
+    $routeCollector->addRoute('GET', '/api/v1/groups/categories', 'groups/categories.php');
+    $routeCollector->addRoute('POST', '/api/v1/groups/categories', 'groups/category-store.php');
+    $routeCollector->addRoute('PUT', '/api/v1/groups/categories/{category_id:[0-9]+}', 'groups/category-update.php');
+    $routeCollector->addRoute('PATCH', '/api/v1/groups/categories/{category_id:[0-9]+}/status', 'groups/category-status.php');
+    $routeCollector->addRoute('GET', '/api/v1/groups/member-candidates', 'groups/member-candidates.php');
     $routeCollector->addRoute('GET', '/api/v1/groups/{id:[0-9]+}', 'groups/show.php');
     $routeCollector->addRoute('PUT', '/api/v1/groups/{id:[0-9]+}', 'groups/update.php');
     $routeCollector->addRoute('GET', '/api/v1/groups/{id:[0-9]+}/members', 'groups/members.php');
+    $routeCollector->addRoute('POST', '/api/v1/groups/{id:[0-9]+}/members', 'groups/add-member.php');
     $routeCollector->addRoute('POST', '/api/v1/groups/{id:[0-9]+}/join', 'groups/join.php');
     $routeCollector->addRoute('DELETE', '/api/v1/groups/{id:[0-9]+}/leave', 'groups/leave.php');
     $routeCollector->addRoute('DELETE', '/api/v1/groups/{id:[0-9]+}/members/{member_id:[0-9]+}', 'groups/remove-member.php');
+    $routeCollector->addRoute('PUT', '/api/v1/groups/{id:[0-9]+}/members/{member_id:[0-9]+}/role', 'groups/member-role.php');
+    foreach (['posts', 'polls', 'events'] as $resource) {
+        $base = '/api/v1/groups/{group_id:[0-9]+}/' . $resource;
+        foreach (['GET', 'POST'] as $method) {
+            $routeCollector->addRoute($method, $base, 'groups/resources.php');
+        }
+        foreach (['GET', 'PUT', 'DELETE'] as $method) {
+            $routeCollector->addRoute($method, $base . '/{content_id:[0-9]+}', 'groups/resources.php');
+        }
+    }
+    $routeCollector->addRoute('POST', '/api/v1/groups/{group_id:[0-9]+}/polls/{content_id:[0-9]+}/vote', 'groups/resources.php');
+    $routeCollector->addRoute('GET', '/api/v1/groups/{group_id:[0-9]+}/polls/{content_id:[0-9]+}/results', 'groups/resources.php');
+    $routeCollector->addRoute('POST', '/api/v1/groups/{group_id:[0-9]+}/events/{content_id:[0-9]+}/registrations', 'groups/resources.php');
+    $routeCollector->addRoute('GET', '/api/v1/groups/{group_id:[0-9]+}/events/{content_id:[0-9]+}/registrations/me', 'groups/resources.php');
+    $routeCollector->addRoute('DELETE', '/api/v1/groups/{group_id:[0-9]+}/events/{content_id:[0-9]+}/registrations/me', 'groups/resources.php');
 
     $routeCollector->addRoute('GET', '/api/v1/invitations', 'invitations/index.php');
     $routeCollector->addRoute('POST', '/api/v1/invitations', 'invitations/store.php');

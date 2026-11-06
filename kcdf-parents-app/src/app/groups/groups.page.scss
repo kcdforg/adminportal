@@ -14,6 +14,17 @@ ion-content {
   gap: 0.65rem;
 }
 
+.load-error,
+.empty-groups {
+  padding: 1rem;
+  color: #65756a;
+  font-size: 0.85rem;
+}
+
+.load-error {
+  color: #a13737;
+}
+
 .group-card {
   margin: 0;
   border: 1px solid #edf0eb;
@@ -110,6 +121,12 @@ h1 {
   line-height: 1.4;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.internal-name {
+  margin: -0.4rem 0 0.45rem;
+  color: #89958c;
+  font-size: 0.7rem;
 }
 
 .group-details {

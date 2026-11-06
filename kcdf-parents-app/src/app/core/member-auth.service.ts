@@ -40,9 +40,70 @@ export interface FamilyMember {
 export interface ParentGroup {
   id: number;
   group_name: string;
+  display_name?: string | null;
   description: string | null;
   visibility: string;
+  status?: string;
+  category_id?: number | null;
   member_count?: number;
+  my_role?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  category?: {
+    id?: number;
+    category_name: string;
+    description?: string | null;
+    status?: 'active' | 'inactive';
+  } | null;
+}
+
+export interface GroupMemberCandidate {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  mobile: string | null;
+}
+
+export interface GroupMember {
+  id: number;
+  member_id: number;
+  member_role: 'owner' | 'admin' | 'moderator' | 'member';
+  joined_at: string;
+  member_name: string;
+  status: 'active' | 'left' | 'banned';
+  email?: string | null;
+  mobile?: string | null;
+}
+
+export interface GroupContent {
+  id: number;
+  group_id: number;
+  content_type: 'announcement' | 'poll' | 'event';
+  title: string;
+  content: string | null;
+  status: string;
+  created_at: string;
+  content_data: {
+    options?: string[];
+    allow_multiple?: boolean;
+    allow_vote_change?: boolean;
+    show_results_before_voting?: boolean;
+    closes_at?: string | null;
+    start_at?: string;
+    end_at?: string;
+    location?: string | null;
+    capacity?: number | null;
+  };
+  has_voted?: boolean;
+  vote_count?: number;
+  registered_count?: number;
+  my_registration?: { id: number } | null;
+}
+
+export interface PollResults {
+  options: Array<{ option_index: number; label: string; votes: number }>;
+  total_votes: number;
 }
 
 export interface Course {
@@ -195,7 +256,92 @@ export class MemberApiService {
   }
 
   getGroups(): Observable<ParentGroup[]> {
-    return this.unwrap(this.http.get<ApiResponse<ParentGroup[]>>(`${environment.apiUrl}/groups`));
+    return this.unwrapList(this.http.get<ApiResponse<ParentGroup[] | { data: ParentGroup[] }>>(`${environment.apiUrl}/groups`));
+  }
+
+  getGroup(groupId: number): Observable<ParentGroup> {
+    return this.unwrap(this.http.get<ApiResponse<ParentGroup>>(`${environment.apiUrl}/groups/${groupId}`));
+  }
+
+  getGroupMembers(groupId: number): Observable<GroupMember[]> {
+    return this.unwrap(this.http.get<ApiResponse<GroupMember[]>>(`${environment.apiUrl}/groups/${groupId}/members`));
+  }
+
+  getGroupMemberCandidates(groupId: number, search = ''): Observable<GroupMemberCandidate[]> {
+    const params = new URLSearchParams({ group_id: String(groupId), per_page: '100' });
+    if (search.trim()) params.set('search', search.trim());
+    return this.unwrapList(
+      this.http.get<ApiResponse<GroupMemberCandidate[] | { data: GroupMemberCandidate[] }>>(
+        `${environment.apiUrl}/groups/member-candidates?${params.toString()}`,
+      ),
+    );
+  }
+
+  addGroupMember(groupId: number, memberId: number): Observable<GroupMember> {
+    return this.unwrap(this.http.post<ApiResponse<GroupMember>>(
+      `${environment.apiUrl}/groups/${groupId}/members`,
+      { member_id: memberId, member_role: 'member' },
+    ));
+  }
+
+  updateGroupMemberRole(groupId: number, memberId: number, memberRole: GroupMember['member_role']): Observable<GroupMember> {
+    return this.unwrap(this.http.put<ApiResponse<GroupMember>>(
+      `${environment.apiUrl}/groups/${groupId}/members/${memberId}/role`,
+      { member_role: memberRole },
+    ));
+  }
+
+  removeGroupMember(groupId: number, memberId: number): Observable<unknown> {
+    return this.http.delete(`${environment.apiUrl}/groups/${groupId}/members/${memberId}`, {
+      body: { action: 'remove' },
+    });
+  }
+
+  joinGroup(groupId: number): Observable<unknown> {
+    return this.http.post(`${environment.apiUrl}/groups/${groupId}/join`, {});
+  }
+
+  getGroupContent(groupId: number, resource: 'posts' | 'polls' | 'events'): Observable<GroupContent[]> {
+    return this.unwrapList(
+      this.http.get<ApiResponse<GroupContent[] | { data: GroupContent[] }>>(
+        `${environment.apiUrl}/groups/${groupId}/${resource}`,
+      ),
+    );
+  }
+
+  createGroupContent(
+    groupId: number,
+    resource: 'posts' | 'polls' | 'events',
+    data: Record<string, unknown>,
+  ): Observable<GroupContent> {
+    return this.unwrap(this.http.post<ApiResponse<GroupContent>>(
+      `${environment.apiUrl}/groups/${groupId}/${resource}`,
+      data,
+    ));
+  }
+
+  voteOnPoll(groupId: number, pollId: number, optionIndexes: number[]): Observable<GroupContent> {
+    return this.unwrap(this.http.post<ApiResponse<GroupContent>>(
+      `${environment.apiUrl}/groups/${groupId}/polls/${pollId}/vote`,
+      { option_indexes: optionIndexes },
+    ));
+  }
+
+  getPollResults(groupId: number, pollId: number): Observable<PollResults> {
+    return this.unwrap(this.http.get<ApiResponse<PollResults>>(
+      `${environment.apiUrl}/groups/${groupId}/polls/${pollId}/results`,
+    ));
+  }
+
+  registerForEvent(groupId: number, eventId: number): Observable<GroupContent> {
+    return this.unwrap(this.http.post<ApiResponse<GroupContent>>(
+      `${environment.apiUrl}/groups/${groupId}/events/${eventId}/registrations`,
+      {},
+    ));
+  }
+
+  cancelEventRegistration(groupId: number, eventId: number): Observable<unknown> {
+    return this.http.delete(`${environment.apiUrl}/groups/${groupId}/events/${eventId}/registrations/me`);
   }
 
   getCourses(): Observable<Course[]> {
@@ -213,6 +359,24 @@ export class MemberApiService {
           throw new Error(response.message ?? 'Unable to load data.');
         }
         return response.data;
+      }),
+    );
+  }
+
+  private unwrapList<T>(request: Observable<ApiResponse<T[] | { data: T[] }>>): Observable<T[]> {
+    return request.pipe(
+      map((response) => {
+        if (!response.success) {
+          throw new Error(response.message ?? 'Unable to load data.');
+        }
+        const value = response.data;
+        if (Array.isArray(value)) {
+          return value;
+        }
+        if (Array.isArray(value.data)) {
+          return value.data;
+        }
+        throw new TypeError('The API returned an invalid list response.');
       }),
     );
   }

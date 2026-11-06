@@ -8,17 +8,7 @@ dont run build or serve command or lint command.
 
 You need to only generate the code and check for syntax errors.
 
-1. In home page, the page is not scrollable.  no element is clickable.
-
-2. In group page, the groups are not clickable.  On clicking it has to go to group details page.
-
-3. In courses page, the courses are not clickable.  On clicking it has to go to course details page.
-
-4. When deploying new version of this ionic build, the old cache is not cleared.  enable cache avoidance in the build.
-
-5.  The signout in ME page is not clickable.
-
-6. In Posts page, the post item is not clickable. On clicking the post item, it has to go to full post page displaying the entire content.
+1. 
 
 
     

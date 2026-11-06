@@ -5,52 +5,232 @@
       All groups
     </a>
 
+    @if (error) {
+      <p class="error-message" role="alert">{{ error }}</p>
+    }
+
     @if (group; as selectedGroup) {
       <section class="group-summary">
-        <span class="group-icon" [class]="selectedGroup.color">
-          <ion-icon [name]="selectedGroup.icon"></ion-icon>
-        </span>
+        <span class="group-icon"><ion-icon name="people-outline"></ion-icon></span>
         <div>
-          <h1>{{ selectedGroup.name }}</h1>
-          <p>{{ selectedGroup.description }}</p>
-          <span class="member-count"><ion-icon name="people-outline"></ion-icon>{{ selectedGroup.members }} members</span>
+          <h1>{{ selectedGroup.display_name || selectedGroup.group_name }}</h1>
+          <p class="group-display-name">Display name: {{ selectedGroup.display_name || 'Not set' }}</p>
+          <p class="group-internal-name">Group name: {{ selectedGroup.group_name }}</p>
+          <p>{{ selectedGroup.description || 'No group description.' }}</p>
+          <p class="group-category">Category: {{ selectedGroup.category?.category_name || 'Uncategorized' }}</p>
+          <span class="member-count">
+            <ion-icon name="people-outline"></ion-icon>{{ selectedGroup.member_count ?? members.length }} members
+          </span>
         </div>
+        @if (!selectedGroup.my_role && selectedGroup.visibility === 'public') {
+          <button class="action-button join-button" type="button" (click)="joinGroup()">Join group</button>
+        }
       </section>
 
       <ion-segment [value]="activeSection" (ionChange)="setSection($event.detail.value)">
-        <ion-segment-button value="members"><ion-label>Members</ion-label></ion-segment-button>
-        <ion-segment-button value="announcements"><ion-label>Announcements</ion-label></ion-segment-button>
-        <ion-segment-button value="discussion"><ion-label>Discussion</ion-label></ion-segment-button>
+        <ion-segment-button value="posts"><ion-label>Posts</ion-label></ion-segment-button>
+        <ion-segment-button value="events"><ion-label>Events</ion-label></ion-segment-button>
+        <ion-segment-button value="polls"><ion-label>Polls</ion-label></ion-segment-button>
+        @if (selectedGroup.my_role) {
+          <ion-segment-button value="members"><ion-label>Members</ion-label></ion-segment-button>
+        }
       </ion-segment>
 
-      @if (activeSection === 'members') {
-        <section class="detail-list" aria-label="Group members">
-          @for (member of members; track member.name) {
-            <article class="list-row">
-              <span class="avatar">{{ member.name.charAt(0) }}</span>
-              <div><h2>{{ member.name }}</h2><p>{{ member.role }}</p></div>
+      @if (isGroupManager()) {
+        <div class="group-actions" aria-label="Group actions">
+          @if (canManageMembers()) {
+            <button class="action-button" type="button" (click)="openMemberModal()">Add member</button>
+          }
+          <button class="action-button" type="button" (click)="openContentModal('posts')">Add post</button>
+          <button class="action-button" type="button" (click)="openContentModal('events')">Add event</button>
+          <button class="action-button" type="button" (click)="openContentModal('polls')">Add poll</button>
+        </div>
+      }
+
+      @if (loading) {
+        <p class="empty-state">Loading group…</p>
+      } @else if (activeSection === 'members') {
+        @if (selectedGroup.my_role) {
+          <section class="detail-list" aria-label="Group members">
+            @for (member of members; track member.id) {
+              <article class="list-row">
+                <span class="avatar">{{ member.member_name.charAt(0) }}</span>
+                <div class="member-copy"><h2>{{ member.member_name }}</h2><p>{{ member.member_role }}</p></div>
+                @if (canManageMembers()) {
+                  <label class="member-role-control">
+                    <span class="visually-hidden">Role for {{ member.member_name }}</span>
+                    <select [value]="member.member_role" [disabled]="selectedGroup.my_role === 'admin' && member.member_role === 'owner'" (change)="changeMemberRole(member, $event)">
+                      <option value="member">Member</option>
+                      <option value="moderator">Moderator</option>
+                      <option value="admin">Admin</option>
+                      @if (selectedGroup.my_role === 'owner') { <option value="owner">Owner</option> }
+                    </select>
+                  </label>
+                  @if (selectedGroup.my_role === 'owner' || member.member_role !== 'owner') {
+                    <button class="action-button danger-button" type="button" (click)="removeMember(member)">Remove</button>
+                  }
+                } @else if (selectedGroup.my_role === 'moderator' && member.member_role === 'member') {
+                  <button class="action-button danger-button" type="button" (click)="removeMember(member)">Remove</button>
+                }
+              </article>
+            } @empty {
+              <p class="empty-state">No group members to show.</p>
+            }
+          </section>
+        }
+      } @else if (activeSection === 'events') {
+        <section class="detail-list" aria-label="Group events">
+          @for (event of events; track event.id) {
+            <article class="list-row content-row">
+              <div>
+                <span class="row-meta">{{ event.content_data.start_at }}</span>
+                <h2>{{ event.title }}</h2>
+                @if (event.content) { <p>{{ event.content }}</p> }
+                @if (event.content_data.location) { <p>{{ event.content_data.location }}</p> }
+                <p>{{ event.registered_count ?? 0 }} registered
+                  @if (event.content_data.capacity) { · {{ event.content_data.capacity }} places }
+                </p>
+              </div>
+              @if (selectedGroup.my_role && !event.my_registration) {
+                <button class="action-button" type="button" (click)="register(event)">Register</button>
+              } @else if (event.my_registration) {
+                <button class="action-button secondary-button" type="button" (click)="cancelRegistration(event)">Cancel</button>
+              }
             </article>
+          } @empty {
+            <p class="empty-state">There are no upcoming events.</p>
           }
         </section>
-      } @else if (activeSection === 'announcements') {
-        <section class="detail-list" aria-label="Group announcements">
-          @for (announcement of announcements; track announcement.title) {
-            <article class="list-row announcement">
-              <div><span class="row-meta">{{ announcement.date }}</span><h2>{{ announcement.title }}</h2><p>{{ announcement.body }}</p></div>
+      } @else if (activeSection === 'polls') {
+        <section class="detail-list" aria-label="Group polls">
+          @for (poll of polls; track poll.id) {
+            <article class="list-row content-row poll-row">
+              <div class="poll-content">
+                <h2>{{ poll.title }}</h2>
+                @if (poll.content) { <p>{{ poll.content }}</p> }
+                @if (selectedGroup.my_role && (!poll.has_voted || poll.content_data.allow_vote_change)) {
+                  <fieldset>
+                    <legend>Choose {{ poll.content_data.allow_multiple ? 'one or more options' : 'an option' }}</legend>
+                    @for (option of poll.content_data.options ?? []; track $index) {
+                      <label class="poll-option">
+                        <input
+                          [type]="poll.content_data.allow_multiple ? 'checkbox' : 'radio'"
+                          [name]="'poll-' + poll.id"
+                          [checked]="(selectedPollOptions[poll.id] || []).includes($index)"
+                          (change)="togglePollOption(poll, $index, $event)"
+                        />
+                        {{ option }}
+                      </label>
+                    }
+                    <button class="action-button" type="button" [disabled]="!(selectedPollOptions[poll.id]?.length)" (click)="vote(poll)">{{ poll.has_voted ? 'Update vote' : 'Vote' }}</button>
+                  </fieldset>
+                } @else if (selectedGroup.my_role && poll.has_voted) {
+                  <p>You have voted.</p>
+                }
+                @if (pollResults[poll.id]; as results) {
+                  <ul class="results-list">
+                    @for (result of results.options; track result.option_index) {
+                      <li>{{ result.label }} <strong>{{ result.votes }}</strong></li>
+                    }
+                    <li>Total votes <strong>{{ results.total_votes }}</strong></li>
+                  </ul>
+                } @else if (selectedGroup.my_role && (poll.has_voted || poll.content_data.show_results_before_voting || isPollClosed(poll))) {
+                  <button class="text-button" type="button" (click)="showResults(poll)">View results</button>
+                }
+              </div>
             </article>
+          } @empty {
+            <p class="empty-state">There are no active polls.</p>
           }
         </section>
       } @else {
-        <section class="detail-list" aria-label="Group discussions">
-          @for (discussion of discussions; track discussion.title) {
-            <article class="list-row discussion">
-              <div><h2>{{ discussion.title }}</h2><p>{{ discussion.author }} · {{ discussion.date }} · {{ discussion.replies }} replies</p></div>
-              <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+        <section class="detail-list" aria-label="Group announcements">
+          @for (announcement of announcements; track announcement.id) {
+            <article class="list-row announcement">
+              <div>
+                <span class="row-meta">{{ announcement.created_at }}</span>
+                <h2>{{ announcement.title }}</h2>
+                @if (announcement.content) { <p>{{ announcement.content }}</p> }
+              </div>
             </article>
+          } @empty {
+            <p class="empty-state">There are no announcements yet.</p>
           }
         </section>
       }
-    } @else {
+
+      @if (activeModal) {
+        <ion-modal [isOpen]="activeModal !== null" (didDismiss)="closeModal()" [attr.aria-label]="modalTitle()">
+          <ng-template>
+            <section class="group-modal">
+              <header class="modal-header">
+                <h2>{{ modalTitle() }}</h2>
+                <button class="close-button" type="button" (click)="closeModal()" aria-label="Close">×</button>
+              </header>
+
+              @if (activeModal === 'member') {
+                <form (ngSubmit)="addMember()">
+                <label class="modal-field">
+                  Search active parent accounts
+                  <div class="inline-field">
+                    <input name="memberSearch" [(ngModel)]="memberCandidateSearch" placeholder="Name, email, or phone" />
+                    <button class="action-button secondary-button" type="button" (click)="loadMemberCandidates()">Search</button>
+                  </div>
+                </label>
+                <label class="modal-field">
+                  Member
+                  <select name="candidateId" [(ngModel)]="selectedCandidateId" required>
+                    <option [ngValue]="0">Choose a member</option>
+                    @for (candidate of memberCandidates; track candidate.id) {
+                      <option [ngValue]="candidate.id">{{ candidate.first_name }} {{ candidate.last_name }} · {{ candidate.email || candidate.mobile || ('ID ' + candidate.id) }}</option>
+                    }
+                  </select>
+                </label>
+                @if (!memberCandidates.length && !memberError) { <p class="form-hint">No eligible members found.</p> }
+                @if (memberError) { <p class="form-error" role="alert">{{ memberError }}</p> }
+                <footer class="modal-actions">
+                  <button class="action-button secondary-button" type="button" (click)="closeModal()">Cancel</button>
+                  <button class="action-button" type="submit" [disabled]="saving">{{ saving ? 'Adding…' : 'Add member' }}</button>
+                </footer>
+                </form>
+              } @else {
+                <form (ngSubmit)="saveContent()">
+                <label class="modal-field">
+                  Title
+                  <input name="contentTitle" [(ngModel)]="contentForm.title" maxlength="255" required />
+                </label>
+                <label class="modal-field">
+                  {{ activeModal === 'polls' ? 'Description (optional)' : 'Content' }}
+                  <textarea name="contentBody" [(ngModel)]="contentForm.content" rows="3" maxlength="20000"></textarea>
+                </label>
+                @if (activeModal === 'polls') {
+                  <label class="modal-field">
+                    Poll options (one per line, 2–10 options)
+                    <textarea name="pollOptions" [(ngModel)]="contentForm.options" rows="4" required></textarea>
+                  </label>
+                  <label class="checkbox-field"><input type="checkbox" name="allowMultiple" [(ngModel)]="contentForm.allow_multiple" /> Allow multiple selections</label>
+                  <label class="checkbox-field"><input type="checkbox" name="allowVoteChange" [(ngModel)]="contentForm.allow_vote_change" /> Allow members to change their votes</label>
+                  <label class="checkbox-field"><input type="checkbox" name="showResults" [(ngModel)]="contentForm.show_results_before_voting" /> Show results before voting</label>
+                  <label class="modal-field">Closes at (optional)<input name="closesAt" type="datetime-local" [(ngModel)]="contentForm.closes_at" /></label>
+                }
+                @if (activeModal === 'events') {
+                  <label class="modal-field">Starts<input name="eventStart" type="datetime-local" [(ngModel)]="contentForm.start_at" required /></label>
+                  <label class="modal-field">Ends<input name="eventEnd" type="datetime-local" [(ngModel)]="contentForm.end_at" required /></label>
+                  <label class="modal-field">Location (optional)<input name="eventLocation" [(ngModel)]="contentForm.location" maxlength="255" /></label>
+                  <label class="modal-field">Capacity (optional)<input name="eventCapacity" type="number" min="1" [(ngModel)]="contentForm.capacity" /></label>
+                }
+                @if (contentError) { <p class="form-error" role="alert">{{ contentError }}</p> }
+                <footer class="modal-actions">
+                  <button class="action-button secondary-button" type="button" (click)="closeModal()">Cancel</button>
+                  <button class="action-button" type="submit" [disabled]="saving">{{ saving ? 'Saving…' : 'Create' }}</button>
+                </footer>
+                </form>
+              }
+            </section>
+          </ng-template>
+        </ion-modal>
+      }
+    } @else if (!loading) {
       <section class="empty-state">
         <h1>Group not found</h1>
         <p>This group may no longer be available.</p>

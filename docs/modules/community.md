@@ -10,6 +10,9 @@ Manages parent community groups, group membership, and parent-to-parent invitati
 
 - `parent_groups` — community group definition
 - `group_members` — group membership records
+- `group_contents` — announcements, polls, and events
+- `group_poll_votes` — a member's current poll choices
+- `group_event_registrations` — private event registration records
 - `invitations` — parent-to-parent invitations
 
 See `docs/01-database.md` for full schema with MySQL types.
@@ -84,10 +87,14 @@ Admin only.
 ```json
 {
   "group_name": "KCDF Parents 2026",
+  "display_name": "KCDF Parents",
   "description": "General discussion group for all KCDF parents",
-  "visibility": "public"
+  "category_id": 1
 }
 ```
+Only `group_name` is required. `display_name`, `description`, and `category_id`
+are optional; visibility defaults to `public`. A group can be created without
+an initial owner, who can be assigned later through member management.
 
 #### GET /api/v1/groups/{id}
 Visible to members or admin. Public groups are visible to all authenticated parents.
@@ -126,6 +133,29 @@ Admin only. Ban or remove a member.
   "action": "ban"
 }
 ```
+
+### Group content
+
+Content is exposed through resource-specific routes; all resources are scoped
+to a group and use the shared `group_contents` table.
+
+| Resource | Routes |
+|---|---|
+| Announcements | `GET/POST /api/v1/groups/{group_id}/posts`, `GET/PUT/DELETE /api/v1/groups/{group_id}/posts/{post_id}` |
+| Polls | `GET/POST /api/v1/groups/{group_id}/polls`, `GET/PUT/DELETE /api/v1/groups/{group_id}/polls/{poll_id}`, `POST .../{poll_id}/vote`, `GET .../{poll_id}/results` |
+| Events | `GET/POST /api/v1/groups/{group_id}/events`, `GET/PUT/DELETE /api/v1/groups/{group_id}/events/{event_id}`, create/read-own/cancel registration under `.../{event_id}/registrations` |
+
+Only group owners, admins, moderators, and platform admins can create content.
+Content is published by default; managers can create drafts and archive
+content. Polls support multiple-choice rules, vote changes, and configurable
+result visibility. A poll cannot be edited after the first vote. Events
+support optional capacity limits; attendees can read or cancel only their own
+registration. Group members see aggregate registration counts, never attendee
+identities.
+
+Apply `api-backend-php/database/migrations/20261023_group_content.sql` to an
+existing MySQL database before deploying the new content routes. New
+installations receive these tables from `database/schema.sql`.
 
 ---
 
@@ -222,7 +252,10 @@ Sender or admin. Cancels a pending invitation.
 | Field | Rule |
 |---|---|
 | `group_name` | required, string, max 255 |
-| `visibility` | required, must be: public, private, invite_only |
+| `display_name` | optional, string or null, max 255 |
+| `description` | optional, string or null |
+| `category_id` | optional, active category id or null |
+| `visibility` | optional, must be: public, private, invite_only; defaults to public |
 | `invite_mobile` | optional, digits only, min 10 digits |
 | `invite_email` | optional, valid email format |
 | At least one of invite_mobile or invite_email | required when creating invitation |

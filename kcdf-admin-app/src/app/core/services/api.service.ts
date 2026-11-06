@@ -42,8 +42,8 @@ export class ApiService {
     return this.http.patch<ApiResponse<T>>(`${this.base}${path}`, body);
   }
 
-  delete<T>(path: string): Observable<ApiResponse<T>> {
-    return this.http.delete<ApiResponse<T>>(`${this.base}${path}`);
+  delete<T>(path: string, body?: unknown): Observable<ApiResponse<T>> {
+    return this.http.delete<ApiResponse<T>>(`${this.base}${path}`, body === undefined ? {} : { body });
   }
 
   private normalizeListResponse<T>(response: unknown, path: string): ApiListResponse<T> {
