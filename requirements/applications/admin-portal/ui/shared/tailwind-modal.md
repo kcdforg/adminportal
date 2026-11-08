@@ -1,17 +1,17 @@
-# Tailwind Modal — source-observed share
+# Modal Dialog
+
+This document describes modal dialogs used by administration screens.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft.
 
-**Source:** `kcdf-admin-app/src/app/shared/components/modal/tailwind-modal.component.html`
+### UI-ADM-SHR-MOD-001 — Present modal content
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** A modal presents a focused task without losing the user’s place in the underlying screen.
 
-## UI-ADM-SHR-MOD-001 — Declared interaction 1
-
-The template binds a user interaction to `handleDialogClick($event)`.
-
-## UI-ADM-SHR-MOD-002 — Declared interaction 2
-
-The template binds a user interaction to `close()`.
+**Acceptance criteria:**
+- The dialog has an accessible title and moves keyboard focus into the dialog.
+- Users can complete or cancel the task using clear controls.
+- Closing the dialog returns focus to the control that opened it when possible.
+- Interacting inside the dialog does not accidentally trigger actions on the underlying page.

@@ -1,71 +1,43 @@
 # Program List
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-admin-app/src/app/features/programs/program-list/program-list.component.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-ADM-026-01 — Programs: Screen structure
 
+**Requirement:** The programs screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Programs`.
-
-**Template:** `kcdf-admin-app/src/app/features/programs/program-list/program-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/programs/program-list/program-list.component.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Programs).
 
 **Previous screen-level ID:** `UI-ADM-026`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-026-02 — Programs: Input controls
 
+**Requirement:** The programs screen provides clearly labeled controls appropriate to the task.
 
-**Observed in source:**
-
-- `select (select) — Status All Active Inactive Archived`.
-
-**Template:** `kcdf-admin-app/src/app/features/programs/program-list/program-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/programs/program-list/program-list.component.ts`
+**Acceptance criteria:**
+- The screen provides controls for the information needed to complete the task: Status All Active Inactive Archived (select).
 
 **Previous screen-level ID:** `UI-ADM-026`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-026-03 — Programs: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Add Program`; `Edit program`.
-
-- Declared event bindings: `openForm()`; `openForm(p)`.
-
-**Template:** `kcdf-admin-app/src/app/features/programs/program-list/program-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/programs/program-list/program-list.component.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Add Program; Edit program.
 
 **Previous screen-level ID:** `UI-ADM-026`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-026-04 — Programs: Conditional UI states
 
+**Requirement:** The programs screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: loading, empty, conditional sections, repeated items, pagination.
-
-**Template:** `kcdf-admin-app/src/app/features/programs/program-list/program-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/programs/program-list/program-list.component.ts`
+**Acceptance criteria:**
+- The screen shows progress while data is loading; explains when there is no content to display; supports navigating between pages of results.
 
 **Previous screen-level ID:** `UI-ADM-026`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

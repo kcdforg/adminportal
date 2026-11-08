@@ -1,69 +1,43 @@
 # Home
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-parents-app/src/app/home/home.page.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-MEM-006-01 — Welcome back, .: Screen structure
 
+**Requirement:** The welcome back, . screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Welcome back, .`; `Recent updates`.
-
-**Template:** `kcdf-parents-app/src/app/home/home.page.html`
-
-**Component:** `kcdf-parents-app/src/app/home/home.page.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Welcome back, .; Recent updates).
 
 **Previous screen-level ID:** `UI-MEM-006`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-MEM-006-02 — Welcome back, .: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Find your community`; `View all →`; `·`.
-
-**Template:** `kcdf-parents-app/src/app/home/home.page.html`
-
-**Component:** `kcdf-parents-app/src/app/home/home.page.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Find your community; View all →; ·.
 
 **Previous screen-level ID:** `UI-MEM-006`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-MEM-006-03 — Welcome back, .: Navigation
 
+**Requirement:** The user can navigate to related screens from this screen.
 
-**Observed in source:**
-
-- Declared route bindings: `/groups`; `/posts`.
-
-**Template:** `kcdf-parents-app/src/app/home/home.page.html`
-
-**Component:** `kcdf-parents-app/src/app/home/home.page.ts`
+**Acceptance criteria:**
+- The user can navigate to the relevant area (/groups; /posts).
 
 **Previous screen-level ID:** `UI-MEM-006`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-MEM-006-04 — Welcome back, .: Conditional UI states
 
+**Requirement:** The welcome back, . screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: repeated items, navigation.
-
-**Template:** `kcdf-parents-app/src/app/home/home.page.html`
-
-**Component:** `kcdf-parents-app/src/app/home/home.page.ts`
+**Acceptance criteria:**
+- The screen provides a clear way to move to related screens.
 
 **Previous screen-level ID:** `UI-MEM-006`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

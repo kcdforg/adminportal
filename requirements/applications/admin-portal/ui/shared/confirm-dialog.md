@@ -1,17 +1,17 @@
-# Confirm Dialog — source-observed share
+# Confirm Dialog
+
+This document describes the shared confirmation dialog used before consequential actions.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft.
 
-**Source:** `kcdf-admin-app/src/app/shared/components/confirm-dialog/confirm-dialog.component.html`
+### UI-ADM-SHR-CON-001 — Explain the action before confirmation
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** The dialog clearly tells the user what action they are being asked to confirm.
 
-## UI-ADM-SHR-CON-001 — Declared interaction 1
-
-The template binds a user interaction to `dialogRef.close()`.
-
-## UI-ADM-SHR-CON-002 — Declared interaction 2
-
-The template binds a user interaction to `confirm()`.
+**Acceptance criteria:**
+- The dialog identifies the action and its relevant target.
+- Destructive or difficult-to-reverse actions are clearly distinguished.
+- The user can cancel without performing the action.
+- The action proceeds only after explicit confirmation.

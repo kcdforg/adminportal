@@ -1,69 +1,43 @@
 # Post Detail
 
+This document describes the member-facing group post detail screen.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft. Confirm whether posts support attachments or other interactions.
 
-**Source template:** `kcdf-parents-app/src/app/posts/post-detail.page.html`
+## UI-MEM-009-01 — Read a post
 
-**Evidence level:** Template declarations only; runtime behavior not verified.
+**Requirement:** A member with access can open a post and read its available content.
 
-## UI-MEM-009-01 — Post not found: Screen structure
+**Acceptance criteria:**
+- The page identifies the post and displays its content and relevant publication information.
+- Content is shown only when the member has access to its group.
+- An unavailable post is not displayed as if it were current.
 
+## UI-MEM-009-02 — Return to posts
 
-**Observed in source:**
+**Requirement:** A member can return to the post list from the detail screen.
 
-- Declared screen heading(s): `Post not found`.
+**Acceptance criteria:**
+- The return action is clearly labeled.
+- The member can return to the list after viewing a post or seeing an unavailable state.
 
-**Template:** `kcdf-parents-app/src/app/posts/post-detail.page.html`
+## UI-MEM-009-03 — Navigate to the post list
 
-**Component:** `kcdf-parents-app/src/app/posts/post-detail.page.ts`
+**Requirement:** A member can navigate back to the post list from the detail screen.
 
-**Previous screen-level ID:** `UI-MEM-009`
+**Acceptance criteria:**
+- The destination is clearly identified.
+- The member can return to the list after viewing a post or seeing an unavailable state.
 
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
+## UI-MEM-009-04 — Handle post loading and unavailable states
 
-## UI-MEM-009-02 — Post not found: User actions
+**Requirement:** The screen explains when a post is loading or cannot be shown.
 
-
-**Observed in source:**
-
-- Declared visible actions: `All posts`; `Return to posts`.
-
-**Template:** `kcdf-parents-app/src/app/posts/post-detail.page.html`
-
-**Component:** `kcdf-parents-app/src/app/posts/post-detail.page.ts`
-
-**Previous screen-level ID:** `UI-MEM-009`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
-
-## UI-MEM-009-03 — Post not found: Navigation
-
-
-**Observed in source:**
-
-- Declared route bindings: `/posts`.
-
-**Template:** `kcdf-parents-app/src/app/posts/post-detail.page.html`
-
-**Component:** `kcdf-parents-app/src/app/posts/post-detail.page.ts`
+**Acceptance criteria:**
+- Loading feedback is shown while the post is retrieved.
+- Missing, archived, or inaccessible posts have a clear message.
+- The screen provides a safe way back to the post list.
 
 **Previous screen-level ID:** `UI-MEM-009`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
-
-## UI-MEM-009-04 — Post not found: Conditional UI states
-
-
-**Observed in source:**
-
-- Observed template patterns: empty, conditional sections, repeated items, navigation.
-
-**Template:** `kcdf-parents-app/src/app/posts/post-detail.page.html`
-
-**Component:** `kcdf-parents-app/src/app/posts/post-detail.page.ts`
-
-**Previous screen-level ID:** `UI-MEM-009`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

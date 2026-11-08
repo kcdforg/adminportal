@@ -1,71 +1,43 @@
 # Trainer Detail
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-admin-app/src/app/features/trainers/trainer-detail/trainer-detail.component.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-ADM-032-01 — Back Edit: Screen structure
 
+**Requirement:** The back edit screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Back Edit`; `Profile Details`; `Address Details`; `Trainer Details`.
-
-**Template:** `kcdf-admin-app/src/app/features/trainers/trainer-detail/trainer-detail.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/trainers/trainer-detail/trainer-detail.component.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Back Edit; Profile Details; Address Details; Trainer Details).
 
 **Previous screen-level ID:** `UI-ADM-032`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-032-02 — Back Edit: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Back`; `Edit`.
-
-- Declared event bindings: `openEdit()`.
-
-**Template:** `kcdf-admin-app/src/app/features/trainers/trainer-detail/trainer-detail.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/trainers/trainer-detail/trainer-detail.component.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Back; Edit.
 
 **Previous screen-level ID:** `UI-ADM-032`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-032-03 — Back Edit: Navigation
 
+**Requirement:** The user can navigate to related screens from this screen.
 
-**Observed in source:**
-
-- Declared route bindings: `/trainers`.
-
-**Template:** `kcdf-admin-app/src/app/features/trainers/trainer-detail/trainer-detail.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/trainers/trainer-detail/trainer-detail.component.ts`
+**Acceptance criteria:**
+- The user can navigate to the relevant area (/trainers).
 
 **Previous screen-level ID:** `UI-ADM-032`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-032-04 — Back Edit: Conditional UI states
 
+**Requirement:** The back edit screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: loading, conditional sections, navigation.
-
-**Template:** `kcdf-admin-app/src/app/features/trainers/trainer-detail/trainer-detail.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/trainers/trainer-detail/trainer-detail.component.ts`
+**Acceptance criteria:**
+- The screen shows progress while data is loading; provides a clear way to move to related screens.
 
 **Previous screen-level ID:** `UI-ADM-032`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

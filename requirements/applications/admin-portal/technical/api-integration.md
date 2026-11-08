@@ -1,17 +1,22 @@
 # API Integration
 
-## Status
+This document records the integration expectations and outstanding checks between the administration portal and its API.
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+## Integration expectations
 
-## Scope
+- The portal uses one configured API base URL.
+- Protected requests include the signed-in user’s access credential.
+- Request fields and response data follow the API contract for each feature.
+- Errors are presented clearly and do not appear as successful actions.
+- Portal visibility rules complement, but do not replace, server-side authorization.
 
-This is a current-state implementation summary intended to support planning and backlog review. It is not a signed-off technical specification or an approved production baseline.
+## Integration items to resolve
 
-## Verified integration references
+- Confirm program and trainer updates complete successfully from their forms.
+- Confirm batch updates and batch-member actions use supported API operations.
+- Confirm session updates and attendance locking complete successfully.
+- Confirm direct and broadcast notification requests use the agreed fields and recipients.
+- Confirm enrollment cancellation completes and updates the enrollment state.
+- Confirm attendance, payment, and enrollment reports have supported data sources and return the expected results.
 
-- `kcdf-admin-app/src/app/core/interceptors/jwt.interceptor.ts`
-- `kcdf-admin-app/src/app/core/services/auth.service.ts`
-- backend auth endpoints defined in `api-backend-php/api/routes.php`
-
-Technical behavior must still be extracted to formal acceptance criteria and validated with running app and API tests before approval as a complete baseline.
+These are integration checks, not approved product behavior. Do not mark the related user journeys complete until they are verified in the running portal and API.

@@ -1,75 +1,43 @@
 # Audit Log List
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-admin-app/src/app/features/audit-logs/audit-log-list/audit-log-list.component.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-ADM-001-01 — Audit Logs: Screen structure
 
+**Requirement:** The audit logs screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Audit Logs`.
-
-**Template:** `kcdf-admin-app/src/app/features/audit-logs/audit-log-list/audit-log-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/audit-logs/audit-log-list/audit-log-list.component.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Audit Logs).
 
 **Previous screen-level ID:** `UI-ADM-001`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-001-02 — Audit Logs: Input controls
 
+**Requirement:** The audit logs screen provides clearly labeled controls appropriate to the task.
 
-**Observed in source:**
-
-- `input (input) — e.g. Family, Member`
-
-- `input (input) — e.g. create, update`
-
-- `input (date) — From Date`.
-
-**Template:** `kcdf-admin-app/src/app/features/audit-logs/audit-log-list/audit-log-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/audit-logs/audit-log-list/audit-log-list.component.ts`
+**Acceptance criteria:**
+- The screen provides controls for the information needed to complete the task: e.g. Family, Member (input); e.g. create, update (input); From Date (input).
 
 **Previous screen-level ID:** `UI-ADM-001`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-001-03 — Audit Logs: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `View audit log details`.
-
-- Declared event bindings: `viewDiff(l)`; `viewDiff(l); $event.stopPropagation()`.
-
-**Template:** `kcdf-admin-app/src/app/features/audit-logs/audit-log-list/audit-log-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/audit-logs/audit-log-list/audit-log-list.component.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: View audit log details.
 
 **Previous screen-level ID:** `UI-ADM-001`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-001-04 — Audit Logs: Conditional UI states
 
+**Requirement:** The audit logs screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: loading, empty, conditional sections, repeated items, pagination.
-
-**Template:** `kcdf-admin-app/src/app/features/audit-logs/audit-log-list/audit-log-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/audit-logs/audit-log-list/audit-log-list.component.ts`
+**Acceptance criteria:**
+- The screen shows progress while data is loading; explains when there is no content to display; supports navigating between pages of results.
 
 **Previous screen-level ID:** `UI-ADM-001`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

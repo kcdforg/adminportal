@@ -1,75 +1,64 @@
 # Authentication
 
+This document describes how a member signs in to and uses an authenticated member-portal session.
+
 ## Requirement summary
 
-- This document captures the current working flow in plain language.
-- It supports planning, review, and backlog alignment.
-- Runtime validation is still required before sign-off.
+- Member accounts use the member sign-in experience.
+- A successful sign-in grants access only to the member’s permitted information.
+- The session remains available as intended and can be ended by signing out.
+- Invalid credentials, expired sessions, and access failures are explained clearly.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
+Working draft. Confirm session persistence and expiry policies before approval.
 
 ### MEM-AUTH-002 — Member portal sign-in
 
 **Type:** Functional
 **Owner:** member-portal
 **Legacy ID:** `AUTH-002`
-**Actor:** Admin and member account holders.
+**Actor:** Members with an active member account.
 
-**Requirement:** An active member with a linked profile signs in through the parent portal using the member-specific login operation. Administrator accounts cannot use this portal.
+**Requirement:** A member can sign in to the member portal using valid member credentials.
 
-**Source-grounded acceptance review (static; runtime unverified):**
-- **Explicit failure response (source inspection):** Verify the behavior expressed by `errorResponse('VALIDATION_FAILED', 'The given data was invalid.', 422, $errors);` at `api-backend-php/api/auth/login.php:18`. Runtime outcome not established.
+**Acceptance criteria:**
+- Member credentials are handled by the member sign-in flow.
+- Invalid credentials do not grant access and produce a clear message.
+- A successful sign-in takes the member to an appropriate authenticated screen.
+- Member accounts cannot use administrator-only access through this flow.
 
-**Source references:**
-- `api-backend-php/api/routes.php`
-- `api-backend-php/api/auth/login.php`
-- `api-backend-php/api/auth/admin-login.php`
-- `api-backend-php/services/identity.php` (`authenticatePortalLogin`, `issueLoginTokens`)
-- `kcdf-admin-app/src/app/core/services/auth.service.ts` (`login`)
-- `kcdf-parents-app/src/app/core/member-auth.service.ts` (`login`).
-
-**Source review:** Evidence of code or a documented integration gap; not an end-to-end runtime verification.
-**Implementation state:** unassessed (do not assume completed).
-
----
-
-### MEM-AUTH-009 — Persist member session
+### MEM-AUTH-009 — Maintain member session
 
 **Type:** Functional
 **Owner:** member-portal
 **Legacy ID:** `AUTH-009`
-**Actor:** Ionic parent-portal users.
+**Actor:** Signed-in members.
 
-**Requirement:** After member sign-in, the Ionic application saves access and refresh tokens and profile context in browser storage.
+**Requirement:** The portal maintains the member’s authenticated session according to the agreed session policy.
 
-**Source-grounded acceptance review (static; runtime unverified):**
-- **Client API call (source inspection):** Verify the behavior expressed by `return this.http.post(`${environment.apiUrl}/auth/logout`, {` at `kcdf-parents-app/src/app/core/member-auth.service.ts:240`. Runtime outcome not established.
+**Acceptance criteria:**
+- The member can continue using protected screens while the session is valid.
+- A session that cannot be renewed does not leave protected information accessible.
+- The member receives clear feedback when the session expires or requires sign-in again.
 
-**Source references:**
-- `kcdf-parents-app/src/app/core/member-auth.service.ts` (`login`, storage functions and session service). ## Unresolved / audit follow-ups - Determine full role-to-API authorization parity for every endpoint; Angular role guards are not server-side authorization. - Verify refresh/logout frontend error handling and automatic token refresh behavior through interceptors. - Confirm whether login/account status checks and token revocation are consistently enforced by protected routes. - Execute tests against a disposable database before upgrading static findings to runtime-verified.
-
-**Source review:** Evidence of code or a documented integration gap; not an end-to-end runtime verification.
-**Implementation state:** unassessed (do not assume completed).
-
----
-
-### MEM-AUTH-010 — Clear member session
+### MEM-AUTH-010 — Sign out
 
 **Type:** Functional
 **Owner:** member-portal
 **Legacy ID:** `AUTH-010`
-**Actor:** Ionic parent-portal users.
+**Actor:** Signed-in members.
 
-**Requirement:** When the member session is cleared, the Ionic application removes its stored credentials and profile context.
+**Requirement:** A member can sign out and end access to the authenticated portal session.
 
-**Source-grounded acceptance review (static; runtime unverified):**
-- **Client API call (source inspection):** Verify the behavior expressed by `return this.http.post(`${environment.apiUrl}/auth/logout`, {` at `kcdf-parents-app/src/app/core/member-auth.service.ts:240`. Runtime outcome not established.
+**Acceptance criteria:**
+- Signing out clears access to protected portal screens on the current client.
+- The member is taken to the sign-in screen or another agreed public screen.
+- Reopening a protected screen after sign-out requires authentication.
+- A failed server-side revocation, if applicable, is handled without retaining local access.
 
-**Source references:**
-- `kcdf-parents-app/src/app/core/member-auth.service.ts` (`login`, storage functions and session service). ## Unresolved / audit follow-ups - Determine full role-to-API authorization parity for every endpoint; Angular role guards are not server-side authorization. - Verify refresh/logout frontend error handling and automatic token refresh behavior through interceptors. - Confirm whether login/account status checks and token revocation are consistently enforced by protected routes. - Execute tests against a disposable database before upgrading static findings to runtime-verified.
+## Open questions
 
-**Source review:** Evidence of code or a documented integration gap; not an end-to-end runtime verification.
-**Implementation state:** unassessed (do not assume completed).
+- Define session duration, persistence after browser close, and renewal behavior.
+- Confirm whether active sessions should be revoked across other devices when a member signs out.
+- Confirm how session-expiry messaging and return-to-destination behavior should work.

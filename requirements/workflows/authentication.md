@@ -1,40 +1,42 @@
 # Authentication — Cross-application workflow
 
 **Workflow ID:** `WF-AUTHENTICATION`
-**State:** Source-supported backend segments identified; complete end-to-end behavior not verified.
+**Status:** Draft; confirm sign-in, session, and access policies with the product owner.
 
 ## Purpose
 
-Coordinate the relevant application capabilities for authentication without treating an API endpoint as proof of a complete user journey.
+Describe how an administrator or member signs in, uses protected areas, and ends a session.
 
-## Participating requirement references
+## Participating requirements
 
-- `ADM-AUTH-001` (admin-portal) — Admin portal sign-in
-- `MEM-AUTH-002` (member-portal) — Member portal sign-in
-- `API-AUTH-003` (api-backend) — JWT access token verification
-- `API-AUTH-004` (api-backend) — Refresh access credentials
-- `API-AUTH-005` (api-backend) — Logout and refresh-token revocation
-- `API-AUTH-006` (api-backend) — Current authenticated account
-- `ADM-AUTH-007` (admin-portal) — Require admin sign-in for protected screens
-- `ADM-AUTH-008` (admin-portal) — Restrict administrator screens by role
-- `MEM-AUTH-009` (member-portal) — Persist member session
-- `MEM-AUTH-010` (member-portal) — Clear member session
+- `ADM-AUTH-001` — Admin portal sign-in
+- `MEM-AUTH-002` — Member portal sign-in
+- `API-AUTH-003` — JWT access token verification
+- `API-AUTH-004` — Refresh access credentials
+- `API-AUTH-005` — Logout and refresh-token revocation
+- `API-AUTH-006` — Current authenticated account
+- `ADM-AUTH-007` — Require admin sign-in for protected screens
+- `ADM-AUTH-008` — Restrict administrator screens by role
+- `MEM-AUTH-009` — Persist member session
+- `MEM-AUTH-010` — Clear member session
 
-## Source-supported backend operations
+## User journey
 
-The following operations have matching PHP handler files. This establishes backend entry points, **not** successful end-to-end user journeys or the precise order in which users encounter them.
+1. The user opens the appropriate portal and enters their credentials.
+2. The portal submits the credentials and reports success or a useful sign-in error.
+3. After successful sign-in, the user can access only the areas permitted for their account.
+4. When a session needs renewal, the portal renews it without losing the user’s work where possible.
+5. On sign-out, the portal clears the local session and the user can no longer access protected areas.
 
-1. **Member sign-in.** Source: `api-backend-php/api/auth/login.php`.
-2. **Administrator sign-in uses a distinct backend handler.** Source: `api-backend-php/api/auth/admin-login.php`.
-3. **Authenticated account lookup.** Source: `api-backend-php/api/auth/me.php`.
-4. **Refresh and logout operations.** Source: `api-backend-php/api/auth/refresh.php`.
-5. **Logout operation.** Source: `api-backend-php/api/auth/logout.php`.
+## Acceptance criteria
 
-## End-to-end verification gaps
+- Admin and member users follow the correct portal sign-in experience.
+- Invalid credentials do not grant access and produce clear feedback.
+- Protected areas require an active authenticated session.
+- Users without the required role cannot access role-restricted areas.
+- Session renewal and sign-out have consistent outcomes across both portals.
 
-- Confirm initiating screen and user action against its template and component logic.
-- Trace the frontend service URL and request payload to the registered PHP route.
-- Confirm response mapping, user-visible success and failure behavior, and persisted database changes.
-- Execute a running-system test before marking the workflow verified.
+## Open questions
 
-**Evidence classification:** PHP handler file presence checked against the supplied source ZIP; operation labels are descriptive. Authorization branches and end-to-end results require per-handler and runtime verification.
+- Confirm session timeout expectations and whether users should be returned to their original destination after signing in.
+- Confirm what user-facing message is appropriate when a session expires or cannot be renewed.

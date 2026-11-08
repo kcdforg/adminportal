@@ -1,94 +1,52 @@
 # Send Notification
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-ADM-022-01 — Send Notification: Screen structure
 
+**Requirement:** The send notification screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Send Notification`.
-
-**Template:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Send Notification).
 
 **Previous screen-level ID:** `UI-ADM-022`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-022-02 — Send Notification: Input controls
 
+**Requirement:** The send notification screen provides clearly labeled controls appropriate to the task.
 
-**Observed in source:**
-
-- `input (radio) — target_type`
-
-- `select (select) — target_id`
-
-- `input (input) — title`
-
-- `textarea (textarea) — body`
-
-- `select (select) — channel`.
-
-**Template:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.ts`
+**Acceptance criteria:**
+- The screen provides controls for the information needed to complete the task: target_type (input); target_id (select); title (input); body (textarea); channel (select).
 
 **Previous screen-level ID:** `UI-ADM-022`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-022-03 — Send Notification: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Back`; `Cancel`.
-
-- Declared event bindings: `send()`.
-
-**Template:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Back; Cancel.
 
 **Previous screen-level ID:** `UI-ADM-022`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-022-04 — Send Notification: Navigation
 
+**Requirement:** The user can navigate to related screens from this screen.
 
-**Observed in source:**
-
-- Declared route bindings: `/notifications`.
-
-**Template:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.ts`
+**Acceptance criteria:**
+- The user can navigate to the relevant area (/notifications).
 
 **Previous screen-level ID:** `UI-ADM-022`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-022-05 — Send Notification: Conditional UI states
 
+**Requirement:** The send notification screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: disabled controls, conditional sections, repeated items, navigation.
-
-**Template:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/notifications/send-notification/send-notification.component.ts`
+**Acceptance criteria:**
+- The screen indicates when an action is unavailable; provides a clear way to move to related screens.
 
 **Previous screen-level ID:** `UI-ADM-022`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

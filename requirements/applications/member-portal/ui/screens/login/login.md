@@ -1,73 +1,43 @@
 # Login
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-parents-app/src/app/login/login.page.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-MEM-007-01 — Member sign in: Screen structure
 
+**Requirement:** The member sign in screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Member sign in`; `Welcome back`.
-
-**Template:** `kcdf-parents-app/src/app/login/login.page.html`
-
-**Component:** `kcdf-parents-app/src/app/login/login.page.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Member sign in; Welcome back).
 
 **Previous screen-level ID:** `UI-MEM-007`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-MEM-007-02 — Member sign in: Input controls
 
+**Requirement:** The member sign in screen provides clearly labeled controls appropriate to the task.
 
-**Observed in source:**
-
-- `ion-input (text) — username`
-
-- `ion-input (password) — password`.
-
-**Template:** `kcdf-parents-app/src/app/login/login.page.html`
-
-**Component:** `kcdf-parents-app/src/app/login/login.page.ts`
+**Acceptance criteria:**
+- The screen provides controls for the information needed to complete the task: username (input); password (input).
 
 **Previous screen-level ID:** `UI-MEM-007`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-MEM-007-03 — Member sign in: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Username`; `Password`.
-
-- Declared event bindings: `submit()`.
-
-**Template:** `kcdf-parents-app/src/app/login/login.page.html`
-
-**Component:** `kcdf-parents-app/src/app/login/login.page.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Username; Password.
 
 **Previous screen-level ID:** `UI-MEM-007`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-MEM-007-04 — Member sign in: Conditional UI states
 
+**Requirement:** The member sign in screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: loading, error, disabled controls, conditional sections.
-
-**Template:** `kcdf-parents-app/src/app/login/login.page.html`
-
-**Component:** `kcdf-parents-app/src/app/login/login.page.ts`
+**Acceptance criteria:**
+- The screen shows progress while data is loading; explains when data cannot be loaded or an action fails; indicates when an action is unavailable.
 
 **Previous screen-level ID:** `UI-MEM-007`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

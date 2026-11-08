@@ -85,4 +85,4 @@ When the login request fails, the application must inform the user and keep the 
 - The message uses the server-provided value when available.
 - The application remains on the login page, allowing retry.
 
-**Previous screen-level ID:** `UI-ADM-003`. Original requirements `UI-ADM-003-01` through `UI-ADM-003-04` have been superseded by the eight more atomic requirements above. See the crosswalk.
+**Previous screen-level ID:** `UI-ADM-003`. The original requirements `UI-ADM-003-01` through `UI-ADM-003-04` are superseded by the eight more atomic requirements above.

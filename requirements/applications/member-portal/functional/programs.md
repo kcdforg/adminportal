@@ -1,31 +1,41 @@
-# Programs
+# Programs and Courses
 
-## Requirement summary
-
-- This document captures the current working flow in plain language.
-- It supports planning, review, and backlog alignment.
-- Runtime validation is still required before sign-off.
+This document describes how members discover and review programs or courses relevant to them.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft. Confirm what content is available to members and how discovery leads to enrollment.
 
-
-### MEM-PRG-002 — Display courses in Ionic app
+### MEM-PRG-002 — Browse programs and courses
 
 **Type:** Functional
 **Owner:** member-portal
 **Legacy ID:** `PRG-002`
-**Actor:** Authenticated administrators and members.
+**Actor:** Signed-in members.
 
-**Requirement:** The Ionic courses page displays sample course content; it is not yet an end-to-end API-backed program listing.
+**Requirement:** A member can browse programs or courses that are available to them.
 
-**Source-grounded acceptance review (static; runtime unverified):**
-- **Authentication gate (source inspection):** Verify the behavior expressed by `$jwt = checkAuth();` at `api-backend-php/api/programs/index.php:7`. Runtime outcome not established.
-- **API success response (source inspection):** Verify the behavior expressed by `jsonResponse(['success' => true, 'data' => $result['data'], 'meta' => $result['meta']]);` at `api-backend-php/api/programs/index.php:10`. Runtime outcome not established.
+**Acceptance criteria:**
+- Each item displays the information a member needs to decide whether to learn more.
+- Loading, empty, and unavailable states are clearly distinguished.
+- Only programs approved for member visibility are shown.
 
-**Source references:**
-- `api-backend-php/api/programs/index.php`, `api-backend-php/api/programs/show.php`.
+### MEM-PRG-003 — View program or course details
 
-**Source review:** Evidence of code or a documented integration gap; not an end-to-end runtime verification.
-**Implementation state:** unassessed (do not assume completed).
+**Type:** Functional
+**Owner:** member-portal
+**Legacy ID:** `PRG-003`
+**Actor:** Signed-in members.
+
+**Requirement:** A member can open an available program or course to review its details.
+
+**Acceptance criteria:**
+- The detail view identifies the selected item and presents its relevant description and schedule information.
+- A missing or unavailable item produces a clear message and a way to return to the list.
+- The member can proceed to the enrollment information or action when enrollment is available.
+
+## Open questions
+
+- Confirm whether member content represents programs, courses, or both, and define the distinction.
+- Define which statuses are visible and what members can do from a course detail page.
+- Confirm whether enrollment is self-service or initiated by staff.

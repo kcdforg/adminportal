@@ -1,11 +1,16 @@
-# Status Badge — source-observed share
+# Status Badge
+
+This document describes the shared visual treatment for record status.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft.
 
-**Source:** `kcdf-admin-app/src/app/shared/components/status-badge/status-badge.component.html`
+### UI-ADM-SHR-STA-001 — Communicate record status
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** A status badge helps users identify the current state of a record.
 
-No click bindings were identified in this template; review the component TypeScript and composition before asserting behavior.
+**Acceptance criteria:**
+- The badge uses a clear text label.
+- Color is not the only means used to communicate status.
+- The same status has consistent wording and visual treatment across the portal.

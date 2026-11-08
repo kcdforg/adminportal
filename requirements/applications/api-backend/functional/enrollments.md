@@ -1,192 +1,92 @@
 # Enrollments
 
-**Scope:** Source-observed PHP behavior. Static verification only; no runtime tests executed.
+This document describes the rules for creating, viewing, and cancelling program enrollments.
 
-Each item below is independently testable. UI behavior and cross-application integration are documented separately.
+## Status
 
-## Requirement summary
+Working draft. Confirm capacity, eligibility, cancellation, and fee rules before approval.
 
-- This document captures the current working behavior in plain language.
-- It should be reviewed with business stakeholders before sign-off.
-- Runtime validation is still required before any requirement is treated as approved.
+### API-ENR-001 — List enrollments
 
+**Requirement:** An authorized user can retrieve a paginated list of enrollments within their permitted scope.
 
-## API-ENR-001 — List enrollments
+**Acceptance criteria:**
+- Results include the relevant enrollment and status information.
+- Page size and page number are validated and bounded.
+- An empty result set is returned as a valid outcome.
+- Non-administrators see only enrollments they are allowed to access.
 
-**Requirement:** GET /api/v1/enrollments returns a paginated enrollment list.
+### API-ENR-002 — Create enrollment
 
-**Source-supported acceptance check:** The handler calls checkAuth() and returns enrollment records with pagination metadata.
+**Requirement:** An authorized administrator or eligible primary family member can enroll an eligible family member in a batch.
 
-**Source:** `api-backend-php/api/enrollments/index.php`
+**Acceptance criteria:**
+- The family, member, and batch must be valid and associated as required.
+- The member must be eligible for the selected batch.
+- Duplicate enrollment is rejected.
+- A batch that is not open for enrollment cannot accept a new enrollment.
+- When a capacity limit applies, enrollment is rejected once the limit is reached.
+- A successful enrollment records the applicable fee and initial payment state.
 
-**Evidence:** Confirmed in source; runtime unverified.
+### API-ENR-003 — Cancel enrollment
 
----
+**Requirement:** An authorized administrator or eligible primary family member can cancel an enrollment when cancellation is permitted.
 
-## API-ENR-002 — Create enrollment
+**Acceptance criteria:**
+- A user may view and cancel only enrollments within their permitted scope.
+- An already-cancelled enrollment cannot be cancelled again.
+- The system clearly confirms success or explains why cancellation was rejected.
 
-**Requirement:** POST /api/v1/enrollments creates an enrollment for a family member in a batch.
+### API-ENR-004 — Require enrollment details
 
-**Source-supported acceptance check:** A successful request creates an active enrollment and active batch membership in one transaction.
+**Requirement:** Creating an enrollment requires a family, member, and batch to be identified.
 
-**Source:** `api-backend-php/api/enrollments/store.php`
+### API-ENR-005 — Authorize enrollment creation
 
-**Evidence:** Confirmed in source; runtime unverified.
+**Requirement:** Enrollment creation is limited to administrators or an eligible primary member of the specified family.
 
----
+### API-ENR-006 — Verify family membership
 
-## API-ENR-003 — Cancel enrollment
+**Requirement:** The selected member must have an active relationship with the specified family.
 
-**Requirement:** PATCH /api/v1/enrollments/{id}/cancel cancels an eligible enrollment.
+### API-ENR-007 — Restrict batch eligibility
 
-**Source-supported acceptance check:** A successful request sets enrollment status to cancelled and corresponding batch membership to dropped in one transaction.
+**Requirement:** Only batches open for enrollment may accept new enrollments.
 
-**Source:** `api-backend-php/api/enrollments/cancel.php`
+### API-ENR-008 — Prevent duplicate enrollment
 
-**Evidence:** Confirmed in source; runtime unverified.
+**Requirement:** A member cannot have more than one active enrollment in the same batch.
 
----
+### API-ENR-009 — Enforce batch capacity
 
-## API-ENR-004 — Require enrollment identifiers
+**Requirement:** When a batch capacity is defined, the system rejects enrollment after the capacity is reached.
 
-**Requirement:** Enrollment creation requires family_id, member_id, and batch_id as numeric identifiers.
+### API-ENR-010 — Initialize enrollment payment state
 
-**Source-supported acceptance check:** Missing or nonnumeric required fields are passed to validateOrFail.
+**Requirement:** A new enrollment records the applicable program fee and an initial unpaid payment state.
 
-**Source:** `api-backend-php/api/enrollments/store.php`
+### API-ENR-011 — Limit enrollment visibility
 
-**Evidence:** Confirmed in source; runtime unverified.
+**Requirement:** Non-administrators can list only enrollments associated with a family they are permitted to access.
 
----
+### API-ENR-012 — Authorize enrollment detail
 
-## API-ENR-005 — Authorize enrollment creation
+**Requirement:** Enrollment details are available only to an administrator, an eligible primary family member, or the enrolled member.
 
-**Requirement:** Only an administrator or an active primary member of the specified family may create its enrollment.
+### API-ENR-013 — Authorize enrollment cancellation
 
-**Source-supported acceptance check:** Other authenticated actors receive a 403 authorization response.
+**Requirement:** Cancellation is limited to an administrator or an eligible primary member of the enrollment’s family.
 
-**Source:** `api-backend-php/api/enrollments/store.php`
+### API-ENR-014 — Reject repeat cancellation
 
-**Evidence:** Confirmed in source; runtime unverified.
+**Requirement:** An enrollment already marked as cancelled cannot be cancelled again.
 
----
+### API-ENR-015 — Bound enrollment pagination
 
-## API-ENR-006 — Verify family membership
+**Requirement:** Enrollment listing supports pagination with a page size between 1 and 100.
 
-**Requirement:** The selected member must have an active family_members record for the specified family.
+## Open questions
 
-**Source-supported acceptance check:** The handler rejects a member without the required active membership.
-
-**Source:** `api-backend-php/api/enrollments/store.php`
-
-**Evidence:** Confirmed in source; runtime unverified.
-
----
-
-## API-ENR-007 — Restrict batch status
-
-**Requirement:** A batch must have upcoming or active status to accept enrollment.
-
-**Source-supported acceptance check:** Other batch statuses raise BATCH_NOT_ENROLLABLE.
-
-**Source:** `api-backend-php/api/enrollments/store.php`
-
-**Evidence:** Confirmed in source; runtime unverified.
-
----
-
-## API-ENR-008 — Reject duplicate enrollment
-
-**Requirement:** A member cannot be enrolled twice in the same batch.
-
-**Source-supported acceptance check:** An existing enrollment raises ENROLLMENT_EXISTS.
-
-**Source:** `api-backend-php/api/enrollments/store.php`
-
-**Evidence:** Confirmed in source; runtime unverified.
-
----
-
-## API-ENR-009 — Enforce batch capacity
-
-**Requirement:** When a batch capacity is defined, enrollment is rejected if active batch membership reaches that capacity.
-
-**Source-supported acceptance check:** The handler counts active batch_members and raises BATCH_FULL when full.
-
-**Source:** `api-backend-php/api/enrollments/store.php`
-
-**Evidence:** Confirmed in source; runtime unverified.
-
----
-
-## API-ENR-010 — Initialize enrollment financial state
-
-**Requirement:** A newly created enrollment starts with unpaid payment status and a fee amount sourced from its program, defaulting to zero.
-
-**Source-supported acceptance check:** The insert uses payment_status unpaid and program fee_amount or zero.
-
-**Source:** `api-backend-php/api/enrollments/store.php`
-
-**Evidence:** Confirmed in source; runtime unverified.
-
----
-
-## API-ENR-011 — Limit enrollment list visibility
-
-**Requirement:** Non-admin enrollment listings are constrained to a family identifier present in the authentication token.
-
-**Source-supported acceptance check:** If no family IDs exist, an empty list is returned; an unauthorized requested family ID falls back to the first token family ID.
-
-**Source:** `api-backend-php/api/enrollments/index.php`
-
-**Evidence:** Confirmed in source; runtime unverified.
-
----
-
-## API-ENR-012 — Authorize enrollment detail
-
-**Requirement:** An enrollment can be viewed by an admin, an active primary family member, or the enrolled member.
-
-**Source-supported acceptance check:** canAccessEnrollment returns true for those view scopes; show.php calls it.
-
-**Source:** `api-backend-php/services/academics.php`
-
-**Evidence:** Confirmed in source; runtime unverified.
-
----
-
-## API-ENR-013 — Authorize enrollment cancellation
-
-**Requirement:** An enrollment can be cancelled by an admin or an active primary member of its family.
-
-**Source-supported acceptance check:** canAccessEnrollment checks cancel scope; cancel.php rechecks inside the transaction.
-
-**Source:** `api-backend-php/services/academics.php`
-
-**Evidence:** Confirmed in source; runtime unverified.
-
----
-
-## API-ENR-014 — Reject repeat cancellation
-
-**Requirement:** An enrollment already marked cancelled cannot be cancelled again.
-
-**Source-supported acceptance check:** The handler raises ALREADY_CANCELLED.
-
-**Source:** `api-backend-php/api/enrollments/cancel.php`
-
-**Evidence:** Confirmed in source; runtime unverified.
-
----
-
-## API-ENR-015 — Paginate enrollment listing
-
-**Requirement:** Enrollment listings accept page and per_page parameters with per_page limited to 1–100.
-
-**Source-supported acceptance check:** The response contains total, per_page, current_page and last_page metadata.
-
-**Source:** `api-backend-php/api/enrollments/index.php`
-
-**Evidence:** Confirmed in source; runtime unverified.
-
----
+- Confirm whether members can enroll themselves or whether staff must initiate enrollment.
+- Define cancellation deadlines, wait-list behavior, and fee/refund handling.
+- Confirm what payment state should be recorded when a program has no fee.

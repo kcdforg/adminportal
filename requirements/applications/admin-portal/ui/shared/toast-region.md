@@ -1,17 +1,17 @@
-# Toast Region — source-observed share
+# Toast Region
+
+This document describes short-lived messages shown after user actions.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft.
 
-**Source:** `kcdf-admin-app/src/app/shared/components/toast/toast-region.component.html`
+### UI-ADM-SHR-TOA-001 — Communicate action results
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** The portal provides concise feedback when an action succeeds, fails, or needs attention.
 
-## UI-ADM-SHR-TOA-001 — Declared interaction 1
-
-The template binds a user interaction to `toastService.invokeAction(toast)`.
-
-## UI-ADM-SHR-TOA-002 — Declared interaction 2
-
-The template binds a user interaction to `toastService.dismiss(toast.id)`.
+**Acceptance criteria:**
+- The message clearly communicates the outcome and any next step.
+- Success messages are not shown for failed actions.
+- Users can dismiss a message and can activate an optional related action.
+- Messages are accessible and do not obscure important controls.

@@ -1,40 +1,36 @@
 # Group Membership — Cross-application workflow
 
 **Workflow ID:** `WF-GROUP-MEMBERSHIP`
-**State:** Source-supported backend segments identified; complete end-to-end behavior not verified.
+**Status:** Draft; confirm membership approval and removal policies.
 
 ## Purpose
 
-Coordinate the relevant application capabilities for group membership without treating an API endpoint as proof of a complete user journey.
+Describe how a member discovers a group, joins or leaves it, and how an authorized manager maintains membership.
 
-## Participating requirement references
+## Participating requirements
 
-- `API-GRP-001` (api-backend) — Browse groups
-- `API-GRP-002` (api-backend) — View group details
-- `API-GRP-003` (api-backend) — Create group
-- `API-GRP-004` (api-backend) — Update group
-- `API-GRP-005` (api-backend) — Browse group categories
-- `API-GRP-006` (api-backend) — Manage group categories
-- `API-GRP-007` (api-backend) — Request to join group
-- `API-GRP-008` (api-backend) — Leave group
-- `API-GRP-009` (api-backend) — Manage group membership
-- `API-GRP-010` (api-backend) — Find eligible group member candidates
-- `API-GRP-011` (api-backend) — Change group member role
+- `API-GRP-001` through `API-GRP-011` — Browse groups, request or change membership, and manage group roles
+- Member portal group list and group-detail screens
 
-## Source-supported backend operations
+## User journey
 
-The following operations have matching PHP handler files. This establishes backend entry points, **not** successful end-to-end user journeys or the precise order in which users encounter them.
+1. A member views groups available to them.
+2. The member requests to join a group or joins directly if the group permits it.
+3. If approval is required, the member can see that the request is pending.
+4. An authorized manager reviews membership and updates member access or role as permitted.
+5. A member or authorized manager can remove membership under the agreed policy.
+6. The portal reflects the current membership state and explains unavailable actions.
 
-1. **Group discovery.** Source: `api-backend-php/api/groups/index.php`.
-2. **Join group.** Source: `api-backend-php/api/groups/join.php`.
-3. **Leave group.** Source: `api-backend-php/api/groups/leave.php`.
-4. **Manage group members.** Source: `api-backend-php/api/groups/members.php`.
+## Acceptance criteria
 
-## End-to-end verification gaps
+- A user can distinguish groups they belong to from groups they may join.
+- Join requests show whether they are pending, approved, or declined.
+- Users cannot change another person’s membership unless their role allows it.
+- Leaving or removal updates access to group-only content consistently.
+- Duplicate requests and invalid membership changes are handled clearly.
 
-- Confirm initiating screen and user action against its template and component logic.
-- Trace the frontend service URL and request payload to the registered PHP route.
-- Confirm response mapping, user-visible success and failure behavior, and persisted database changes.
-- Execute a running-system test before marking the workflow verified.
+## Open questions
 
-**Evidence classification:** PHP handler file presence checked against the supplied source ZIP; operation labels are descriptive. Authorization branches and end-to-end results require per-handler and runtime verification.
+- Confirm whether joining requires approval, is automatic, or varies by group.
+- Define who can remove a member or change a group role.
+- Define whether a member may rejoin after leaving or being removed.

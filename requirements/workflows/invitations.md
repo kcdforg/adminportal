@@ -1,47 +1,38 @@
 # Invitations — Cross-application workflow
 
 **Workflow ID:** `WF-INVITATIONS`
-**State:** Source-supported backend segments identified; complete end-to-end behavior not verified.
+**Status:** Draft; confirm invitation eligibility, expiry, and account-creation rules.
 
 ## Purpose
 
-Coordinate the relevant application capabilities for invitations without treating an API endpoint as proof of a complete user journey.
+Describe how an eligible person is invited to join, accepts the invitation, and receives the appropriate account access.
 
-## Participating requirement references
+## Participating requirements
 
-- `API-INV-001` (api-backend) — Create invitation
-- `API-INV-002` (api-backend) — List invitations
-- `API-INV-003` (api-backend) — View invitation status
-- `API-INV-004` (api-backend) — Cancel invitation
-- `API-INV-005` (api-backend) — Accept invitation and register account
-- `API-FAM-001` (api-backend) — Browse families as administrator
-- `API-FAM-002` (api-backend) — View family details
-- `API-FAM-003` (api-backend) — Create family
-- `API-FAM-004` (api-backend) — Update family
-- `API-FAM-005` (api-backend) — Add family member association
-- `API-FAM-006` (api-backend) — Update family member association
-- `API-MEM-001` (api-backend) — Browse member profiles
-- `API-MEM-002` (api-backend) — View member profile
-- `API-MEM-003` (api-backend) — Create member profile
-- `API-MEM-004` (api-backend) — Update member profile
-- `API-MEM-005` (api-backend) — Create member login
-- `API-MEM-006` (api-backend) — Maintain member login
-- `API-MEM-007` (api-backend) — Manage member entity relations
+- `API-INV-001` through `API-INV-005` — Create, list, view, cancel, and accept invitations
+- `API-FAM-001` through `API-FAM-006` — Family records and relationships
+- `API-MEM-001` through `API-MEM-007` — Member profiles, login access, and entity relationships
+- Admin and member authentication requirements
 
-## Source-supported backend operations
+## User journey
 
-The following operations have matching PHP handler files. This establishes backend entry points, **not** successful end-to-end user journeys or the precise order in which users encounter them.
+1. An authorized user creates an invitation for an eligible person and specifies its intended purpose.
+2. The invited person receives and opens the invitation.
+3. The system checks that the invitation is valid and has not been used, cancelled, or expired.
+4. The person accepts the invitation and completes any required registration steps.
+5. The system confirms acceptance and provides the appropriate next step for signing in.
+6. An authorized user can review or cancel invitations that have not been accepted.
 
-1. **Create invitation.** Source: `api-backend-php/api/invitations/store.php`.
-2. **Retrieve invitation by code.** Source: `api-backend-php/api/invitations/show-by-code.php`.
-3. **Accept invitation.** Source: `api-backend-php/api/invitations/accept.php`.
-4. **Cancel invitation.** Source: `api-backend-php/api/invitations/cancel.php`.
+## Acceptance criteria
 
-## End-to-end verification gaps
+- An invitation communicates its purpose and expiry, if an expiry applies.
+- Invalid, expired, cancelled, or already-used invitations cannot be accepted.
+- Acceptance does not create duplicate accounts or relationships.
+- Users receive a clear confirmation or explanation when an invitation cannot be used.
+- Cancellation prevents subsequent acceptance.
 
-- Confirm initiating screen and user action against its template and component logic.
-- Trace the frontend service URL and request payload to the registered PHP route.
-- Confirm response mapping, user-visible success and failure behavior, and persisted database changes.
-- Execute a running-system test before marking the workflow verified.
+## Open questions
 
-**Evidence classification:** PHP handler file presence checked against the supplied source ZIP; operation labels are descriptive. Authorization branches and end-to-end results require per-handler and runtime verification.
+- Define invitation expiry, resend, and cancellation behavior.
+- Confirm whether accepting an invitation creates a profile, a login, a family relationship, or some combination.
+- Define duplicate-email/phone handling and recovery when the invitee already has an account.

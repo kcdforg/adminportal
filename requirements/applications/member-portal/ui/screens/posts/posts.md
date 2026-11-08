@@ -1,39 +1,25 @@
 # Posts
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-parents-app/src/app/posts/posts.page.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-MEM-010-01 — Stories & updates.: Screen structure
 
+**Requirement:** The stories & updates. screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Stories & updates.`.
-
-**Template:** `kcdf-parents-app/src/app/posts/posts.page.html`
-
-**Component:** `kcdf-parents-app/src/app/posts/posts.page.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Stories & updates).
 
 **Previous screen-level ID:** `UI-MEM-010`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-MEM-010-02 — Stories & updates.: Conditional UI states
 
+**Requirement:** The stories & updates. screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: repeated items, navigation.
-
-**Template:** `kcdf-parents-app/src/app/posts/posts.page.html`
-
-**Component:** `kcdf-parents-app/src/app/posts/posts.page.ts`
+**Acceptance criteria:**
+- The screen provides a clear way to move to related screens.
 
 **Previous screen-level ID:** `UI-MEM-010`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

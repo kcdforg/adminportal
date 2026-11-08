@@ -1,42 +1,37 @@
 # Session Attendance — Cross-application workflow
 
 **Workflow ID:** `WF-SESSION-ATTENDANCE`
-**State:** Source-supported backend segments identified; complete end-to-end behavior not verified.
+**Status:** Draft; confirm attendance correction and session-lock policies.
 
 ## Purpose
 
-Coordinate the relevant application capabilities for session attendance without treating an API endpoint as proof of a complete user journey.
+Describe how staff schedule a batch session, record attendance, and review or correct attendance records.
 
-## Participating requirement references
+## Participating requirements
 
-- `API-SES-001` (api-backend) — Browse batch sessions
-- `API-SES-002` (api-backend) — View session details
-- `API-SES-003` (api-backend) — Schedule batch session
-- `API-SES-004` (api-backend) — Update batch session
-- `API-SES-005` (api-backend) — Lock session attendance
-- `API-ATT-001` (api-backend) — Read session attendance
-- `API-ATT-002` (api-backend) — Record session attendance
-- `API-ATT-003` (api-backend) — Update an attendance record
-- `API-BAT-001` (api-backend) — Browse batches
-- `API-BAT-002` (api-backend) — View batch details
-- `API-BAT-003` (api-backend) — Create batch
-- `API-BAT-004` (api-backend) — Update batch
-- `API-BAT-005` (api-backend) — View batch membership
+- `API-BAT-001` through `API-BAT-005` — Browse and manage batches and batch membership
+- `API-SES-001` through `API-SES-005` — Browse, schedule, update, and lock sessions
+- `API-ATT-001` through `API-ATT-003` — Read, record, and update attendance
+- Admin portal session and attendance screens
 
-## Source-supported backend operations
+## User journey
 
-The following operations have matching PHP handler files. This establishes backend entry points, **not** successful end-to-end user journeys or the precise order in which users encounter them.
+1. An authorized staff member opens a batch and schedules or selects a session.
+2. The staff member reviews the members eligible for attendance.
+3. The staff member records each member’s attendance and saves the session record.
+4. The staff member reviews the saved attendance and corrects errors when permitted.
+5. The staff member locks the attendance record when it is complete, if locking is part of the approved process.
 
-1. **Retrieve session attendance.** Source: `api-backend-php/api/sessions/attendance.php`.
-2. **Save session attendance.** Source: `api-backend-php/api/sessions/attendance-store.php`.
-3. **Update attendance record.** Source: `api-backend-php/api/attendance/patch.php`.
-4. **Lock session attendance.** Source: `api-backend-php/api/sessions/lock.php`.
+## Acceptance criteria
 
-## End-to-end verification gaps
+- Attendance is associated with the correct batch, session, and eligible members.
+- The user can distinguish unrecorded attendance from recorded attendance.
+- Saved changes are clearly confirmed and remain visible when the session is reopened.
+- Corrections are restricted according to the agreed role and lock policy.
+- Invalid or incomplete attendance submissions are reported without losing entered information.
 
-- Confirm initiating screen and user action against its template and component logic.
-- Trace the frontend service URL and request payload to the registered PHP route.
-- Confirm response mapping, user-visible success and failure behavior, and persisted database changes.
-- Execute a running-system test before marking the workflow verified.
+## Open questions
 
-**Evidence classification:** PHP handler file presence checked against the supplied source ZIP; operation labels are descriptive. Authorization branches and end-to-end results require per-handler and runtime verification.
+- Define attendance statuses and whether partial attendance is supported.
+- Define who may edit attendance and whether locked records can be reopened.
+- Confirm whether members can view their attendance and whether any notifications are required.

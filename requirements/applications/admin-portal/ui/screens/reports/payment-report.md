@@ -1,77 +1,43 @@
 # Payment Report
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-admin-app/src/app/features/reports/payment-report/payment-report.component.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-ADM-029-01 — Payment Report: Screen structure
 
+**Requirement:** The payment report screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Payment Report`; `Total Collected`; `Transactions`.
-
-**Template:** `kcdf-admin-app/src/app/features/reports/payment-report/payment-report.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/reports/payment-report/payment-report.component.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Payment Report; Total Collected; Transactions).
 
 **Previous screen-level ID:** `UI-ADM-029`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-029-02 — Payment Report: Input controls
 
+**Requirement:** The payment report screen provides clearly labeled controls appropriate to the task.
 
-**Observed in source:**
-
-- `input (date) — date_from`
-
-- `input (date) — date_to`
-
-- `select (select) — payment_type`
-
-- `select (select) — status`.
-
-**Template:** `kcdf-admin-app/src/app/features/reports/payment-report/payment-report.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/reports/payment-report/payment-report.component.ts`
+**Acceptance criteria:**
+- The screen provides controls for the information needed to complete the task: date_from (input); date_to (input); payment_type (select); status (select).
 
 **Previous screen-level ID:** `UI-ADM-029`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-029-03 — Payment Report: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Export CSV`; `Generate`.
-
-- Declared event bindings: `exportCsv()`; `load()`.
-
-**Template:** `kcdf-admin-app/src/app/features/reports/payment-report/payment-report.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/reports/payment-report/payment-report.component.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Export CSV; Generate.
 
 **Previous screen-level ID:** `UI-ADM-029`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-029-04 — Payment Report: Conditional UI states
 
+**Requirement:** The payment report screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: loading, disabled controls, conditional sections, repeated items.
-
-**Template:** `kcdf-admin-app/src/app/features/reports/payment-report/payment-report.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/reports/payment-report/payment-report.component.ts`
+**Acceptance criteria:**
+- The screen shows progress while data is loading; indicates when an action is unavailable.
 
 **Previous screen-level ID:** `UI-ADM-029`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

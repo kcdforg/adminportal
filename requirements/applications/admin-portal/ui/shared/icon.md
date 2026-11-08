@@ -1,11 +1,16 @@
-# Icon — source-observed share
+# Icon
+
+This document describes the use of icons in the administration portal.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft.
 
-**Source:** `kcdf-admin-app/src/app/shared/components/icon/icon.component.html`
+### UI-ADM-SHR-ICO-001 — Use icons accessibly
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** Icons support recognition of actions or information without being the only way to understand them.
 
-No click bindings were identified in this template; review the component TypeScript and composition before asserting behavior.
+**Acceptance criteria:**
+- An icon-only control has an accessible name.
+- Decorative icons do not create redundant screen-reader announcements.
+- Icons are visually consistent with the action or status they represent.

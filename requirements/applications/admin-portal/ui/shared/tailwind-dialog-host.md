@@ -1,11 +1,16 @@
-# Tailwind Dialog Host — source-observed share
+# Dialog Host
+
+This document describes the shared container for administration dialogs.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft.
 
-**Source:** `kcdf-admin-app/src/app/shared/components/modal/tailwind-dialog-host.component.html`
+### UI-ADM-SHR-DHO-001 — Display dialogs consistently
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** Dialogs opened by the administration portal are displayed in a consistent, accessible layer above the current screen.
 
-No click bindings were identified in this template; review the component TypeScript and composition before asserting behavior.
+**Acceptance criteria:**
+- The dialog content and controls remain visible and usable on supported screen sizes.
+- The dialog is announced and operable with a keyboard.
+- Closing a dialog restores the user to the underlying task without unintended changes.

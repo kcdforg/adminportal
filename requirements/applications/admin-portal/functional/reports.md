@@ -14,6 +14,12 @@ This document captures the admin portal report requirements for attendance, paym
 
 This is a working requirement draft for planning and review. It should be validated against live runtime behavior before being treated as a final production requirement.
 
+## Open questions
+
+- Confirm the supported data source and report calculations for attendance, payment, and enrollment reports.
+- Confirm which filters and export formats are required for each report.
+- Confirm which administrator roles may access each report.
+
 ### ADM-RPT-001 — View attendance report
 
 **Type:** Functional

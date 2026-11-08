@@ -1,11 +1,17 @@
-# Loading Overlay — source-observed share
+# Loading Overlay
+
+This document describes the shared indication that a page or action is loading.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft.
 
-**Source:** `kcdf-admin-app/src/app/shared/components/loading-overlay/loading-overlay.component.html`
+### UI-ADM-SHR-LOD-001 — Communicate loading state
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** The interface informs users when an operation is taking time to complete.
 
-No click bindings were identified in this template; review the component TypeScript and composition before asserting behavior.
+**Acceptance criteria:**
+- The loading state is visible and, where appropriate, announced to assistive technology.
+- The page does not present stale content as if it were the result of the pending request.
+- Repeated submissions are prevented when they could create duplicate actions.
+- The loading state ends when the operation succeeds or fails.

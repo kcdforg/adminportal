@@ -1,91 +1,43 @@
 # Family Form
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-admin-app/src/app/features/families/family-form/family-form.component.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-ADM-013-01 — Family Form: Screen structure
 
+**Requirement:** The family form screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- The source contains the screen template.
-
-**Template:** `kcdf-admin-app/src/app/features/families/family-form/family-form.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/families/family-form/family-form.component.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading.
 
 **Previous screen-level ID:** `UI-ADM-013`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-013-02 — Family Form: Input controls
 
+**Requirement:** The family form screen provides clearly labeled controls appropriate to the task.
 
-**Observed in source:**
-
-- `input (text) — family_code`
-
-- `input (text) — family_name`
-
-- `select (select) — status`
-
-- `input (text) — line1`
-
-- `input (text) — line2`
-
-- `input (text) — taluk`
-
-- `input (text) — village`
-
-- `input (text) — city`
-
-- `input (text) — state`
-
-- `input (text) — pincode`
-
-- `input (text) — country`.
-
-**Template:** `kcdf-admin-app/src/app/features/families/family-form/family-form.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/families/family-form/family-form.component.ts`
+**Acceptance criteria:**
+- The screen provides controls for the information needed to complete the task: family_code (input); family_name (input); status (select); line1 (input); line2 (input); taluk (input); village (input); city (input); state (input); pincode (input); country (input).
 
 **Previous screen-level ID:** `UI-ADM-013`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-013-03 — Family Form: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Cancel`.
-
-- Declared event bindings: `dialogRef.close()`; `save()`.
-
-**Template:** `kcdf-admin-app/src/app/features/families/family-form/family-form.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/families/family-form/family-form.component.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Cancel.
 
 **Previous screen-level ID:** `UI-ADM-013`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-013-04 — Family Form: Conditional UI states
 
+**Requirement:** The family form screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: error, empty, disabled controls, conditional sections, repeated items, modal/dialog.
-
-**Template:** `kcdf-admin-app/src/app/features/families/family-form/family-form.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/families/family-form/family-form.component.ts`
+**Acceptance criteria:**
+- The screen explains when data cannot be loaded or an action fails; explains when there is no content to display; indicates when an action is unavailable.
 
 **Previous screen-level ID:** `UI-ADM-013`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

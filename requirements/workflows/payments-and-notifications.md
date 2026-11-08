@@ -1,40 +1,44 @@
-# Payments And Notifications — Cross-application workflow
+# Payments and Notifications — Cross-application workflow
 
 **Workflow ID:** `WF-PAYMENTS-AND-NOTIFICATIONS`
-**State:** Source-supported backend segments identified; complete end-to-end behavior not verified.
+**Status:** Draft; confirm payment lifecycle and notification-trigger policies.
 
 ## Purpose
 
-Coordinate the relevant application capabilities for payments and notifications without treating an API endpoint as proof of a complete user journey.
+Describe the separate workflows for recording and reviewing payments and for sending and receiving notifications.
 
-## Participating requirement references
+## Participating requirements
 
-- `API-PAY-001` (api-backend) — Browse payments
-- `API-PAY-002` (api-backend) — View payment details
-- `API-PAY-003` (api-backend) — Record payment
-- `API-PAY-004` (api-backend) — Update payment
-- `API-NOT-001` (api-backend) — Read own notifications
-- `API-NOT-002` (api-backend) — Mark notification as read
-- `API-NOT-003` (api-backend) — Archive notification
-- `API-NOT-004` (api-backend) — Send direct notification
-- `API-NOT-005` (api-backend) — Broadcast notifications
-- `API-NOT-006` (api-backend) — Notification dispatch integration discrepancy (source-observed)
+- `API-PAY-001` through `API-PAY-004` — Browse, view, record, and update payments
+- `API-NOT-001` through `API-NOT-006` — Read, manage, send, and broadcast notifications
+- Admin portal payment and notification screens
+- Member portal notification experience
 
-## Source-supported backend operations
+## Payment journey
 
-The following operations have matching PHP handler files. This establishes backend entry points, **not** successful end-to-end user journeys or the precise order in which users encounter them.
+1. An authorized staff member selects the relevant family or payment context.
+2. The staff member records or updates payment details.
+3. The system validates the amount, date, method, and related record according to the agreed policy.
+4. The user receives confirmation and can review the updated payment history.
 
-1. **Record payment.** Source: `api-backend-php/api/payments/store.php`.
-2. **Update payment.** Source: `api-backend-php/api/payments/update.php`.
-3. **Read payment.** Source: `api-backend-php/api/payments/show.php`.
+## Notification journey
 
-## End-to-end verification gaps
+1. An authorized staff member selects recipients or a permitted audience.
+2. The staff member composes and sends a direct or broadcast notification.
+3. Recipients can view the notification and manage its read state where available.
+4. The sender receives a clear result for the send action.
 
-- Confirm initiating screen and user action against its template and component logic.
-- Trace the frontend service URL and request payload to the registered PHP route.
-- Confirm response mapping, user-visible success and failure behavior, and persisted database changes.
-- Execute a running-system test before marking the workflow verified.
+## Acceptance criteria
 
-**Important:** Payment recording and notification dispatch are separate capabilities. Their automatic linkage is **not established** by these references; do not describe payment as automatically triggering notification.
+- Payment actions are restricted to users with the required permission.
+- Payment records remain associated with the correct family or account context.
+- Notifications are sent only to the intended and permitted audience.
+- Failed payment or notification actions are clearly reported and do not appear successful.
+- Payment recording and notification delivery are separate actions unless an approved business rule explicitly links them.
 
-**Evidence classification:** PHP handler file presence checked against the supplied source ZIP; operation labels are descriptive. Authorization branches and end-to-end results require per-handler and runtime verification.
+## Open questions
+
+- Define payment methods, refund/correction rules, and whether payment edits require an audit reason.
+- Confirm whether recording a payment should trigger a receipt or notification.
+- Define notification channels, delivery expectations, and handling of failed delivery.
+- Confirm who can view payment details and send notifications.

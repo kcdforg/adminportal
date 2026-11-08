@@ -1,33 +1,35 @@
 # Dashboard
 
+This document describes the administration dashboard as a starting point for routine work.
+
 ## Requirement summary
 
-- This document captures the current working flow in plain language.
-- It supports planning, review, and backlog alignment.
-- Runtime validation is still required before sign-off.
+- Administrators can see a concise overview of important operational information.
+- Dashboard figures should reflect the underlying records and the user’s permissions.
+- Missing data or failed requests should not make the entire dashboard unusable.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
+Working draft. Confirm which indicators are important and which administrator roles may see each one.
 
 ### ADM-DSH-001 — View administration dashboard
 
 **Type:** Functional
 **Owner:** admin-portal
 **Legacy ID:** `DSH-001`
-**Actor:** Administrators.
+**Actor:** Signed-in administrators.
 
-**Requirement:** An administrator opens the dashboard to view summary counts for families, active batches and pending payments.
+**Requirement:** An administrator can open the dashboard to review key operational summaries, including family, active-batch, and pending-payment counts.
 
-**Previously proposed acceptance checks (not independently verified):**
-- The Angular dashboard requests three totals concurrently.
-- If one request fails, the combined request can prevent all three totals from updating.
-- The notification count is currently a placeholder.
-- Payment-total authorization may differ for non-accounts admin roles.
+**Acceptance criteria:**
+- Each displayed count is clearly labeled and represents the agreed definition of that measure.
+- A count respects the administrator’s access permissions.
+- The dashboard distinguishes unavailable data from a genuine zero count.
+- If one summary cannot be loaded, other available dashboard information remains usable.
+- Selecting a summary, when it is actionable, takes the user to the relevant area.
 
-**Source references:**
-- `kcdf-admin-app/src/app/features/dashboard/`.
+## Open questions
 
-**Source review:** Evidence of code or a documented integration gap; not an end-to-end runtime verification.
-**Implementation state:** unassessed (do not assume completed).
+- Confirm the final dashboard indicators, definitions, and refresh expectations.
+- Decide whether notification counts belong on the dashboard.
+- Confirm which roles may view financial summaries.

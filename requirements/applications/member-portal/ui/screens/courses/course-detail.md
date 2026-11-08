@@ -1,71 +1,42 @@
 # Course Detail
 
+This document describes the member-facing course detail screen.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft. Confirm which program details and enrollment actions are in scope.
 
-**Source template:** `kcdf-parents-app/src/app/courses/course-detail.page.html`
+## UI-MEM-001-01 — View course information
 
-**Evidence level:** Template declarations only; runtime behavior not verified.
+**Requirement:** A member can review the details of a selected course or program.
 
-## UI-MEM-001-01 — Course not found: Screen structure
+**Acceptance criteria:**
+- The page identifies the selected course and presents its available description and schedule information.
+- Unavailable details are not presented as confirmed information.
 
+## UI-MEM-001-02 — Return to course list
 
-**Observed in source:**
+**Requirement:** A member can return to the course list from the detail screen.
 
-- Declared screen heading(s): `Course not found`.
+**Acceptance criteria:**
+- The return action is clearly labeled.
+- The member can recover from a missing or unavailable course by returning to the list.
 
-**Template:** `kcdf-parents-app/src/app/courses/course-detail.page.html`
+## UI-MEM-001-03 — Navigate to the course list
 
-**Component:** `kcdf-parents-app/src/app/courses/course-detail.page.ts`
+**Requirement:** A member can navigate back to the course list from the detail screen.
 
-**Previous screen-level ID:** `UI-MEM-001`
+**Acceptance criteria:**
+- The destination is clearly identified.
+- The member can recover from a missing or unavailable course by returning to the list.
 
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
+## UI-MEM-001-04 — Handle course loading and unavailable states
 
-## UI-MEM-001-02 — Course not found: User actions
+**Requirement:** The detail screen explains when course information is loading or cannot be shown.
 
-
-**Observed in source:**
-
-- Declared visible actions: `All courses`; `Return to courses`.
-
-- Declared event bindings: `setSection($event.detail.value)`.
-
-**Template:** `kcdf-parents-app/src/app/courses/course-detail.page.html`
-
-**Component:** `kcdf-parents-app/src/app/courses/course-detail.page.ts`
-
-**Previous screen-level ID:** `UI-MEM-001`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
-
-## UI-MEM-001-03 — Course not found: Navigation
-
-
-**Observed in source:**
-
-- Declared route bindings: `/courses`.
-
-**Template:** `kcdf-parents-app/src/app/courses/course-detail.page.html`
-
-**Component:** `kcdf-parents-app/src/app/courses/course-detail.page.ts`
+**Acceptance criteria:**
+- Loading feedback is displayed while details are retrieved.
+- A missing or unavailable course has a clear message.
+- The screen does not show unrelated or stale course information.
 
 **Previous screen-level ID:** `UI-MEM-001`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
-
-## UI-MEM-001-04 — Course not found: Conditional UI states
-
-
-**Observed in source:**
-
-- Observed template patterns: empty, conditional sections, repeated items, navigation.
-
-**Template:** `kcdf-parents-app/src/app/courses/course-detail.page.html`
-
-**Component:** `kcdf-parents-app/src/app/courses/course-detail.page.ts`
-
-**Previous screen-level ID:** `UI-MEM-001`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

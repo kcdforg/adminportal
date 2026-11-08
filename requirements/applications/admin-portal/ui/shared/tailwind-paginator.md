@@ -1,25 +1,17 @@
-# Tailwind Paginator — source-observed share
+# Paginator
+
+This document describes navigation through multi-page result sets.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft.
 
-**Source:** `kcdf-admin-app/src/app/shared/components/paginator/tailwind-paginator.component.html`
+### UI-ADM-SHR-PAG-001 — Navigate result pages
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** A user can move between pages of a paginated result set.
 
-## UI-ADM-SHR-PAG-001 — Declared interaction 1
-
-The template binds a user interaction to `emitPage(0)`.
-
-## UI-ADM-SHR-PAG-002 — Declared interaction 2
-
-The template binds a user interaction to `emitPage(pageIndex - 1)`.
-
-## UI-ADM-SHR-PAG-003 — Declared interaction 3
-
-The template binds a user interaction to `emitPage(pageIndex + 1)`.
-
-## UI-ADM-SHR-PAG-004 — Declared interaction 4
-
-The template binds a user interaction to `emitPage(pageCount - 1)`.
+**Acceptance criteria:**
+- The current page and result count are communicated clearly.
+- The user can move to the first, previous, next, and last page when those pages are available.
+- Controls that cannot be used at the current position are disabled or otherwise clearly unavailable.
+- Changing pages keeps the selected page size and active filters.

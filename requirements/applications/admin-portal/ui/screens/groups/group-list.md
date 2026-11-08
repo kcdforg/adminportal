@@ -1,77 +1,43 @@
 # Group List
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-admin-app/src/app/features/groups/group-list/group-list.component.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-ADM-017-01 — Groups: Screen structure
 
+**Requirement:** The groups screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Groups`; `Group categories`.
-
-**Template:** `kcdf-admin-app/src/app/features/groups/group-list/group-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/groups/group-list/group-list.component.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Groups; Group categories).
 
 **Previous screen-level ID:** `UI-ADM-017`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-017-02 — Groups: Input controls
 
+**Requirement:** The groups screen provides clearly labeled controls appropriate to the task.
 
-**Observed in source:**
-
-- `input (input) — Category name`
-
-- `input (input) — Description`
-
-- `input (input) — Edit category name`
-
-- `input (input) — Edit category description`.
-
-**Template:** `kcdf-admin-app/src/app/features/groups/group-list/group-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/groups/group-list/group-list.component.ts`
+**Acceptance criteria:**
+- The screen provides controls for the information needed to complete the task: Category name (input); Description (input); Edit category name (input); Edit category description (input).
 
 **Previous screen-level ID:** `UI-ADM-017`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-017-03 — Groups: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Manage Categories`; `Create Group`; `Save`; `Cancel`; `Edit`.
-
-- Declared event bindings: `categoriesOpen.set(!categoriesOpen())`; `openForm()`; `saveCategory()`; `saveCategory(category)`; `editingCategoryId.set(null)`; `editCategory(category)`; `toggleCategoryStatus(category)`; `$event.stopPropagation()`; `openForm(g); $event.stopPropagation()`.
-
-**Template:** `kcdf-admin-app/src/app/features/groups/group-list/group-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/groups/group-list/group-list.component.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Manage Categories; Create Group; Save; Cancel; Edit.
 
 **Previous screen-level ID:** `UI-ADM-017`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-017-04 — Groups: Conditional UI states
 
+**Requirement:** The groups screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: loading, error, empty, disabled controls, conditional sections, repeated items, pagination, navigation.
-
-**Template:** `kcdf-admin-app/src/app/features/groups/group-list/group-list.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/groups/group-list/group-list.component.ts`
+**Acceptance criteria:**
+- The screen shows progress while data is loading; explains when data cannot be loaded or an action fails; explains when there is no content to display; indicates when an action is unavailable; supports navigating between pages of results; provides a clear way to move to related screens.
 
 **Previous screen-level ID:** `UI-ADM-017`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

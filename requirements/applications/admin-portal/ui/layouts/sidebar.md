@@ -1,13 +1,17 @@
-# Sidebar — source-observed layout
+# Sidebar
+
+This document describes navigation in the administration portal.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft. Confirm the role-to-navigation policy before approval.
 
-**Source:** `kcdf-admin-app/src/app/layout/sidebar/sidebar.component.html`
+### UI-ADM-LAY-SID-001 — Navigate administration areas
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** The sidebar helps an administrator move between the areas available to their account.
 
-## UI-ADM-LAY-SID-001 — Declared interaction 1
-
-The template binds a user interaction to `navigate.emit()`.
+**Acceptance criteria:**
+- Navigation items have clear names and take the user to the selected area.
+- Items unavailable to the user’s role are not presented as accessible.
+- The current area is distinguishable from other navigation items.
+- On small screens, choosing a destination closes the mobile navigation.

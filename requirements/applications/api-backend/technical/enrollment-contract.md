@@ -1,28 +1,20 @@
-# Enrollment API — source-observed contract
+# Enrollment API Contract
 
-## Status
+This document records the intended request paths and data contract for enrollment operations.
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+## API operations
 
-**Status:** Static source review; not an integration or runtime test.
-
-| Method | Path | Handler |
+| Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/v1/enrollments` | `api/enrollments/index.php` |
-| POST | `/api/v1/enrollments` | `api/enrollments/store.php` |
-| GET | `/api/v1/enrollments/{id}` | `api/enrollments/show.php` |
-| PATCH | `/api/v1/enrollments/{id}/cancel` | `api/enrollments/cancel.php` |
+| GET | `/api/v1/enrollments` | List enrollments |
+| POST | `/api/v1/enrollments` | Create an enrollment |
+| GET | `/api/v1/enrollments/{id}` | View an enrollment |
+| PATCH | `/api/v1/enrollments/{id}/cancel` | Cancel an enrollment |
 
-Source: `api-backend-php/api/routes.php`.
+## Creation data
 
-## Known integration discrepancy — INT-005
+Enrollment creation requires `family_id`, `member_id`, and `batch_id`. A successful enrollment is associated with the selected family member and batch. The system initializes its payment state according to the agreed enrollment and fee rules.
 
-The Admin Portal `EnrollmentService.cancel(id)` sends `PATCH /enrollments/${id}` with `{status: 'cancelled'}`. The backend route requires `/enrollments/{id}/cancel`. The Angular API service's base URL may supply `/api/v1`; it does **not** resolve the missing `/cancel` path segment. This is a confirmed static contract mismatch, not a runtime test.
+## Integration issue to resolve
 
-Source: `kcdf-admin-app/src/app/core/services/enrollment.service.ts` and `api-backend-php/api/routes.php`.
-
-## Creation contract
-
-`family_id`, `member_id`, `batch_id` are required numeric values. The handler stores enrollment and batch membership transactionally, with `status=active` and `payment_status=unpaid`. Other request fields are not presumed persisted merely because the frontend model includes them.
-
-Source: `api-backend-php/api/enrollments/store.php`.
+The Admin Portal cancellation action must call the cancellation path and provide the data expected by the API. Align the portal request and API contract, then verify the cancellation flow end to end before treating it as complete.

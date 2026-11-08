@@ -1,51 +1,38 @@
 # Group Content — Cross-application workflow
 
 **Workflow ID:** `WF-GROUP-CONTENT`
-**State:** Source-supported backend segments identified; complete end-to-end behavior not verified.
+**Status:** Draft; confirm which group roles can publish, edit, and archive content.
 
 ## Purpose
 
-Coordinate the relevant application capabilities for group content without treating an API endpoint as proof of a complete user journey.
+Describe how group members view and interact with announcements, polls, and events.
 
-## Participating requirement references
+## Participating requirements
 
-- `API-GRP-001` (api-backend) — Browse groups
-- `API-GRP-002` (api-backend) — View group details
-- `API-GRP-003` (api-backend) — Create group
-- `API-GRP-004` (api-backend) — Update group
-- `API-GRP-005` (api-backend) — Browse group categories
-- `API-GRP-006` (api-backend) — Manage group categories
-- `API-GRP-007` (api-backend) — Request to join group
-- `API-GRP-008` (api-backend) — Leave group
-- `API-GRP-009` (api-backend) — Manage group membership
-- `API-GRP-010` (api-backend) — Find eligible group member candidates
-- `API-GRP-011` (api-backend) — Change group member role
-- `API-POST-001` (api-backend) — List group announcements
-- `API-POST-002` (api-backend) — Read group announcement
-- `API-POST-003` (api-backend) — Create group announcement
-- `API-POST-004` (api-backend) — Edit group announcement
-- `API-POST-005` (api-backend) — Archive group announcement
-- `API-POL-001` (api-backend) — Create group poll
-- `API-POL-002` (api-backend) — Update or publish group poll
-- `API-POL-003` (api-backend) — Cast or change vote
-- `API-POL-004` (api-backend) — View poll results
-- `API-EVT-001` (api-backend) — Create group event
-- `API-EVT-002` (api-backend) — Update group event
-- `API-EVT-003` (api-backend) — Register for an event
-- `API-EVT-004` (api-backend) — View own event registration
-- `API-EVT-005` (api-backend) — Cancel own event registration
+- `API-GRP-001` through `API-GRP-011` — Discover groups and manage group information and membership
+- `API-POST-001` through `API-POST-005` — View, create, edit, and archive group announcements
+- `API-POL-001` through `API-POL-004` — Create, publish, vote in, and review group polls
+- `API-EVT-001` through `API-EVT-005` — Create, update, and manage event registrations
+- Member portal group, post, and post-detail screens
 
-## Source-supported backend operations
+## User journey
 
-The following operations have matching PHP handler files. This establishes backend entry points, **not** successful end-to-end user journeys or the precise order in which users encounter them.
+1. A member opens a group they are permitted to access.
+2. The member views the group’s announcements, polls, and events.
+3. The member opens an item to read its details and, when applicable, votes or registers for an event.
+4. An authorized group manager creates or updates content and can archive items that are no longer active.
+5. The system shows the resulting content or registration state and provides clear feedback when an action is unavailable.
 
-1. **Group-content handler governs post, poll and event operations.** Source: `api-backend-php/api/groups/resources.php`.
+## Acceptance criteria
 
-## End-to-end verification gaps
+- Members can view content only for groups they are allowed to access.
+- Content is clearly identified by type, status, and relevant dates.
+- Members cannot vote or register when an item is closed or otherwise ineligible.
+- Only authorized roles can create, edit, publish, or archive group content.
+- A user receives a clear result after each content action.
 
-- Confirm initiating screen and user action against its template and component logic.
-- Trace the frontend service URL and request payload to the registered PHP route.
-- Confirm response mapping, user-visible success and failure behavior, and persisted database changes.
-- Execute a running-system test before marking the workflow verified.
+## Open questions
 
-**Evidence classification:** PHP handler file presence checked against the supplied source ZIP; operation labels are descriptive. Authorization branches and end-to-end results require per-handler and runtime verification.
+- Define who may manage content in each group and whether approval is required before publication.
+- Define poll closing, vote-change, event capacity, and registration-cancellation rules.
+- Confirm notification expectations when new content is published or changed.

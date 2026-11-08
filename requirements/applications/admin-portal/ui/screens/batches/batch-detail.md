@@ -1,71 +1,43 @@
 # Batch Detail
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-admin-app/src/app/features/batches/batch-detail/batch-detail.component.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-ADM-004-01 — Back: Screen structure
 
+**Requirement:** The back screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Back`.
-
-**Template:** `kcdf-admin-app/src/app/features/batches/batch-detail/batch-detail.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/batches/batch-detail/batch-detail.component.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Back).
 
 **Previous screen-level ID:** `UI-ADM-004`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-004-02 — Back: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Back`; `Info`; `Members ()`; `Sessions ()`; `Add Session`; `View attendance`.
-
-- Declared event bindings: `activeTab.set('info')`; `activeTab.set('members')`; `activeTab.set('sessions')`; `addSession()`.
-
-**Template:** `kcdf-admin-app/src/app/features/batches/batch-detail/batch-detail.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/batches/batch-detail/batch-detail.component.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Back; Info; Members (); Sessions (); Add Session; View attendance.
 
 **Previous screen-level ID:** `UI-ADM-004`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-004-03 — Back: Navigation
 
+**Requirement:** The user can navigate to related screens from this screen.
 
-**Observed in source:**
-
-- Declared route bindings: `/batches`.
-
-**Template:** `kcdf-admin-app/src/app/features/batches/batch-detail/batch-detail.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/batches/batch-detail/batch-detail.component.ts`
+**Acceptance criteria:**
+- The user can navigate to the relevant area (/batches).
 
 **Previous screen-level ID:** `UI-ADM-004`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-004-04 — Back: Conditional UI states
 
+**Requirement:** The back screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: loading, conditional sections, repeated items, navigation.
-
-**Template:** `kcdf-admin-app/src/app/features/batches/batch-detail/batch-detail.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/batches/batch-detail/batch-detail.component.ts`
+**Acceptance criteria:**
+- The screen shows progress while data is loading; provides a clear way to move to related screens.
 
 **Previous screen-level ID:** `UI-ADM-004`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

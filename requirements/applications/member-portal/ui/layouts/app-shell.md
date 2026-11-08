@@ -1,18 +1,16 @@
-# App shell — source-observed layout
+# App Shell
+
+This document describes the shared frame used by member-portal screens.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft. Confirm expected behavior across supported devices.
 
-**Source:** `kcdf-parents-app/src/app/app.component.html`
+### UI-MEM-LAY-001 — Display member-portal screens
 
-Template content:
+**Requirement:** The app shell provides a consistent frame for navigating between member-portal screens.
 
-```html
-<ion-app>
-  <ion-router-outlet></ion-router-outlet>
-</ion-app>
-
-```
-
-Runtime behavior not verified.
+**Acceptance criteria:**
+- The shell displays the active screen within the portal.
+- Navigation remains available and usable across supported screen sizes.
+- A loading or unavailable screen does not expose stale or unrelated content.

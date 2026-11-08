@@ -1,17 +1,25 @@
-# Data Table — source-observed share
+# Data Table
+
+This document describes the shared table used to display administrative records.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft.
 
-**Source:** `kcdf-admin-app/src/app/shared/components/data-table/data-table.component.html`
+### UI-ADM-SHR-DAT-001 — Sort table data
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** Where sorting is available, a user can sort a table by a supported column.
 
-## UI-ADM-SHR-DAT-001 — Declared interaction 1
+**Acceptance criteria:**
+- Sortable columns are distinguishable from non-sortable columns.
+- The current sort direction is visible.
+- Changing sort order updates the displayed records consistently.
 
-The template binds a user interaction to `toggleSort(col)`.
+### UI-ADM-SHR-DAT-002 — Select a table row
 
-## UI-ADM-SHR-DAT-002 — Declared interaction 2
+**Requirement:** Where row selection is available, a user can open or act on the selected record.
 
-The template binds a user interaction to `rowClick.emit(row)`.
+**Acceptance criteria:**
+- The relevant row or action clearly identifies the record.
+- A row action does not accidentally select a different record.
+- Keyboard users can reach and activate available row actions.

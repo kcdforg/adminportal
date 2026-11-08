@@ -1,21 +1,17 @@
-# Main Layout — source-observed layout
+# Main Layout
+
+This document describes the shared frame around authenticated administration screens.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft. Confirm navigation and responsive behavior with stakeholders.
 
-**Source:** `kcdf-admin-app/src/app/layout/main-layout/main-layout.component.html`
+### UI-ADM-LAY-MAI-001 — Use the main administration layout
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** Protected administration pages appear within a consistent application layout.
 
-## UI-ADM-LAY-MAI-001 — Declared interaction 1
-
-The template binds a user interaction to `closeMobileNav()`.
-
-## UI-ADM-LAY-MAI-002 — Declared interaction 2
-
-The template binds a user interaction to `toggleMobileNav()`.
-
-## UI-ADM-LAY-MAI-003 — Declared interaction 3
-
-The template binds a user interaction to `logout()`.
+**Acceptance criteria:**
+- The layout provides the main content area and navigation.
+- The layout adapts to narrow screens without hiding the current task.
+- Users can open and close mobile navigation.
+- Users can sign out from the layout and are returned to a public sign-in screen.

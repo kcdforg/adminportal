@@ -1,11 +1,16 @@
-# Page Header — source-observed share
+# Page Header
+
+This document describes the shared heading area used on administration screens.
 
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
+Working draft.
 
-**Source:** `kcdf-admin-app/src/app/shared/components/page-header/page-header.component.html`
+### UI-ADM-SHR-PGH-001 — Identify the current page
 
-**Verification:** Source-only; interaction and runtime not verified.
+**Requirement:** Each page header clearly identifies the current area and provides relevant context or actions.
 
-No click bindings were identified in this template; review the component TypeScript and composition before asserting behavior.
+**Acceptance criteria:**
+- The page title is visible and descriptive.
+- Optional supporting text clarifies the purpose of the page.
+- Related primary actions are easy to find and are available only when permitted.

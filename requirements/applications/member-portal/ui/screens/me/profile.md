@@ -1,71 +1,43 @@
 # Profile
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-parents-app/src/app/me/profile.page.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-MEM-008-01 — Profile: Screen structure
 
+**Requirement:** The profile screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- The source contains the screen template.
-
-**Template:** `kcdf-parents-app/src/app/me/profile.page.html`
-
-**Component:** `kcdf-parents-app/src/app/me/profile.page.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading.
 
 **Previous screen-level ID:** `UI-MEM-008`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-MEM-008-02 — Profile: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Email`; `Mobile`; `Date of birth`; `View my family`; `Sign out`.
-
-- Declared event bindings: `logout()`.
-
-**Template:** `kcdf-parents-app/src/app/me/profile.page.html`
-
-**Component:** `kcdf-parents-app/src/app/me/profile.page.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Email; Mobile; Date of birth; View my family; Sign out.
 
 **Previous screen-level ID:** `UI-MEM-008`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-MEM-008-03 — Profile: Navigation
 
+**Requirement:** The user can navigate to related screens from this screen.
 
-**Observed in source:**
-
-- Declared route bindings: `/me/family`.
-
-**Template:** `kcdf-parents-app/src/app/me/profile.page.html`
-
-**Component:** `kcdf-parents-app/src/app/me/profile.page.ts`
+**Acceptance criteria:**
+- The user can navigate to the relevant area (/me/family).
 
 **Previous screen-level ID:** `UI-MEM-008`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-MEM-008-04 — Profile: Conditional UI states
 
+**Requirement:** The profile screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: loading, error, conditional sections, navigation.
-
-**Template:** `kcdf-parents-app/src/app/me/profile.page.html`
-
-**Component:** `kcdf-parents-app/src/app/me/profile.page.ts`
+**Acceptance criteria:**
+- The screen shows progress while data is loading; explains when data cannot be loaded or an action fails; provides a clear way to move to related screens.
 
 **Previous screen-level ID:** `UI-MEM-008`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.

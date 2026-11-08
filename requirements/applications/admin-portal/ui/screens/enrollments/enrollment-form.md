@@ -1,77 +1,43 @@
 # Enrollment Form
 
+This document describes the expected user-facing behavior of this screen or component.
+
 ## Status
 
-This is a working requirement draft for planning and review. It should be checked against live runtime behavior before sign-off.
-
-**Source template:** `kcdf-admin-app/src/app/features/enrollments/enrollment-form/enrollment-form.component.html`
-
-**Evidence level:** Template declarations only; runtime behavior not verified.
+Working draft. Confirm the behavior and any role or policy rules with stakeholders before approval.
 
 ## UI-ADM-008-01 — Enroll Member: Screen structure
 
+**Requirement:** The enroll member screen presents the task with a clear identifying heading.
 
-**Observed in source:**
-
-- Declared screen heading(s): `Enroll Member`.
-
-**Template:** `kcdf-admin-app/src/app/features/enrollments/enrollment-form/enrollment-form.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/enrollments/enrollment-form/enrollment-form.component.ts`
+**Acceptance criteria:**
+- The screen displays its main content with a clear heading (Enroll Member).
 
 **Previous screen-level ID:** `UI-ADM-008`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-008-02 — Enroll Member: Input controls
 
+**Requirement:** The enroll member screen provides clearly labeled controls appropriate to the task.
 
-**Observed in source:**
-
-- `select (select) — family_id`
-
-- `select (select) — member_id`
-
-- `select (select) — batch_id`
-
-- `textarea (textarea) — notes`.
-
-**Template:** `kcdf-admin-app/src/app/features/enrollments/enrollment-form/enrollment-form.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/enrollments/enrollment-form/enrollment-form.component.ts`
+**Acceptance criteria:**
+- The screen provides controls for the information needed to complete the task: family_id (select); member_id (select); batch_id (select); notes (textarea).
 
 **Previous screen-level ID:** `UI-ADM-008`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-008-03 — Enroll Member: User actions
 
+**Requirement:** The user can complete the actions available on this screen.
 
-**Observed in source:**
-
-- Declared visible actions: `Cancel`.
-
-- Declared event bindings: `onFamilyChange(form.controls.family_id.value)`; `dialogRef.close()`; `save()`.
-
-**Template:** `kcdf-admin-app/src/app/features/enrollments/enrollment-form/enrollment-form.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/enrollments/enrollment-form/enrollment-form.component.ts`
+**Acceptance criteria:**
+- The screen clearly offers the available actions: Cancel.
 
 **Previous screen-level ID:** `UI-ADM-008`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
 
 ## UI-ADM-008-04 — Enroll Member: Conditional UI states
 
+**Requirement:** The enroll member screen communicates loading, empty, error, and unavailable states when they apply.
 
-**Observed in source:**
-
-- Observed template patterns: error, disabled controls, conditional sections, repeated items, modal/dialog.
-
-**Template:** `kcdf-admin-app/src/app/features/enrollments/enrollment-form/enrollment-form.component.html`
-
-**Component:** `kcdf-admin-app/src/app/features/enrollments/enrollment-form/enrollment-form.component.ts`
+**Acceptance criteria:**
+- The screen explains when data cannot be loaded or an action fails; indicates when an action is unavailable.
 
 **Previous screen-level ID:** `UI-ADM-008`
-
-**Verification:** Source declaration observed; actual behavior and integration not runtime-tested.
