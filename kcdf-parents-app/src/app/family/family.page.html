@@ -10,6 +10,9 @@
   } @else if (members().length === 0) {
     <p class="message">No family members were found.</p>
   } @else {
+    <p class="message">
+      Need a correction? Please contact your family administrator or the KCDF office; family details are updated by staff.
+    </p>
     @for (member of members(); track member.id) {
       <ion-card>
         <ion-card-content>

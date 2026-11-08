@@ -30,20 +30,20 @@
       </div>
 
       <div class="post-grid">
-        @for (post of posts; track post.id) {
+        @if (error()) {
+          <p class="load-error" role="alert">{{ error() }}</p>
+        } @else if (posts().length === 0) {
+          <p class="empty-state">There are no recent posts in your groups.</p>
+        }
+        @for (post of posts(); track post.id) {
           <a class="card-link" [routerLink]="['/posts', post.id]" [attr.aria-label]="'Read ' + post.title">
             <ion-card class="post-card">
               <ion-card-content>
                 <div class="post-meta">
-                  <span>{{ post.category }} · {{ post.publishedAt }}</span>
-                  <span>{{ post.readTime }}</span>
+                  <span>{{ post.groupName }} · {{ post.createdAt | date:'dd MMM yyyy' }}</span>
                 </div>
                 <h3>{{ post.title }}</h3>
-                <p class="excerpt">{{ post.excerpt }}</p>
-                <div class="byline">
-                  <span class="author-avatar">{{ post.author.charAt(0) }}</span>
-                  <ion-label>{{ post.author }}</ion-label>
-                </div>
+                <p class="excerpt">{{ post.content || 'Open this post to read the full announcement.' }}</p>
               </ion-card-content>
             </ion-card>
           </a>

@@ -51,8 +51,8 @@
             </thead>
             <tbody>
               <tr *ngFor="let m of members()">
-                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ m.first_name }} {{ m.last_name }}</td>
-                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ m.email ?? '—' }}</td>
+                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ m.member.first_name }} {{ m.member.last_name }}</td>
+                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ m.member.email ?? '—' }}</td>
                 <td class="!px-4 !py-3 !text-sm text-gray-700 dark:!text-gray-200"><app-status-badge [status]="m.status"></app-status-badge></td>
               </tr>
               <tr *ngIf="members().length === 0"><td colspan="3" class="!px-4 !py-12"><div class="text-center text-sm text-gray-500 dark:text-gray-400">No members enrolled</div></td></tr>
@@ -84,7 +84,7 @@
             <tbody>
               <tr *ngFor="let s of sessions()">
                 <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ s.session_date | date:'dd MMM yyyy' }}</td>
-                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ s.title ?? '—' }}</td>
+                <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ s.session_title ?? '—' }}</td>
                 <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200">{{ s.session_type }}</td>
                 <td class="!px-4 !py-3 !text-sm !text-gray-700 dark:!text-gray-200"><app-status-badge [status]="s.status"></app-status-badge></td>
                 <td class="!px-4 !py-3 !text-sm"><app-icon [name]="s.attendance_locked ? 'lock' : 'lock_open'" class="h-6 w-6" [class.text-green-700]="s.attendance_locked" [class.text-gray-400]="!s.attendance_locked" [attr.aria-label]="s.attendance_locked ? 'Attendance locked' : 'Attendance unlocked'"></app-icon></td>

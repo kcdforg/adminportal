@@ -8,7 +8,7 @@ import { forkJoin } from 'rxjs';
 import { BatchService } from '../../../core/services/batch.service';
 import { ProgramService } from '../../../core/services/program.service';
 import { TrainerService } from '../../../core/services/trainer.service';
-import { Program, Trainer } from '../../../core/models';
+import { CreateBatchRequest, Program, Trainer } from '../../../core/models';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
@@ -38,7 +38,7 @@ export class BatchFormComponent implements OnInit {
     program_id: new FormControl<number | null>(null, [Validators.required]),
     trainer_id: new FormControl<number | null>(null, [Validators.required]),
     capacity: new FormControl(20, { nonNullable: true }),
-    start_date: new FormControl('', { nonNullable: true }),
+    start_date: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     end_date: new FormControl(''),
     start_time: new FormControl(''),
     end_time: new FormControl(''),
@@ -57,9 +57,19 @@ export class BatchFormComponent implements OnInit {
 
   save(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.saving = true;
     const val = this.form.getRawValue();
-    this.batchService.create(val as never).subscribe({
+    if (val.program_id === null || val.trainer_id === null) return;
+    this.saving = true;
+    const request: CreateBatchRequest = {
+      ...val,
+      program_id: val.program_id,
+      trainer_id: val.trainer_id,
+      end_date: val.end_date || undefined,
+      schedule_days: val.schedule_days || undefined,
+      start_time: val.start_time || undefined,
+      end_time: val.end_time || undefined,
+    };
+    this.batchService.create(request).subscribe({
       next: (res) => {
         this.toast.show('Batch created', { variant: 'success', durationMs: 3000, actionLabel: 'Close' });
         this.router.navigate(['/batches', res.data.id]);

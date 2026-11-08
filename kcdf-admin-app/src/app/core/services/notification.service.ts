@@ -1,7 +1,14 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { ApiListResponse, ApiResponse, Notification, SendNotificationRequest, ListParams } from '../models';
+import {
+  ApiListResponse,
+  ApiResponse,
+  BroadcastNotificationRequest,
+  Notification,
+  SendNotificationRequest,
+  ListParams,
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
@@ -11,7 +18,11 @@ export class NotificationService {
     return this.api.list<Notification>('/notifications', params);
   }
 
-  send(data: SendNotificationRequest): Observable<ApiResponse<unknown>> {
-    return this.api.post<unknown>('/notifications', data);
+  send(data: SendNotificationRequest): Observable<ApiResponse<{ sent_to: number }>> {
+    return this.api.post<{ sent_to: number }>('/notifications/send', data);
+  }
+
+  broadcast(data: BroadcastNotificationRequest): Observable<ApiResponse<{ sent_to: number }>> {
+    return this.api.post<{ sent_to: number }>('/notifications/broadcast', data);
   }
 }

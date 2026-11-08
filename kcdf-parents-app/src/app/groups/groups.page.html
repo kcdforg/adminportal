@@ -1,10 +1,13 @@
 <ion-content [scrollY]="true">
   <main class="page-wrap">
-    @if (error) {
+    @if (loading) {
+      <p class="empty-groups">Loading groups…</p>
+    } @else if (error) {
       <p class="load-error" role="alert">{{ error }}</p>
     } @else if (!groups.length) {
       <p class="empty-groups">No groups are available yet.</p>
     }
+    @if (!loading && !error) {
     <section class="group-grid" aria-label="Community groups">
       @for (group of groups; track group.id) {
         <a class="card-link" [routerLink]="['/groups', group.id]" [attr.aria-label]="'View ' + group.name">
@@ -18,6 +21,11 @@
                   <h1>{{ group.name }}</h1>
                   <span class="category">{{ group.categoryName }}</span>
                 </div>
+                @if (group.my_role) {
+                  <p class="membership-state">You are a member</p>
+                } @else if (group.visibility === 'public') {
+                  <p class="membership-state">Open to join</p>
+                }
                 @if (group.display_name && group.display_name !== group.group_name) {
                   <p class="internal-name">{{ group.group_name }}</p>
                 }
@@ -32,5 +40,6 @@
         </a>
       }
     </section>
+    }
   </main>
 </ion-content>

@@ -15,11 +15,39 @@ $ownTrainer = getUserId($jwt) === (int) $trainer['profile_id']
 $elevated = isElevatedAdmin($jwt);
 requirePermission($elevated || $ownTrainer);
 $body = getJsonBody();
+$profileData = $body['profile'] ?? null;
+if ($profileData !== null && !is_array($profileData)) {
+    errorResponse('VALIDATION_FAILED', 'Validation failed', 422, [
+        'profile' => ['The profile must be an object.'],
+    ]);
+}
 if (!$elevated) {
     $body = array_intersect_key($body, array_flip(['bio', 'specialization']));
+    $profileData = null;
 }
-validateOrFail(validateIdentityFields($body, 'trainer', true));
-$updated = databaseTransaction($database, static function () use ($database, $body, $trainer, $jwt, $id): array {
+$errors = validateIdentityFields($body, 'trainer', true);
+if ($profileData !== null) {
+    $profileFields = array_intersect_key($profileData, array_flip([
+        'first_name', 'middle_name', 'last_name', 'date_of_birth', 'gender', 'mobile', 'email', 'photo_url', 'blood_group',
+    ]));
+    $errors = array_merge($errors, validateIdentityFields($profileFields, 'member', true));
+    if (!empty($profileFields['email']) && $database->has('member_profiles', [
+        'email' => $profileFields['email'],
+        'id[!]' => (int) $trainer['profile_id'],
+    ])) {
+        $errors['profile.email'] = ['A profile with this email already exists.'];
+    }
+}
+validateOrFail($errors);
+$updated = databaseTransaction($database, static function () use ($database, $body, $profileData, $trainer, $jwt, $id): array {
+    if ($profileData !== null) {
+        $profileFields = array_intersect_key($profileData, array_flip([
+            'first_name', 'middle_name', 'last_name', 'date_of_birth', 'gender', 'mobile', 'email', 'photo_url', 'blood_group',
+        ]));
+        if ($profileFields !== []) {
+            $database->update('member_profiles', $profileFields, ['id' => (int) $trainer['profile_id']]);
+        }
+    }
     $addressId = $trainer['address_id'];
     if (!empty($body['address'])) {
         if ($addressId) {
@@ -43,4 +71,3 @@ $updated = databaseTransaction($database, static function () use ($database, $bo
     return $row;
 });
 successResponse($updated, 'Trainer updated successfully.');
-

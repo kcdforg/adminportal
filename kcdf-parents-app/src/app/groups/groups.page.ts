@@ -18,6 +18,7 @@ import { MemberApiService, ParentGroup } from '../core/member-auth.service';
 export class GroupsPage implements OnInit {
   private readonly api = inject(MemberApiService);
   groups: Array<ParentGroup & { name: string; categoryName: string; icon: string; color: string }> = [];
+  loading = true;
   error = '';
 
   ngOnInit(): void {
@@ -30,9 +31,11 @@ export class GroupsPage implements OnInit {
           icon: 'people-outline',
           color: 'sage',
         }));
+        this.loading = false;
       },
       error: () => {
         this.error = 'Groups could not be loaded. Please try again later.';
+        this.loading = false;
       },
     });
   }

@@ -1,16 +1,23 @@
 <ion-content [scrollY]="true">
   <main class="page-wrap">
+    @if (loading()) {
+      <div class="state"><ion-spinner name="crescent"></ion-spinner><p>Loading programs…</p></div>
+    } @else if (error()) {
+      <p class="message" role="alert">{{ error() }}</p>
+    } @else if (courses().length === 0) {
+      <p class="message">No programs are currently available.</p>
+    }
     <section class="course-grid" aria-label="Available courses">
-      @for (course of courses; track course.id) {
-        <a class="card-link" [routerLink]="['/courses', course.id]" [attr.aria-label]="'View ' + course.title">
+      @for (course of courses(); track course.id) {
+        <a class="card-link" [routerLink]="['/courses', course.id]" [attr.aria-label]="'View ' + course.program_name">
           <ion-card class="course-card">
             <ion-card-content>
-              <span class="course-icon" [class]="course.color" aria-hidden="true">
+              <span class="course-icon" aria-hidden="true">
                 <ion-icon name="school-outline"></ion-icon>
               </span>
               <div class="course-copy">
-                <h1>{{ course.title }}</h1>
-                <p>{{ course.trainer }} · Trainer</p>
+                <h1>{{ course.program_name }}</h1>
+                <p>{{ course.program_type }}</p>
               </div>
               <ion-icon class="card-arrow" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
             </ion-card-content>

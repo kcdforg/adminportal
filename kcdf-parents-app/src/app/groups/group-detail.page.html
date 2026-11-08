@@ -24,6 +24,8 @@
         </div>
         @if (!selectedGroup.my_role && selectedGroup.visibility === 'public') {
           <button class="action-button join-button" type="button" (click)="joinGroup()">Join group</button>
+        } @else if (selectedGroup.my_role) {
+          <button class="action-button secondary-button" type="button" (click)="leaveGroup()">Leave group</button>
         }
       </section>
 

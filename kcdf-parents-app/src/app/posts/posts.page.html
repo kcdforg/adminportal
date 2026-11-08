@@ -6,26 +6,29 @@
       <p>News, helpful ideas and upcoming moments from across the KCDF family.</p>
     </section>
 
+    @if (loading()) {
+      <div class="state"><ion-spinner name="crescent"></ion-spinner><p>Loading posts…</p></div>
+    } @else if (error()) {
+      <p class="message" role="alert">{{ error() }}</p>
+    } @else if (posts().length === 0) {
+      <p class="message">There are no posts available in your groups yet.</p>
+    }
+
     <section class="post-list" aria-label="Community posts">
-      @for (post of posts; track post.id) {
+      @for (post of posts(); track post.id) {
         <a class="card-link" [routerLink]="['/posts', post.id]" [attr.aria-label]="'Read ' + post.title">
           <ion-card class="post-card">
-            <div class="post-visual" [class]="post.visual">
+            <div class="post-visual">
               <span class="visual-orbit"></span>
-              <ion-icon [name]="post.icon" aria-hidden="true"></ion-icon>
-              <span class="category">{{ post.category }}</span>
+              <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
+              <span class="category">{{ post.groupName }}</span>
             </div>
             <ion-card-content>
               <div class="post-meta">
-                <span>{{ post.publishedAt }}</span>
-                <span>{{ post.readTime }}</span>
+                <span>{{ post.createdAt | date:'dd MMM yyyy' }}</span>
               </div>
               <h2>{{ post.title }}</h2>
-              <p class="excerpt">{{ post.excerpt }}</p>
-              <div class="byline">
-                <span class="author-avatar">{{ post.author.charAt(0) }}</span>
-                <ion-label>{{ post.author }}</ion-label>
-              </div>
+              <p class="excerpt">{{ post.content || 'Open this post to read the full announcement.' }}</p>
             </ion-card-content>
           </ion-card>
         </a>

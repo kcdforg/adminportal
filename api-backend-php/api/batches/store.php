@@ -17,11 +17,13 @@ $database->insert('student_batches', [
     'capacity' => isset($body['capacity']) ? (int) $body['capacity'] : null,
     'trainer_id' => !empty($body['trainer_id']) ? (int) $body['trainer_id'] : null,
     'start_date' => $body['start_date'] ?? null,
-    'end_date' => $body['end_date'] ?? null,
+    'end_date' => !empty($body['end_date']) ? $body['end_date'] : null,
+    'schedule_days' => !empty($body['schedule_days']) ? $body['schedule_days'] : null,
+    'start_time' => !empty($body['start_time']) ? $body['start_time'] : null,
+    'end_time' => !empty($body['end_time']) ? $body['end_time'] : null,
     'status' => $body['status'] ?? 'upcoming',
 ]);
 $id = (int) $database->id();
 $batch = getBatch($database, $id);
 logActivity($database, $jwt, 'create', 'student_batches', $id, null, $batch);
 successResponse($batch, 'Batch created successfully.', 201);
-

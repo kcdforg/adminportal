@@ -1,7 +1,7 @@
 import { HttpClient, HttpInterceptorFn } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { CanActivateChildFn, Router } from '@angular/router';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface MemberSessionProfile {
@@ -111,6 +111,7 @@ export interface Course {
   program_name: string;
   program_type: string;
   description?: string | null;
+  status?: string;
 }
 
 export interface CourseBatch {
@@ -118,7 +119,33 @@ export interface CourseBatch {
   batch_name: string;
   start_date: string;
   status: string;
+  program_id: number;
   program?: Course | null;
+}
+
+export interface MemberPost {
+  id: number;
+  groupName: string;
+  title: string;
+  content: string | null;
+  createdAt: string;
+}
+
+export interface MemberNotification {
+  id: number;
+  title: string;
+  message: string;
+  type: string;
+  status: 'unread' | 'read' | 'archived';
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface InvitationDetails {
+  invite_code: string;
+  invited_by: string;
+  status: string;
+  expires_at: string;
 }
 
 interface ApiResponse<T> {
@@ -309,6 +336,29 @@ export class MemberApiService {
     );
   }
 
+  getMemberPosts(): Observable<MemberPost[]> {
+    return this.getGroups().pipe(
+      switchMap((groups) => {
+        const accessibleGroups = groups.filter((group) => group.status === undefined || group.status === 'active');
+        if (accessibleGroups.length === 0) {
+          return of([]);
+        }
+        return forkJoin(accessibleGroups.map((group) => this.getGroupContent(group.id, 'posts').pipe(
+          map((items) => items.map((post) => ({
+          id: post.id,
+          groupName: group.display_name || group.group_name,
+          title: post.title,
+          content: post.content,
+          createdAt: post.created_at,
+          })),
+        )))).pipe(
+          map((result) => result.reduce<MemberPost[]>((all, groupPosts) => all.concat(groupPosts), [])
+            .sort((left, right) => right.createdAt.localeCompare(left.createdAt))),
+        );
+      }),
+    );
+  }
+
   createGroupContent(
     groupId: number,
     resource: 'posts' | 'polls' | 'events',
@@ -345,11 +395,67 @@ export class MemberApiService {
   }
 
   getCourses(): Observable<Course[]> {
-    return this.unwrap(this.http.get<ApiResponse<Course[]>>(`${environment.apiUrl}/programs`));
+    return this.unwrapList(this.http.get<ApiResponse<Course[] | { data: Course[] }>>(`${environment.apiUrl}/programs`));
   }
 
-  getBatches(): Observable<CourseBatch[]> {
-    return this.unwrap(this.http.get<ApiResponse<CourseBatch[]>>(`${environment.apiUrl}/batches`));
+  getCourse(courseId: number): Observable<Course> {
+    return this.unwrap(this.http.get<ApiResponse<Course>>(`${environment.apiUrl}/programs/${courseId}`));
+  }
+
+  getBatches(programId?: number): Observable<CourseBatch[]> {
+    const query = programId ? `?program_id=${encodeURIComponent(String(programId))}` : '';
+    return this.unwrapList(
+      this.http.get<ApiResponse<CourseBatch[] | { data: CourseBatch[] }>>(`${environment.apiUrl}/batches${query}`),
+    );
+  }
+
+  updateProfile(profileId: number, data: Pick<MemberProfile, 'email' | 'mobile'>): Observable<MemberProfile> {
+    return this.unwrap(this.http.put<ApiResponse<MemberProfile>>(
+      `${environment.apiUrl}/members/${profileId}`,
+      data,
+    ));
+  }
+
+  leaveGroup(groupId: number): Observable<unknown> {
+    return this.http.delete(`${environment.apiUrl}/groups/${groupId}/leave`);
+  }
+
+  getNotifications(): Observable<MemberNotification[]> {
+    return this.unwrapList(
+      this.http.get<ApiResponse<MemberNotification[] | { data: MemberNotification[] }>>(
+        `${environment.apiUrl}/notifications`,
+      ),
+    );
+  }
+
+  markNotificationRead(notificationId: number): Observable<MemberNotification> {
+    return this.unwrap(this.http.patch<ApiResponse<MemberNotification>>(
+      `${environment.apiUrl}/notifications/${notificationId}/read`,
+      {},
+    ));
+  }
+
+  getInvitation(code: string): Observable<InvitationDetails> {
+    return this.unwrap(this.http.get<ApiResponse<InvitationDetails>>(
+      `${environment.apiUrl}/invitations/${encodeURIComponent(code)}`,
+    ));
+  }
+
+  acceptInvitation(
+    code: string,
+    details: { first_name: string; last_name: string; email: string; mobile: string; password: string },
+  ): Observable<LoginResponse> {
+    return this.http.post<ApiResponse<LoginResponse>>(
+      `${environment.apiUrl}/invitations/${encodeURIComponent(code)}/accept`,
+      details,
+    ).pipe(
+      map((response) => {
+        if (!response.success) {
+          throw new Error(response.message ?? 'Unable to accept invitation.');
+        }
+        return response.data;
+      }),
+    );
   }
 
   private unwrap<T>(request: Observable<ApiResponse<T>>): Observable<T> {

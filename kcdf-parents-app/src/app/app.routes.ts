@@ -7,6 +7,10 @@ export const routes: Routes = [
     loadComponent: () => import('./login/login.page').then((m) => m.LoginPage),
   },
   {
+    path: 'invitations/:code',
+    loadComponent: () => import('./invitations/invitation.page').then((m) => m.InvitationPage),
+  },
+  {
     path: '',
     loadComponent: () => import('./tabs/tabs.page').then((m) => m.TabsPage),
     canActivateChild: [memberAuthGuard],
@@ -38,6 +42,10 @@ export const routes: Routes = [
       {
         path: 'posts/:id',
         loadComponent: () => import('./posts/post-detail.page').then((m) => m.PostDetailPage),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () => import('./notifications/notifications.page').then((m) => m.NotificationsPage),
       },
       {
         path: 'me',

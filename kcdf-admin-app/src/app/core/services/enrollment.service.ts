@@ -20,6 +20,6 @@ export class EnrollmentService {
   }
 
   cancel(id: number): Observable<ApiResponse<Enrollment>> {
-    return this.api.patch<Enrollment>(`/enrollments/${id}`, { status: 'cancelled' });
+    return this.api.patch<Enrollment>(`/enrollments/${id}/cancel`, {});
   }
 }

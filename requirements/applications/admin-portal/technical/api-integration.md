@@ -18,5 +18,6 @@ This document records the integration expectations and outstanding checks betwee
 - Confirm direct and broadcast notification requests use the agreed fields and recipients.
 - Confirm enrollment cancellation completes and updates the enrollment state.
 - Confirm attendance, payment, and enrollment reports have supported data sources and return the expected results.
+- Align the trainer update request method with the API contract before verifying trainer edits.
 
 These are integration checks, not approved product behavior. Do not mark the related user journeys complete until they are verified in the running portal and API.

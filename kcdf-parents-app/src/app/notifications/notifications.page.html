@@ -1,0 +1,33 @@
+<ion-content class="ion-padding">
+  <main class="page-wrap">
+    <a class="back-link" routerLink="/home">← Home</a>
+    <h1>Notifications</h1>
+    @if (loading()) {
+      <div class="state"><ion-spinner name="crescent"></ion-spinner><p>Loading notifications…</p></div>
+    } @else if (error()) {
+      <p class="message" role="alert">{{ error() }}</p>
+      <ion-button fill="outline" (click)="load()">Try again</ion-button>
+    } @else if (notifications().length === 0) {
+      <p class="message">You have no notifications.</p>
+    } @else {
+      <section aria-label="Your notifications">
+        @for (notification of notifications(); track notification.id) {
+          <ion-card>
+            <ion-card-content>
+              <div class="notification-heading">
+                <h2>{{ notification.title }}</h2>
+                @if (notification.status === 'unread') {
+                  <ion-button size="small" fill="clear" (click)="markRead(notification)">Mark as read</ion-button>
+                } @else {
+                  <span class="read-status">Read</span>
+                }
+              </div>
+              <p>{{ notification.message }}</p>
+              <time>{{ notification.created_at | date:'dd MMM yyyy, h:mm a' }}</time>
+            </ion-card-content>
+          </ion-card>
+        }
+      </section>
+    }
+  </main>
+</ion-content>

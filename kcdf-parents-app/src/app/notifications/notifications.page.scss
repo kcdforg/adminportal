@@ -1,0 +1,46 @@
+.page-wrap {
+  width: min(100% - 1rem, 42rem);
+  margin: 0 auto;
+  padding: 1rem 0 2rem;
+}
+
+.back-link {
+  color: #477251;
+  text-decoration: none;
+}
+
+h1 {
+  color: #20382b;
+}
+
+.state,
+.message {
+  margin: 1.5rem auto;
+  color: #68766d;
+  text-align: center;
+}
+
+.state {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+}
+
+.notification-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+h2 {
+  margin: 0;
+  color: #263c2e;
+  font-size: 1rem;
+}
+
+time,
+.read-status {
+  color: #68766d;
+  font-size: 0.8rem;
+}

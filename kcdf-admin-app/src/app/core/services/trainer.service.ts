@@ -20,6 +20,6 @@ export class TrainerService {
   }
 
   update(id: number, data: UpdateTrainerRequest): Observable<ApiResponse<Trainer>> {
-    return this.api.patch<Trainer>(`/trainers/${id}`, data);
+    return this.api.put<Trainer>(`/trainers/${id}`, data);
   }
 }

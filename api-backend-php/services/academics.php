@@ -232,6 +232,7 @@ function validateBatch(array $data, string $mode): array
             validatePositiveInt($errors, 'program_id', $data['program_id'], 'The program_id must be a valid integer.');
         }
         validateRequired($errors, 'batch_name', $data['batch_name'] ?? null, 'The batch_name field is required.');
+        validateRequired($errors, 'start_date', $data['start_date'] ?? null, 'The start_date field is required.');
     }
     if (array_key_exists('batch_name', $data)) {
         validateTextField($errors, 'batch_name', $data['batch_name'], 255, 'The batch_name field is required.', 'The batch_name field cannot be empty.', 'The batch_name may not be greater than 255 characters.', $mode === 'create');
@@ -244,6 +245,21 @@ function validateBatch(array $data, string $mode): array
         if (!empty($data[$field])) {
             validateDate($errors, $field, $data[$field], "The {$field} must be a valid date (YYYY-MM-DD).") ;
         }
+    }
+    if (isset($data['schedule_days']) && strlen((string) $data['schedule_days']) > 100) {
+        $errors['schedule_days'] = ['The schedule_days may not be greater than 100 characters.'];
+    }
+    foreach (['start_time', 'end_time'] as $field) {
+        if (!empty($data[$field])) {
+            validateTime($errors, $field, $data[$field], "The {$field} must be a valid time (HH:MM).");
+        }
+    }
+    if ((!empty($data['start_time']) && empty($data['end_time']))
+        || (!empty($data['end_time']) && empty($data['start_time']))) {
+        $errors['start_time'] = ['Both start_time and end_time are required when setting a time.'];
+        $errors['end_time'] = ['Both start_time and end_time are required when setting a time.'];
+    } elseif (!empty($data['end_time']) && !empty($data['start_time']) && $data['end_time'] <= $data['start_time']) {
+        $errors['end_time'] = ['The end_time must be after the start_time.'];
     }
     if (!empty($data['end_date']) && !empty($data['start_date']) && isValidDate((string) $data['start_date']) && $data['end_date'] <= $data['start_date']) {
         $errors['end_date'] = ['The end_date must be after the start_date.'];

@@ -14,9 +14,8 @@ import { AppIconComponent } from '../../../shared/components/icon/app-icon.compo
 
 interface AttendanceRow {
   member_id: number;
-  enrollment_id: number;
   name: string;
-  statusCtrl: FormControl<AttendanceStatus>;
+  statusCtrl: FormControl<AttendanceStatus | ''>;
   notesCtrl: FormControl<string>;
 }
 
@@ -54,26 +53,38 @@ export class SessionAttendanceComponent implements OnInit {
         this.session.set(session.data);
         this.rows.set(attendance.data.map(a => ({
           member_id: a.member_id,
-          enrollment_id: a.enrollment_id,
           name: a.member ? `${a.member.first_name} ${a.member.last_name}` : `Member #${a.member_id}`,
-          statusCtrl: new FormControl<AttendanceStatus>(a.status, { nonNullable: true }),
+          statusCtrl: new FormControl<AttendanceStatus | ''>(a.status ?? '', { nonNullable: true }),
           notesCtrl: new FormControl<string>(a.notes ?? '', { nonNullable: true }),
         })));
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: () => {
+        this.loading.set(false);
+        this.toast.show('Unable to load session attendance', { variant: 'error', durationMs: 4000, actionLabel: 'Close' });
+      }
     });
   }
 
   saveAll(): void {
     this.saving = true;
     const sessionId = Number(this.route.snapshot.paramMap.get('id'));
-    const records: AttendanceRecord[] = this.rows().map(r => ({
-      enrollment_id: r.enrollment_id,
-      member_id: r.member_id,
-      status: r.statusCtrl.value,
-      notes: r.notesCtrl.value || undefined,
-    }));
+    const records: AttendanceRecord[] = [];
+    for (const row of this.rows()) {
+      const status = row.statusCtrl.value;
+      if (status !== '') {
+        records.push({
+          member_id: row.member_id,
+          status,
+          notes: row.notesCtrl.value || undefined,
+        });
+      }
+    }
+    if (records.length === 0) {
+      this.saving = false;
+      this.toast.show('Select an attendance status for at least one member', { variant: 'error', durationMs: 3000, actionLabel: 'Close' });
+      return;
+    }
     this.attendanceService.save(sessionId, records).subscribe({
       next: () => { this.saving = false; this.toast.show('Attendance saved', { variant: 'success', durationMs: 3000, actionLabel: 'Close' }); },
       error: () => { this.saving = false; this.toast.show('Error saving attendance', { variant: 'error', durationMs: 4000, actionLabel: 'Close' }); }

@@ -1,42 +1,49 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import {
   IonContent,
   IonIcon,
-  IonLabel,
-  IonSegment,
-  IonSegmentButton,
+  IonSpinner,
 } from '@ionic/angular/standalone';
-import { SAMPLE_COURSES } from '../core/sample-content';
+import { Course, CourseBatch, MemberApiService } from '../core/member-auth.service';
 
 @Component({
   selector: 'app-course-detail',
   templateUrl: './course-detail.page.html',
   styleUrl: './course-detail.page.scss',
-  imports: [RouterLink, IonContent, IonIcon, IonLabel, IonSegment, IonSegmentButton],
+  imports: [DatePipe, RouterLink, IonContent, IonIcon, IonSpinner],
 })
-export class CourseDetailPage {
+export class CourseDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  readonly course = SAMPLE_COURSES.find(
-    (item) => item.id === Number(this.route.snapshot.paramMap.get('id')),
-  );
-  activeSection = 'classes';
+  private readonly api = inject(MemberApiService);
+  readonly course = signal<Course | null>(null);
+  readonly batches = signal<CourseBatch[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal('');
 
-  readonly classes = [
-    { title: 'Building connection at home', date: '10 Oct 2026', status: 'Conducted' },
-    { title: 'Positive communication', date: '03 Oct 2026', status: 'Conducted' },
-    { title: 'Understanding behaviour', date: '26 Sep 2026', status: 'Conducted' },
-  ];
-
-  readonly students = [
-    { name: 'Anita Raj', status: 'Enrolled' },
-    { name: 'Priya Menon', status: 'Enrolled' },
-    { name: 'Ravi Kumar', status: 'Enrolled' },
-  ];
-
-  setSection(section: string | number | undefined): void {
-    if (typeof section === 'string') {
-      this.activeSection = section;
+  ngOnInit(): void {
+    const courseId = Number(this.route.snapshot.paramMap.get('id'));
+    if (!Number.isInteger(courseId) || courseId < 1) {
+      this.error.set('This program could not be identified.');
+      this.loading.set(false);
+      return;
     }
+
+    forkJoin({
+      course: this.api.getCourse(courseId),
+      batches: this.api.getBatches(courseId),
+    }).subscribe({
+      next: ({ course, batches }) => {
+        this.course.set(course);
+        this.batches.set(batches);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('Program details could not be loaded. Please try again later.');
+        this.loading.set(false);
+      },
+    });
   }
 }

@@ -5,27 +5,28 @@
       All posts
     </a>
 
-    @if (post; as selectedPost) {
+    @if (loading()) {
+      <div class="state"><ion-spinner name="crescent"></ion-spinner><p>Loading post…</p></div>
+    } @else if (error()) {
+      <section class="empty-state" role="alert">
+        <h1>Post unavailable</h1>
+        <p>{{ error() }}</p>
+        <a routerLink="/posts">Return to posts</a>
+      </section>
+    } @else if (post(); as selectedPost) {
       <article class="post-detail">
-        <div class="post-visual" [class]="selectedPost.visual" aria-hidden="true">
+        <div class="post-visual" aria-hidden="true">
           <span class="visual-orbit"></span>
-          <ion-icon [name]="selectedPost.icon"></ion-icon>
-          <span class="category">{{ selectedPost.category }}</span>
+          <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+          <span class="category">{{ selectedPost.groupName }}</span>
         </div>
         <div class="post-body">
           <div class="post-meta">
-            <span>{{ selectedPost.publishedAt }}</span>
-            <span>{{ selectedPost.readTime }}</span>
+            <span>{{ selectedPost.createdAt | date:'dd MMM yyyy' }}</span>
           </div>
           <h1>{{ selectedPost.title }}</h1>
-          <div class="byline">
-            <span class="author-avatar">{{ selectedPost.author.charAt(0) }}</span>
-            <ion-label>{{ selectedPost.author }}</ion-label>
-          </div>
           <div class="post-content">
-            @for (paragraph of selectedPost.content; track $index) {
-              <p>{{ paragraph }}</p>
-            }
+            <p>{{ selectedPost.content || 'No additional post content is available.' }}</p>
           </div>
         </div>
       </article>

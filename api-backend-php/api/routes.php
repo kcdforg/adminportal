@@ -124,4 +124,8 @@ return function (RouteCollector $routeCollector): void {
     $routeCollector->addRoute('PATCH', '/api/v1/notifications/{id:[0-9]+}/archive', 'notifications/archive.php');
 
     $routeCollector->addRoute('GET', '/api/v1/activity-logs', 'activity-logs/index.php');
+
+    $routeCollector->addRoute('GET', '/api/v1/reports/attendance', 'reports/attendance.php');
+    $routeCollector->addRoute('GET', '/api/v1/reports/payments', 'reports/payments.php');
+    $routeCollector->addRoute('GET', '/api/v1/reports/enrollments', 'reports/enrollments.php');
 };

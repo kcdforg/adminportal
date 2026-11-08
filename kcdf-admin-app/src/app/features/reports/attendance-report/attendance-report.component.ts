@@ -63,7 +63,10 @@ export class AttendanceReportComponent implements OnInit {
 
   exportCsv(): void {
     const header = ['Member', ...this.sessionDates()].join(',');
-    const csvRows = this.rows().map(r => [r.member_name, ...this.sessionDates().map(d => r.sessions[d] ?? 'absent')].join(','));
+    const csvRows = this.rows().map(r => [
+      r.member_name,
+      ...this.sessionDates().map(d => r.sessions[d] === 'unrecorded' ? 'Not recorded' : r.sessions[d] ?? 'Not recorded'),
+    ].join(','));
     const csv = [header, ...csvRows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a');

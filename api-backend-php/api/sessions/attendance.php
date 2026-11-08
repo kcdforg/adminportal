@@ -9,26 +9,52 @@ $jwt = checkAuth();
 $session = getSession($database, $id);
 if ($session === null) errorResponse('NOT_FOUND', 'Session not found.', 404);
 requirePermission(canAccessAttendance($database, $jwt, $session, $session['batch']));
-$rows = $database->select('attendance', ['[>]member_profiles' => ['member_id' => 'id']], [
-    'attendance.id', 'attendance.batch_session_id', 'attendance.member_id', 'attendance.attendance_status',
-    'attendance.remarks', 'attendance.marked_by_member_id', 'attendance.marked_at', 'attendance.created_at', 'attendance.updated_at',
-    'member_profiles.id(profile_id)', 'member_profiles.first_name', 'member_profiles.middle_name', 'member_profiles.last_name',
-    'member_profiles.date_of_birth', 'member_profiles.gender', 'member_profiles.mobile', 'member_profiles.email',
-    'member_profiles.photo_url', 'member_profiles.blood_group', 'member_profiles.status(profile_status)',
-    'member_profiles.created_at(profile_created_at)', 'member_profiles.updated_at(profile_updated_at)',
-], ['attendance.batch_session_id' => $id]) ?? [];
+
+$query = $database->pdo->prepare(
+    'SELECT bm.member_id, bm.status AS batch_member_status, ' .
+    'a.id AS attendance_id, a.attendance_status, a.remarks, a.marked_by_member_id, ' .
+    'mp.first_name, mp.middle_name, mp.last_name, mp.date_of_birth, mp.gender, mp.mobile, mp.email, ' .
+    'mp.photo_url, mp.blood_group, mp.status AS profile_status, mp.created_at AS profile_created_at, ' .
+    'mp.updated_at AS profile_updated_at ' .
+    'FROM batch_members bm ' .
+    'JOIN member_profiles mp ON mp.id = bm.member_id ' .
+    'LEFT JOIN attendance a ON a.batch_session_id = :session_id AND a.member_id = bm.member_id ' .
+    'WHERE bm.batch_id = :batch_id AND bm.status = :active_status ' .
+    'ORDER BY mp.last_name, mp.first_name'
+);
+$query->execute([
+    ':session_id' => $id,
+    ':batch_id' => (int) $session['batch_id'],
+    ':active_status' => 'active',
+]);
 $records = [];
-foreach ($rows as $row) {
-    $profileId = (int) $row['profile_id'];
-    $record = castIds($row);
-    unset($record['profile_id'], $record['first_name'], $record['middle_name'], $record['last_name'], $record['date_of_birth'], $record['gender'], $record['mobile'], $record['email'], $record['photo_url'], $record['blood_group'], $record['profile_status'], $record['profile_created_at'], $record['profile_updated_at']);
-    $record['member'] = [
-        'id' => $profileId, 'first_name' => $row['first_name'], 'middle_name' => $row['middle_name'], 'last_name' => $row['last_name'],
-        'date_of_birth' => $row['date_of_birth'], 'gender' => $row['gender'], 'mobile' => $row['mobile'], 'email' => $row['email'],
-        'photo_url' => $row['photo_url'], 'blood_group' => $row['blood_group'], 'status' => $row['profile_status'],
-        'created_at' => $row['profile_created_at'], 'updated_at' => $row['profile_updated_at'],
+foreach ($query->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    $memberId = (int) $row['member_id'];
+    $attendanceId = $row['attendance_id'] === null ? null : (int) $row['attendance_id'];
+    $profile = [
+        'id' => $memberId,
+        'first_name' => $row['first_name'],
+        'middle_name' => $row['middle_name'],
+        'last_name' => $row['last_name'],
+        'date_of_birth' => $row['date_of_birth'],
+        'gender' => $row['gender'],
+        'mobile' => $row['mobile'],
+        'email' => $row['email'],
+        'photo_url' => $row['photo_url'],
+        'blood_group' => $row['blood_group'],
+        'status' => $row['profile_status'],
+        'created_at' => $row['profile_created_at'],
+        'updated_at' => $row['profile_updated_at'],
     ];
-    $records[] = $record;
+    $records[] = [
+        'id' => $attendanceId,
+        'session_id' => $id,
+        'member_id' => $memberId,
+        'status' => $row['attendance_status'],
+        'notes' => $row['remarks'],
+        'marked_by' => $row['marked_by_member_id'] === null ? null : (int) $row['marked_by_member_id'],
+        'recorded' => $attendanceId !== null,
+        'member' => $profile,
+    ];
 }
 successResponse($records);
-

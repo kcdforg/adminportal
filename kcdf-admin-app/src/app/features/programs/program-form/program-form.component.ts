@@ -23,9 +23,8 @@ export class ProgramFormComponent {
   readonly form = new FormGroup({
     name: new FormControl(this.program?.name ?? '', { nonNullable: true, validators: [Validators.required] }),
     description: new FormControl(this.program?.description ?? ''),
-    program_type: new FormControl(this.program?.program_type ?? 'quran', { nonNullable: true }),
+    program_type: new FormControl(this.program?.program_type ?? 'class', { nonNullable: true }),
     fee_amount: new FormControl(this.program?.fee_amount ?? 0, { nonNullable: true }),
-    fee_frequency: new FormControl(this.program?.fee_frequency ?? 'monthly', { nonNullable: true }),
     status: new FormControl(this.program?.status ?? 'active'),
   });
 

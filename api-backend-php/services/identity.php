@@ -768,9 +768,9 @@ function validateIdentityFields(array $data, string $kind, bool $update = false)
             $errors = array_merge($errors, validateAddress($data['address']));
         }
     } elseif ($kind === 'trainer') {
-        if (!$update && empty($data['profile_id'])) {
+        if (!$update && empty($data['profile_id']) && empty($data['profile'])) {
             $errors['profile_id'] = ['The profile_id field is required.'];
-        } elseif (!$update && !is_numeric($data['profile_id'])) {
+        } elseif (!$update && !empty($data['profile_id']) && !is_numeric($data['profile_id'])) {
             $errors['profile_id'] = ['The profile_id must be a valid integer.'];
         }
         if (isset($data['specialization'])) {

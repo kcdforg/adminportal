@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import {
   IonContent,
@@ -27,6 +27,7 @@ import {
 })
 export class GroupDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly api = inject(MemberApiService);
   readonly groupId = Number(this.route.snapshot.paramMap.get('id'));
   group: ParentGroup | null = null;
@@ -275,6 +276,16 @@ export class GroupDetailPage implements OnInit {
       next: () => this.load(),
       error: () => {
         this.error = 'You could not join this group. Please try again.';
+      },
+    });
+  }
+
+  leaveGroup(): void {
+    if (!window.confirm('Leave this group? You may lose access to its members-only content.')) return;
+    this.api.leaveGroup(this.groupId).subscribe({
+      next: () => void this.router.navigateByUrl('/groups'),
+      error: () => {
+        this.error = 'You could not leave this group. Please try again.';
       },
     });
   }

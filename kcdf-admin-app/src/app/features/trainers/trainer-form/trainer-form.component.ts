@@ -1,9 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { switchMap } from 'rxjs';
 import { CreateAddressRequest, CreateMemberRequest, Gender, Trainer, TrainerStatus } from '../../../core/models';
-import { MemberService } from '../../../core/services/member.service';
 import { TrainerService } from '../../../core/services/trainer.service';
 import { TAILWIND_DIALOG_DATA, TAILWIND_DIALOG_REF, TailwindDialogRef } from '../../../shared/components/modal/tailwind-dialog.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
@@ -17,7 +15,6 @@ import { ToastService } from '../../../shared/components/toast/toast.service';
 })
 export class TrainerFormComponent {
   readonly trainer: Trainer | null = inject(TAILWIND_DIALOG_DATA) as Trainer | null;
-  private readonly memberService = inject(MemberService);
   private readonly trainerService = inject(TrainerService);
   readonly dialogRef = inject(TAILWIND_DIALOG_REF) as TailwindDialogRef<boolean>;
   private readonly toast = inject(ToastService);
@@ -98,12 +95,8 @@ export class TrainerFormComponent {
     this.saving = true;
     const trainer = this.trainer;
     const operation = trainer
-      ? this.memberService.update(trainer.profile_id, profileData).pipe(
-        switchMap(() => this.trainerService.update(trainer.id, trainerData)),
-      )
-      : this.memberService.create(profileData).pipe(
-        switchMap(response => this.trainerService.create({ profile_id: response.data.id, ...trainerData })),
-      );
+      ? this.trainerService.update(trainer.id, { ...trainerData, profile: profileData })
+      : this.trainerService.create({ ...trainerData, profile: profileData });
 
     operation.subscribe({
       next: () => {

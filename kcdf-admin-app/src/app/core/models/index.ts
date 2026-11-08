@@ -229,7 +229,7 @@ export interface Trainer {
 }
 
 export interface CreateTrainerRequest {
-  profile_id: number;
+  profile: CreateMemberRequest;
   specialization?: string;
   experience_years?: number | null;
   bio?: string;
@@ -237,12 +237,13 @@ export interface CreateTrainerRequest {
   address?: CreateAddressRequest;
 }
 
-export type UpdateTrainerRequest = Partial<Omit<CreateTrainerRequest, 'profile_id'>> & {
+export type UpdateTrainerRequest = Partial<Omit<CreateTrainerRequest, 'profile'>> & {
+  profile?: UpdateMemberRequest;
   status?: TrainerStatus;
 };
 
 // ─── Program ─────────────────────────────────────────────────────────────────
-export type ProgramType = 'quran' | 'arabic' | 'islamic_studies' | 'other';
+export type ProgramType = 'class' | 'workshop' | 'camp' | 'event';
 export type ProgramStatus = 'active' | 'inactive' | 'archived';
 
 export interface Program {
@@ -251,7 +252,6 @@ export interface Program {
   description: string | null;
   program_type: ProgramType;
   fee_amount: number;
-  fee_frequency: string;
   status: ProgramStatus;
   created_at: string;
   updated_at: string;
@@ -262,7 +262,6 @@ export interface CreateProgramRequest {
   description?: string;
   program_type: ProgramType;
   fee_amount: number;
-  fee_frequency: string;
 }
 
 // ─── Batch ───────────────────────────────────────────────────────────────────
@@ -287,6 +286,15 @@ export interface Batch {
   updated_at: string;
 }
 
+export interface BatchMember {
+  id: number;
+  batch_id: number;
+  member_id: number;
+  joined_at: string;
+  status: 'active' | 'dropped' | 'completed';
+  member: MemberProfile;
+}
+
 export interface CreateBatchRequest {
   batch_name: string;
   program_id: number;
@@ -300,8 +308,8 @@ export interface CreateBatchRequest {
 }
 
 // ─── Session ─────────────────────────────────────────────────────────────────
-export type SessionType = 'regular' | 'makeup' | 'assessment' | 'event';
-export type SessionStatus = 'scheduled' | 'completed' | 'cancelled';
+export type SessionType = 'regular' | 'special' | 'exam' | 'workshop';
+export type SessionStatus = 'scheduled' | 'completed' | 'cancelled' | 'postponed';
 
 export interface Session {
   id: number;
@@ -309,7 +317,7 @@ export interface Session {
   session_date: string;
   start_time: string;
   end_time: string;
-  title: string | null;
+  session_title: string | null;
   session_type: SessionType;
   trainer_id: number | null;
   topics_covered: string | null;
@@ -326,7 +334,7 @@ export interface CreateSessionRequest {
   session_date: string;
   start_time: string;
   end_time: string;
-  title?: string;
+  session_title?: string;
   session_type?: SessionType;
   trainer_id?: number;
   topics_covered?: string;
@@ -338,13 +346,13 @@ export interface CreateSessionRequest {
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 
 export interface Attendance {
-  id: number;
+  id: number | null;
   session_id: number;
-  enrollment_id: number;
   member_id: number;
-  status: AttendanceStatus;
+  status: AttendanceStatus | null;
   notes: string | null;
   marked_by: number | null;
+  recorded: boolean;
   member?: MemberProfile;
 }
 
@@ -481,7 +489,7 @@ export interface GroupContent {
 }
 
 // ─── Notification ─────────────────────────────────────────────────────────────
-export type NotificationChannel = 'in_app' | 'email' | 'sms';
+export type NotificationChannel = 'in_app' | 'push' | 'email';
 export type NotificationStatus = 'sent' | 'delivered' | 'failed';
 
 export interface Notification {
@@ -498,12 +506,18 @@ export interface Notification {
 }
 
 export interface SendNotificationRequest {
-  member_ids?: number[];
-  target_type?: 'batch' | 'group' | 'all_families';
+  member_ids: number[];
+  title: string;
+  message: string;
+  type: NotificationChannel;
+}
+
+export interface BroadcastNotificationRequest {
+  target_type: 'batch' | 'group' | 'all_families';
   target_id?: number;
   title: string;
-  body: string;
-  channel?: NotificationChannel;
+  message: string;
+  type: NotificationChannel;
 }
 
 // ─── Activity Log ─────────────────────────────────────────────────────────────

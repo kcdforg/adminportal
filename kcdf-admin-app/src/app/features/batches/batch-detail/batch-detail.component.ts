@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { BatchService } from '../../../core/services/batch.service';
 import { SessionService } from '../../../core/services/session.service';
-import { Batch, Session, MemberProfile } from '../../../core/models';
+import { Batch, Session, BatchMember } from '../../../core/models';
 import { TailwindDialogService } from '../../../shared/components/modal/tailwind-dialog.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -33,7 +33,7 @@ export class BatchDetailComponent implements OnInit {
   readonly loading = signal(false);
   readonly activeTab = signal<'info' | 'members' | 'sessions'>('info');
   readonly batch = signal<Batch | null>(null);
-  readonly members = signal<MemberProfile[]>([]);
+  readonly members = signal<BatchMember[]>([]);
   readonly sessions = signal<Session[]>([]);
   ngOnInit(): void { this.load(); }
 

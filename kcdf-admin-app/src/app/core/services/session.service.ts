@@ -20,10 +20,10 @@ export class SessionService {
   }
 
   update(id: number, data: Partial<CreateSessionRequest & { status: string }>): Observable<ApiResponse<Session>> {
-    return this.api.patch<Session>(`/sessions/${id}`, data);
+    return this.api.put<Session>(`/sessions/${id}`, data);
   }
 
   lock(id: number): Observable<ApiResponse<Session>> {
-    return this.api.patch<Session>(`/sessions/${id}`, { attendance_locked: true });
+    return this.api.post<Session>(`/sessions/${id}/lock`, {});
   }
 }

@@ -35,6 +35,38 @@
       </ion-card-content>
     </ion-card>
 
+    @if (saveMessage()) {
+      <p class="success-message" role="status">{{ saveMessage() }}</p>
+    }
+    @if (editing()) {
+      <ion-card class="details-card">
+        <ion-card-content>
+          <form [formGroup]="editForm" (ngSubmit)="saveProfile()">
+            <ion-item>
+              <ion-input label="Email" labelPlacement="stacked" type="email" formControlName="email"></ion-input>
+            </ion-item>
+            @if (editForm.controls.email.touched && editForm.controls.email.invalid) {
+              <p class="message" role="alert">Enter a valid email address.</p>
+            }
+            <ion-item>
+              <ion-input label="Mobile" labelPlacement="stacked" type="tel" formControlName="mobile"></ion-input>
+            </ion-item>
+            @if (editForm.controls.mobile.touched && editForm.controls.mobile.invalid) {
+              <p class="message" role="alert">Enter a mobile number with 10 to 20 digits.</p>
+            }
+            @if (editError()) {
+              <p class="message" role="alert">{{ editError() }}</p>
+            }
+            <div class="profile-actions">
+              <ion-button type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save changes' }}</ion-button>
+              <ion-button type="button" fill="clear" [disabled]="saving()" (click)="cancelEdit()">Cancel</ion-button>
+            </div>
+          </form>
+        </ion-card-content>
+      </ion-card>
+    } @else {
+      <ion-button expand="block" fill="outline" (click)="startEdit(member)">Edit contact details</ion-button>
+    }
   }
 
   <ion-button class="family-link" expand="block" fill="outline" routerLink="/me/family">

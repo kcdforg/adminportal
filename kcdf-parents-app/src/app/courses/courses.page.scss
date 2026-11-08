@@ -8,6 +8,19 @@ ion-content {
   padding: 1rem 0 1.5rem;
 }
 
+.state,
+.message {
+  margin: 1.5rem auto;
+  color: #68766d;
+  text-align: center;
+}
+
+.state {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+}
+
 .course-grid {
   display: flex;
   flex-direction: column;

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { ApiListResponse, ApiResponse, Batch, CreateBatchRequest, MemberProfile, ListParams } from '../models';
+import { ApiListResponse, ApiResponse, Batch, BatchMember, CreateBatchRequest, ListParams } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class BatchService {
@@ -20,11 +20,11 @@ export class BatchService {
   }
 
   update(id: number, data: Partial<CreateBatchRequest & { status: string }>): Observable<ApiResponse<Batch>> {
-    return this.api.patch<Batch>(`/batches/${id}`, data);
+    return this.api.put<Batch>(`/batches/${id}`, data);
   }
 
-  getMembers(batchId: number): Observable<ApiListResponse<MemberProfile>> {
-    return this.api.list<MemberProfile>(`/batches/${batchId}/members`);
+  getMembers(batchId: number): Observable<ApiResponse<BatchMember[]>> {
+    return this.api.get<BatchMember[]>(`/batches/${batchId}/members`);
   }
 
   addMember(batchId: number, memberId: number): Observable<ApiResponse<unknown>> {

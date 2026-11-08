@@ -13,6 +13,21 @@
   text-align: center;
 }
 
+.success-message {
+  max-width: 38rem;
+  margin: 0.75rem auto;
+  color: var(--ion-color-success);
+  text-align: center;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
 ion-card,
 .family-link,
 .logout {

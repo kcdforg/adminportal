@@ -12,11 +12,15 @@ if ($old === null) errorResponse('NOT_FOUND', 'Batch not found.', 404);
 $body = getJsonBody();
 validateOrFail(validateBatch($body, 'update'));
 if (!empty($body['trainer_id']) && !recordExists($database, 'trainers', ['id' => (int) $body['trainer_id']])) errorResponse('NOT_FOUND', 'Trainer not found.', 404);
-$update = array_intersect_key($body, array_flip(['batch_name', 'capacity', 'trainer_id', 'start_date', 'end_date', 'status']));
+$update = array_intersect_key($body, array_flip([
+    'batch_name', 'capacity', 'trainer_id', 'start_date', 'end_date', 'schedule_days', 'start_time', 'end_time', 'status',
+]));
+foreach (['end_date', 'schedule_days', 'start_time', 'end_time'] as $field) {
+    if (array_key_exists($field, $update) && $update[$field] === '') $update[$field] = null;
+}
 if (array_key_exists('capacity', $update) && $update['capacity'] !== null) $update['capacity'] = (int) $update['capacity'];
 if (array_key_exists('trainer_id', $update)) $update['trainer_id'] = $update['trainer_id'] === null ? null : (int) $update['trainer_id'];
 if ($update !== []) $database->update('student_batches', $update, ['id' => $id]);
 $batch = getBatch($database, $id);
 logActivity($database, $jwt, 'update', 'student_batches', $id, $old, $batch);
 successResponse($batch, 'Batch updated successfully.');
-

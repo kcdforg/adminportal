@@ -9,8 +9,10 @@ $jwt = checkAuth();
 
 $program = getProgram($database, $id);
 if ($program === null) {
-        errorResponse('NOT_FOUND', 'Program not found.', 404);
-    }
+    errorResponse('NOT_FOUND', 'Program not found.', 404);
+}
+if (!isAdmin($jwt) && ($program['status'] ?? null) !== 'active') {
+    errorResponse('NOT_FOUND', 'Program not found.', 404);
+}
 
 successResponse($program);
-
