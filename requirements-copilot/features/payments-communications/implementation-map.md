@@ -1,0 +1,13 @@
+# Payments and communications — implementation map
+
+| ID | Backend implementation | Client / schema | Existing test source | Disposition |
+|---|---|---|---|---|
+| PAY-001 | `api/payments/{index,show,family-payments}.php`; `services/payments.php::{isAccountsAdmin,canViewPayments,paginatePayments}` | Admin payment list/service; `payments`, `families`, `family_members` | `tests/phase5-payments.php` checks helper page/filter/access behavior | **Partial**; date filter name mismatch |
+| PAY-002 | `api/payments/store.php`; payment validation, family/enrollment checks, transaction/recalculation | Admin `payment-form.component.ts`, `payment.service.ts`; `payments`, `enrollments` | `tests/phase5-payments.php` checks create validation, eligibility, amount and rollback helpers | **Partial**; form payload does not align |
+| PAY-003 | `api/payments/update.php`; editability/update/recalculation; refund create through store handler | Admin refund form; no payment update call found; `payments`, `enrollments` | `tests/phase5-payments.php` checks completed immutability, update validation and refund totals | **Partial**; client lacks update operation / refund payload mismatch |
+| PAY-004 | `services/payments.php::recalculateEnrollment`; payment store/update handlers | `payments`, `enrollments.payment_status` | `tests/phase5-payments.php` checks unpaid/partial/paid and refund calculations | **Observed**; `refunded` status caveat |
+| NOTIF-001 | `api/notifications/{index,read-all,mark-read,archive}.php`; profile-scoped helper | No member notification view/service; `notifications` | `tests/phase6-community-notifications.php` checks own-vs-other notification helper | **Partial**; no member UI and portal restriction uncertain |
+| NOTIF-002 | `api/notifications/send.php`; notification validation/write and audit helper | Admin `core/services/notification.service.ts`, `features/notifications/send-notification/`; `notifications` | `phase6-community-notifications.php` checks targeted notification validation and elevated-admin helper | **Partial**; request path/field mismatch |
+| NOTIF-003 | `api/notifications/broadcast.php`; audience selection/deduplication/transaction | Same admin notification form/service; group/batch/family membership and `notifications` | `phase6-community-notifications.php` checks invalid broadcast target and related helpers | **Partial**; UI contract mismatch, provider delivery missing/unverified |
+
+Test-source citations identify assertions/functions only. No tests were run. Phase 05 classifies PAY-001–003 and NOTIF-001–003 as partial; PAY-004 as source-verified.
