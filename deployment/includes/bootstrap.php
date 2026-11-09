@@ -13,9 +13,19 @@ const RUNTIME_DIR = APP_ROOT . '/runtime';
 
 $configPath = APP_ROOT . '/config/config.php';
 
+// A completed installation requires both private configuration and the lock.
+$installLock = APP_ROOT . '/runtime/installed.lock';
+if (!is_file($installLock)) {
+    if (is_file($configPath)) {
+        http_response_code(503);
+        exit('Installation is incomplete. Repair configuration privately.');
+    }
+    header('Location: /install.php', true, 303);
+    exit;
+}
 if (!is_file($configPath)) {
     http_response_code(503);
-    exit('Deployment Manager has not been configured.');
+    exit('Installation configuration is missing.');
 }
 
 $config = require $configPath;

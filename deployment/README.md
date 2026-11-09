@@ -1,66 +1,30 @@
-# KCDF Deployment Manager — Readable Edition
+# KCDF Deployment Manager — First-run Installer
 
-A small PHP 8+ deployment portal: log in, select one or more applications, click **Deploy**, and view the current status. The code is formatted and commented for maintainability, without adding a framework or database.
+A minimal PHP deployment dashboard: login, select PHP API / Angular Admin / Ionic Member, and copy prebuilt files from Git. No database, deployment history, rollback, or automatic backups.
 
-**No GitHub webhook, cron, frontend builds on VPS, deployment history, automatic backups, rollback, or database changes.**
+## Install on HestiaCP
 
-## Project layout
+1. Upload this entire directory outside the public document root, e.g. `/home/kcdf/deployment/`. Set the `deploy.kcdfindia.com` document root to the `public/` subdirectory. HTTPS is required.
+2. Ensure `runtime/` is writable by the PHP user. During installation, `config/` must be writable by PHP to create two private configuration files. Remove directory write permission after installation.
+3. **Authorize the first installation:** create a private `config/setup-secret.txt` containing a cryptographically random secret of at least 32 characters, e.g. run `openssl rand -hex 32 > config/setup-secret.txt` over SSH or your hosting file manager. Keep it outside the public web root and restrict its permissions to `0600`. This one-time step prevents anyone who visits the domain first from taking over administrator setup. Alternatively provide `KCDF_DEPLOY_SETUP_SECRET` as a server-side environment variable.
+4. Visit `https://deploy.kcdfindia.com/`. The app redirects to `/install.php` when no configuration or lock exists. Enter the setup secret, administrator credentials, Git URL/branch/local checkout, three repository-relative source directories, and three existing HestiaCP `public_html` destinations.
+5. The installer checks field formats, destination paths and permissions, and availability of basic commands. It writes `config/config.php`, `config/deploy.env`, and finally `runtime/installed.lock`. It attempts to delete `config/setup-secret.txt` after success. Delete it yourself if still present.
+6. Log in. Deployments start with `DRY_RUN=1` (preview only). Review `runtime/deploy.log` and `runtime/status.json`. To enable actual file copying, privately change `DRY_RUN=1` to `DRY_RUN=0` in `config/deploy.env`.
 
-```text
-kcdf-deployment-manager/
-├── public/                # Only this directory is exposed over HTTPS
-│   ├── assets/            # CSS and dashboard status refresh
-│   ├── index.php          # Dashboard and application selection
-│   ├── login.php          # Administrator sign-in
-│   ├── logout.php         # Session logout
-│   ├── deploy.php         # Authenticated deployment request
-│   └── status.php         # Authenticated JSON status endpoint
-├── includes/
-│   ├── bootstrap.php      # Session, CSRF, config, and JSON helpers
-│   └── layout.php         # Shared HTML layout
-├── scripts/
-│   ├── deploy.sh          # Background Git fetch and rsync
-│   ├── read-request.php   # Validate selected application identifiers
-│   ├── update-status.php  # Atomic status.json writer
-│   └── hash-password.php  # Interactive password-hash generator
-├── config/
-│   ├── config.example.php # Example login configuration
-│   └── deploy.example.env # Example deployment configuration
-└── runtime/               # Status, request, lock, and log files
-```
+**Important:** A missing lock alone does not reopen setup: existing configuration also blocks it. If setup fails partway through, fix the private files and permissions manually; do not delete credentials to reopen public installation without a deliberate recovery plan.
 
-## Setup
+## Git and permissions
 
-1. Install the folder outside the public web root, e.g. `/home/kcdf/deployment/`.
-2. Copy `config/config.example.php` to `config/config.php`. Generate a password hash using `php scripts/hash-password.php` and paste the hash into the configuration.
-3. Copy `config/deploy.example.env` to `config/deploy.env`. Set the Git SSH URL, branch, checkout path, frontend output directories, and **actual** HestiaCP destination directories.
-4. Configure `deploy.kcdfindia.com` with HTTPS and point its document root to `deployment/public/`. If HestiaCP cannot point there, publish only `public/` and adjust the bootstrap include paths to the private installation.
-5. Install `git`, `rsync`, `php-cli`, `flock` (util-linux), and `nohup`. Configure a read-only GitHub deploy key and test non-interactive Git access as the worker's operating-system user.
-6. Make `runtime/` writable by the PHP-FPM account, and ensure that account can read the private Git checkout and write to the three website destinations. **Never use `chmod 777`, run the web process as root, or grant unrestricted sudo.** A controlled, restricted worker identity is preferable in production.
-7. Keep `config/`, `runtime/`, the Git checkout, and SSH credentials inaccessible over HTTP. Protect the deployment portal with HTTPS, a strong password, and ideally an IP/VPN restriction.
-8. Leave `DRY_RUN=1` initially. Sign in, deploy one application, and inspect `runtime/status.json` and `runtime/deploy.log`. Enable `DRY_RUN=0` only after verifying every path and permission.
+The server account running `scripts/deploy.sh` must have Git read access (SSH deploy key for private repositories), and permission to write the selected destination directories. PHP background execution (`exec`, `nohup`) must be allowed. Do not run the web server as root. Verify that HestiaCP and PHP-FPM permit detached jobs.
 
-## How deployment works
+Compiled Angular `dist/.../browser` and Ionic `www/` must already be committed. The VPS does not build frontend assets. The script uses `git reset --hard` and `git clean -fd` on its **dedicated checkout**; never point `REPO_DIR` at a working directory containing uncommitted work.
 
-1. `public/deploy.php` verifies the login, CSRF token, and selected applications.
-2. It writes `runtime/request.json` and marks `status.json` as queued.
-3. PHP starts `scripts/deploy.sh` using `nohup` and returns to the dashboard.
-4. The worker obtains an exclusive `flock`, fetches the latest configured Git branch, validates all selected paths, and copies the selected files with `rsync`.
-5. The worker writes running/success/failure information to `runtime/status.json`. The dashboard polls `/status.php` every three seconds.
+API copying excludes `.env`, `.env-*`, `storage/` and `.git/`. Files are copied with rsync **without `--delete`**, so removed Git files may remain on the server. No database changes are performed. Angular and Ionic also copy without deletion.
 
-The API copies `api-backend-php/` except `.env`, `.env-*`, `storage/`, and `.git/`. Angular and Ionic copy their already-compiled output. **No `--delete` is used**, so destination-only files are preserved. This also means removed source files may remain on production.
+## Configuration and security
 
-## Operational limitations
+The installer creates `config/config.php` (username and PHP password hash) and `config/deploy.env` (trusted shell assignments). Both stay outside `public/` and should have `0600` permissions. The installer locks itself with `runtime/installed.lock`.
 
-- The manager stores only the current deployment status and one log. It does not maintain deployment history or perform rollback.
-- The production database is not touched. Maintain independent backups of the database and production-only configuration.
-- A failed or interrupted deployment can leave some application files updated; file replacement is not atomic.
-- A crashed background process can leave status stuck at `queued` or `running`. Inspect `deploy.log` and the operating-system lock before manually resetting status. **Do not delete `deploy.lock` while a process may be running.**
-- The PHP-FPM process must permit `exec()` and allow detached children to survive request completion. Some hosting configurations prevent this; in that case use a restricted systemd launcher.
-- The dashboard login uses a basic shared rate limit (10 failed attempts per 15-minute window). Restrict access by IP/VPN if practical; consider stronger authentication for a production deployment control plane.
-- The `deploy.env` file is sourced as shell code. Only trusted administrators should be able to edit it.
-- The private Git checkout is reset to the remote branch on each deployment; never store manual changes or production secrets there.
+After installation, edit the private config files to change deployment paths or credentials; there is no Settings page in this minimal release. Keep the manager behind HTTPS, preferably with additional IP restrictions. `runtime/deploy.log` contains deployment output; monitor it if a deployment fails.
 
-## Source layout notes
-
-The example Angular output path is not guaranteed. Verify `angular.json` and Ionic build configuration, then set `ADMIN_SOURCE` and `MEMBER_SOURCE` accordingly. The HestiaCP destinations are examples until confirmed on the server.
+**Note:** This code has not been exercised on your actual VPS. Confirm PHP and shell execution permissions and paths using dry-run before live deployment.

@@ -2,3 +2,5 @@
 /config/deploy.env
 /runtime/*
 !/runtime/.gitkeep
+/config/setup-secret.txt
+/runtime/installed.lock

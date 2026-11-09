@@ -20,7 +20,7 @@ pageStart('Dashboard');
 </div>
 
 <p>
-    Select the applications to deploy from the latest <code>main</code> commit.
+    Select the applications to deploy from the latest configured Git branch.
     Angular and Ionic builds must already be committed to Git.
 </p>
 
