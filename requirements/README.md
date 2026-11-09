@@ -1,3 +1,5 @@
+> **Capability taxonomy update:** See [module-based capability index](./capabilities/index.md), [ID migration](./capabilities/id-migration.md), and [category-based NFR index](./non-functional/index.md). Existing CAP-001…CAP-011 references in historical documents are retired broad-module identifiers.
+
 # KCDF Parents — working requirements
 
 This folder contains human-readable working requirements for planning, stakeholder review, and backlog refinement. These documents describe intended product behavior; they are not proof that the behavior is implemented or approved for production.
@@ -9,6 +11,14 @@ This folder contains human-readable working requirements for planning, stakehold
 - `applications/<portal>/ui/`: screen, layout, and shared-component behavior
 - `workflows/`: user journeys that cross application boundaries
 - `tracking/`: requirement changes and implementation status
+- `capabilities/`: business capability catalog ([index](capabilities/index.md)) with one file per capability (`CAP-NNN-*.md`), requirement [traceability and gaps](capabilities/traceability.md), and the [review summary](capabilities/review-summary.md)
+- `non-functional/`: shared non-functional requirements ([baseline and proposals](non-functional/index.md)) and the [audit](non-functional/audit.md)
+
+## Capabilities and non-functional requirements
+
+- Capabilities (`CAP-nnn`) group business functionality across applications. They only link to requirements; application requirements remain the authoritative functional specifications, workflows describe cross-application processes, and UI documents describe screens.
+- Shared NFRs (`NFR-<category>-nnn`) are defined once in `non-functional/index.md`; application documents should reference them rather than restate them.
+- Part A of the NFR index is verified existing behavior (confirmed by code inspection, not by test execution). Part B is **proposed** and not approved; targets not yet agreed are marked "TBD — requires approval". Proposed changes follow `tracking/README.md`.
 
 ## Status
 

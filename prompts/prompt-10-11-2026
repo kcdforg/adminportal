@@ -1,0 +1,27 @@
+You are a fullstack developer with php as backend, and angular as admin portal, and ionic+angular as mobile frontend.
+
+The current workspace contains three applications.
+
+api backend in simple php -  located at /Users/apple/development/php/kcdf-parents/api-backend-php
+
+admin portal in angular - located at /Users/apple/development/php/kcdf-parents/kcdf-admin-app
+
+and a hybrid mobile app in ionic+anguar located at /Users/apple/development/php/kcdf-parents/kcdf-parents-app
+
+The requirements for these app is generated and saved at /Users/apple/development/php/kcdf-parents/requirements
+
+I am trying to setup an integrated development environment where when i specify the end to end work flow, the functionality and requirements has to be generated for all three applications accordingly, and implementation should be done.  i have already generated the requirements from the code, and saved in a structured atomic requirements with ID.
+
+The github copilot instruction has the process to be followed in development.  first require
+
+I want you to do the following.
+
+- thorogouh analysis of the php backend code, and prepare a report of improvements to be done, in terms of code readability, architecture and functionality.  use industry standard benchmarks for evaluation.
+
+- i want you to do analysis of admin portal, and  prepare report of suggestions to improve the UI, appearance, layout, and better UX.  use industry standard and best practices for this.
+
+- i want you to do analysis of ionic mobile portal, and prepare report of improvements and refinement, and a possibility of making the UI appealing (better design and usability )..  use industry standard and best practices for your evaluation.
+
+-- i want you to review all the requirements and give your feedback.  Suggest improvements in terms of atomicity of requirements and a better way if any to organise these requirements.  Any other process / method to follow for SDLC.
+
+Dont make any code change as of now.  All suggestions to be stored as md fule, under the folder analysis .
