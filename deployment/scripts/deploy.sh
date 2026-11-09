@@ -1,66 +1,179 @@
 #!/usr/bin/env bash
+# KCDF Deployment Manager — deploy selected applications from Git.
+#
+# This script runs in the background, launched by public/deploy.php.
+# It never builds Angular/Ionic; their compiled output must be in Git.
 set -Eeuo pipefail
 umask 077
-BASE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RUNTIME="$BASE/runtime"
-STATE="$BASE/scripts/state.php"
-# Blocking lock: webhook may arrive during worker shutdown. Waiting ensures no request is lost.
-exec 200>"$RUNTIME/deploy.lock"
-flock -x 200
-# shellcheck disable=SC1091
-source "$BASE/config/deploy.env"
-: "${REPO_DIR:?}" "${API_DEST:?}" "${ADMIN_DEST:?}" "${MEMBER_DEST:?}" "${API_SOURCE:?}" "${ADMIN_SOURCE:?}" "${MEMBER_SOURCE:?}"
-for dest in "$API_DEST" "$ADMIN_DEST" "$MEMBER_DEST"; do
-  [[ "$dest" = /* && "$dest" != / && "$dest" != *'..'* && -d "$dest" ]] || { echo "Unsafe/missing destination: $dest" >&2; exit 1; }
-done
-[[ -d "$REPO_DIR/.git" ]] || { echo 'Missing private git checkout' >&2; exit 1; }
-for src in "$API_SOURCE" "$ADMIN_SOURCE" "$MEMBER_SOURCE"; do
-  [[ "$src" != /* && "$src" != *'..'* ]] || { echo "Unsafe source: $src" >&2; exit 1; }
-done
-run_one() {
-  local request="$1" requested latest
-  requested="$(php -r '$r=json_decode($argv[1],true); echo $r["commit"] ?? "";' "$request")"
-  [[ "$requested" =~ ^[0-9a-f]{40}$ ]] || return 1
-  cd "$REPO_DIR"
-  git fetch --no-tags "${REMOTE:-origin}" "${BRANCH:-main}"
-  latest="$(git rev-parse FETCH_HEAD)"
-  # Delayed webhooks never roll the deployment back.
-  if ! git merge-base --is-ancestor "$requested" "$latest"; then
-    echo "Webhook commit not on current remote branch; skipping: $requested"
-    printf '%s
-' "$latest" > "$RUNTIME/deployed-result"
-    return 10
-  fi
-  git checkout --detach --force "$latest"
-  for src in "$API_SOURCE" "$ADMIN_SOURCE" "$MEMBER_SOURCE"; do
-    [[ -d "$REPO_DIR/$src" ]] || { echo "Missing source: $src" >&2; return 1; }
-  done
-  [[ -f "$REPO_DIR/$ADMIN_SOURCE/index.html" && -f "$REPO_DIR/$MEMBER_SOURCE/index.html" ]] || { echo 'Frontend index.html missing' >&2; return 1; }
-  local flags=(-a --itemize-changes)
-  [[ "${DRY_RUN:-1}" == 1 ]] && flags+=(--dry-run)
-  rsync "${flags[@]}" --exclude='.git/' --exclude='.env' --exclude='.env.*' --exclude='uploads/' --exclude='storage/' --exclude='logs/' --exclude='vendor/' "$REPO_DIR/$API_SOURCE/" "$API_DEST/"
-  local front=("${flags[@]}")
-  [[ "${FRONTEND_DELETE:-0}" == 1 ]] && front+=(--delete)
-  rsync "${front[@]}" "$REPO_DIR/$ADMIN_SOURCE/" "$ADMIN_DEST/"
-  rsync "${front[@]}" "$REPO_DIR/$MEMBER_SOURCE/" "$MEMBER_DEST/"
-  printf '%s
-' "$latest" > "$RUNTIME/deployed-result"
-  [[ "${DRY_RUN:-1}" == 1 ]] && return 11
-  printf '%s
-' "$latest" > "$RUNTIME/last-deployed-sha"
-  return 0
+
+APP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+RUNTIME_DIR="$APP_ROOT/runtime"
+CONFIG_FILE="$APP_ROOT/config/deploy.env"
+PHP_BIN="$(command -v php)"
+COMMIT=""
+
+# Prevent simultaneous deployments. The OS releases this lock on exit.
+exec 9>"$RUNTIME_DIR/deploy.lock"
+if ! flock -n 9; then
+    echo 'Another deployment is already running.'
+    exit 0
+fi
+
+# Report a human-readable stage to the login-protected dashboard.
+update_status() {
+    local state="$1"
+    local message="$2"
+    "$PHP_BIN" "$APP_ROOT/scripts/update-status.php" "$state" "$message" "$COMMIT"
 }
-while true; do
-  request="$(php "$STATE" next)"
-  [[ -n "$request" ]] || break
-  php "$STATE" start "$request"
-  result=0
-  run_one "$request" >> "$RUNTIME/deploy.log" 2>&1 || result=$?
-  deployed="$(cat "$RUNTIME/deployed-result" 2>/dev/null || true)"
-  case "$result" in
-    0) php "$STATE" finish "$request" success 'Deployment completed' "$deployed" ;;
-    10) php "$STATE" finish "$request" skipped 'Stale webhook ignored' ;;
-    11) php "$STATE" finish "$request" preview 'Dry run completed; no production changes' ;;
-    *) php "$STATE" finish "$request" failed 'Deployment failed; check deploy.log' ;;
-  esac
+
+# The error trap keeps status.json useful even if rsync or git fails.
+on_error() {
+    local exit_code=$?
+    trap - ERR
+    update_status failed "Deployment failed (exit $exit_code); see deploy.log" || true
+    exit "$exit_code"
+}
+trap on_error ERR
+
+# Load trusted server configuration (never supplied by a browser request).
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "Missing deployment configuration: $CONFIG_FILE"
+    exit 1
+fi
+# shellcheck disable=SC1090
+source "$CONFIG_FILE"
+
+# Fail early when a required path or setting is absent.
+required_settings=(
+    REPO_URL BRANCH REPO_DIR
+    API_SOURCE ADMIN_SOURCE MEMBER_SOURCE
+    API_DEST ADMIN_DEST MEMBER_DEST DRY_RUN
+)
+for setting in "${required_settings[@]}"; do
+    [[ -n "${!setting:-}" ]] || { echo "Missing setting: $setting"; exit 1; }
 done
+
+[[ "$DRY_RUN" == 0 || "$DRY_RUN" == 1 ]] || {
+    echo 'DRY_RUN must be 0 or 1.'
+    exit 1
+}
+
+# Parse the request through PHP rather than evaluating JSON in Bash.
+# The PHP reader only outputs recognized application identifiers.
+# Command substitution preserves the parser's exit status (unlike process substitution).
+validated_apps="$("$PHP_BIN" "$APP_ROOT/scripts/read-request.php" "$RUNTIME_DIR/request.json")"
+mapfile -t SELECTED_APPS <<< "$validated_apps"
+
+((${#SELECTED_APPS[@]} > 0)) || {
+    echo 'No valid applications were selected.'
+    exit 1
+}
+
+# A private Git checkout is used; no Git metadata is copied to web roots.
+update_status running 'Fetching Git repository'
+
+if [[ ! -d "$REPO_DIR/.git" ]]; then
+    mkdir -p "$(dirname "$REPO_DIR")"
+    git clone --no-checkout "$REPO_URL" "$REPO_DIR"
+fi
+
+# Guard against deploying from a repository different from the configured one.
+actual_origin="$(git -C "$REPO_DIR" remote get-url origin)"
+[[ "$actual_origin" == "$REPO_URL" ]] || {
+    echo "Unexpected Git origin: $actual_origin"
+    exit 1
+}
+
+git -C "$REPO_DIR" fetch --prune origin \
+    "+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH"
+
+COMMIT="$(git -C "$REPO_DIR" rev-parse "refs/remotes/origin/$BRANCH^{commit}")"
+git -C "$REPO_DIR" reset --hard "$COMMIT"
+git -C "$REPO_DIR" clean -fd
+
+# Resolve each application to its configured source and destination.
+application_paths() {
+    local application="$1"
+
+    case "$application" in
+        api)
+            SOURCE_DIR="$REPO_DIR/$API_SOURCE"
+            DEST_DIR="$API_DEST"
+            ;;
+        admin)
+            SOURCE_DIR="$REPO_DIR/$ADMIN_SOURCE"
+            DEST_DIR="$ADMIN_DEST"
+            ;;
+        member)
+            SOURCE_DIR="$REPO_DIR/$MEMBER_SOURCE"
+            DEST_DIR="$MEMBER_DEST"
+            ;;
+        *)
+            echo "Unknown application: $application" >&2
+            return 1
+            ;;
+    esac
+}
+
+# Only deploy to an existing, non-symlink HestiaCP public_html directory.
+# Confirm these paths match your actual VPS layout before production use.
+validate_destination() {
+    local destination="$1"
+    local resolved
+
+    [[ -d "$destination" && ! -L "$destination" ]] || {
+        echo "Destination missing or symlinked: $destination" >&2
+        return 1
+    }
+
+    resolved="$(realpath "$destination")"
+    [[ "$resolved" == /home/*/web/*/public_html ]] || {
+        echo "Unexpected deployment destination: $resolved" >&2
+        return 1
+    }
+}
+
+# Validate ALL selected applications before copying ANY production files.
+for application in "${SELECTED_APPS[@]}"; do
+    application_paths "$application"
+
+    [[ -d "$SOURCE_DIR" && ! -L "$SOURCE_DIR" ]] || {
+        echo "Deployment source missing: $SOURCE_DIR"
+        exit 1
+    }
+
+    validate_destination "$DEST_DIR"
+
+    if [[ "$application" != api && ! -f "$SOURCE_DIR/index.html" ]]; then
+        echo "Compiled frontend index.html missing: $SOURCE_DIR"
+        exit 1
+    fi
+done
+
+# Deploy only the applications selected on the dashboard.
+for application in "${SELECTED_APPS[@]}"; do
+    application_paths "$application"
+    update_status running "Deploying $application"
+
+    rsync_options=(-a --itemize-changes)
+    if [[ "$DRY_RUN" == 1 ]]; then
+        rsync_options+=(--dry-run)
+    fi
+
+    if [[ "$application" == api ]]; then
+        # Preserve production environment files and runtime storage.
+        # No --delete: server-only files are left untouched.
+        rsync "${rsync_options[@]}" \
+            --exclude='.env' \
+            --exclude='.env-*' \
+            --exclude='storage/' \
+            --exclude='.git/' \
+            "$SOURCE_DIR/" "$DEST_DIR/"
+    else
+        # Angular and Ionic are prebuilt locally and committed to Git.
+        rsync "${rsync_options[@]}" "$SOURCE_DIR/" "$DEST_DIR/"
+    fi
+done
+
+update_status success "Completed (DRY_RUN=$DRY_RUN)"
+echo "Deployed: ${SELECTED_APPS[*]} at commit $COMMIT (DRY_RUN=$DRY_RUN)"

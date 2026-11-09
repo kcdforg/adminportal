@@ -1,39 +1,66 @@
-# KCDF Parents — webhook deployment (v3)
+# KCDF Deployment Manager — Readable Edition
 
-This revision uses **one shell script** (`scripts/deploy.sh`) and **one PHP state helper** (`scripts/state.php`). There is no cron job. Angular and Ionic are built locally; their compiled files are committed to GitHub.
+A small PHP 8+ deployment portal: log in, select one or more applications, click **Deploy**, and view the current status. The code is formatted and commented for maintainability, without adding a framework or database.
 
-## Contents
+**No GitHub webhook, cron, frontend builds on VPS, deployment history, automatic backups, rollback, or database changes.**
 
-- `webhook.php`: validate GitHub signature/repository/branch, atomically write `runtime/pending.json`, launch background deployment.
-- `scripts/deploy.sh`: blocking `flock` lock, fetch remote branch, synchronize PHP/Angular/Ionic, update status through helper.
-- `scripts/state.php`: atomic state reads/writes under a separate `state.lock`.
-- `runtime/status.json`, `pending.json`, `deploy.lock`, `state.lock`, `deploy.log`, `launcher.log`: **created at runtime**, not committed. Do not delete lock files to release locks.
+## Project layout
+
+```text
+kcdf-deployment-manager/
+├── public/                # Only this directory is exposed over HTTPS
+│   ├── assets/            # CSS and dashboard status refresh
+│   ├── index.php          # Dashboard and application selection
+│   ├── login.php          # Administrator sign-in
+│   ├── logout.php         # Session logout
+│   ├── deploy.php         # Authenticated deployment request
+│   └── status.php         # Authenticated JSON status endpoint
+├── includes/
+│   ├── bootstrap.php      # Session, CSRF, config, and JSON helpers
+│   └── layout.php         # Shared HTML layout
+├── scripts/
+│   ├── deploy.sh          # Background Git fetch and rsync
+│   ├── read-request.php   # Validate selected application identifiers
+│   ├── update-status.php  # Atomic status.json writer
+│   └── hash-password.php  # Interactive password-hash generator
+├── config/
+│   ├── config.example.php # Example login configuration
+│   └── deploy.example.env # Example deployment configuration
+└── runtime/               # Status, request, lock, and log files
+```
 
 ## Setup
 
-1. Place `deployment/` in the repository for source control, but install the working deployment directory **outside the API web root**, for example `/home/kcdf/deployment`. Do not expose config, runtime, scripts or repository to HTTP.
-2. Copy `config/config.example.php` to `config/config.php` and set a long random webhook secret, actual repository, runtime and worker paths.
-3. Copy `config/deploy.example.env` to `config/deploy.env` and verify the **real** paths from your Angular/Ionic build settings and HestiaCP domains. `ADMIN_SOURCE` is only an example.
-4. Clone the private repository into `/home/kcdf/deployment/repo` using read-only deploy credentials. Configure noninteractive Git authentication and Git safe-directory settings as appropriate.
-5. Install `git`, `rsync`, `flock` (util-linux), PHP CLI and Bash. The web PHP account must be able to write runtime state and launch the script; the shell process also needs read access to the Git checkout and write access to all three document roots. **Do not grant unrestricted sudo or make runtime world-writable.** For stronger isolation, use a restricted service account/systemd runner.
-6. Route only `POST /deploy` to the private `webhook.php` via a small API entry point. This endpoint uses GitHub HMAC authentication, **not** your normal JWT middleware. Configure the GitHub repository webhook to `https://api.kcdfindia.com/deploy`, content type `application/json`, secret matching `config.php`, event `push`.
-7. Keep `DRY_RUN=1` and `FRONTEND_DELETE=0` until you inspect `runtime/deploy.log` and confirm all source/destination paths. Never enable `--delete` unless the frontend destinations contain only deployable assets.
-8. Build Angular and Ionic locally and **commit their output files**. Confirm `.gitignore` permits the compiled files. Push to the configured branch.
+1. Install the folder outside the public web root, e.g. `/home/kcdf/deployment/`.
+2. Copy `config/config.example.php` to `config/config.php`. Generate a password hash using `php scripts/hash-password.php` and paste the hash into the configuration.
+3. Copy `config/deploy.example.env` to `config/deploy.env`. Set the Git SSH URL, branch, checkout path, frontend output directories, and **actual** HestiaCP destination directories.
+4. Configure `deploy.kcdfindia.com` with HTTPS and point its document root to `deployment/public/`. If HestiaCP cannot point there, publish only `public/` and adjust the bootstrap include paths to the private installation.
+5. Install `git`, `rsync`, `php-cli`, `flock` (util-linux), and `nohup`. Configure a read-only GitHub deploy key and test non-interactive Git access as the worker's operating-system user.
+6. Make `runtime/` writable by the PHP-FPM account, and ensure that account can read the private Git checkout and write to the three website destinations. **Never use `chmod 777`, run the web process as root, or grant unrestricted sudo.** A controlled, restricted worker identity is preferable in production.
+7. Keep `config/`, `runtime/`, the Git checkout, and SSH credentials inaccessible over HTTP. Protect the deployment portal with HTTPS, a strong password, and ideally an IP/VPN restriction.
+8. Leave `DRY_RUN=1` initially. Sign in, deploy one application, and inspect `runtime/status.json` and `runtime/deploy.log`. Enable `DRY_RUN=0` only after verifying every path and permission.
 
-## Flow and coordination
+## How deployment works
 
-- PHP atomically writes `pending.json` with the requested SHA and delivery ID, then starts `deploy.sh` detached.
-- Each webhook launches a worker; the workers serialize on `runtime/deploy.lock`. This **blocking lock** closes the race between a worker deciding to exit and a new webhook arriving.
-- The shell worker reads the newest pending request, fetches the branch tip, deploys only a revision containing the requested SHA, and updates `status.json` via `state.php`. Multiple intermediate commits can be coalesced.
-- A completed request is marked by `processed_delivery_id`, avoiding infinite retries after failure. A new delivery triggers another attempt.
-- Logs are in `runtime/deploy.log` and `runtime/launcher.log`; status is in `runtime/status.json`. Never expose these files publicly.
+1. `public/deploy.php` verifies the login, CSRF token, and selected applications.
+2. It writes `runtime/request.json` and marks `status.json` as queued.
+3. PHP starts `scripts/deploy.sh` using `nohup` and returns to the dashboard.
+4. The worker obtains an exclusive `flock`, fetches the latest configured Git branch, validates all selected paths, and copies the selected files with `rsync`.
+5. The worker writes running/success/failure information to `runtime/status.json`. The dashboard polls `/status.php` every three seconds.
 
-## Limitations / production precautions
+The API copies `api-backend-php/` except `.env`, `.env-*`, `storage/`, and `.git/`. Angular and Ionic copy their already-compiled output. **No `--delete` is used**, so destination-only files are preserved. This also means removed source files may remain on production.
 
-- This is a small single-server deployment system, not an atomic release manager. File copies directly into live roots may briefly expose partial deployments; use release directories and symlink switching for zero-downtime/rollback.
-- A detached child can still be terminated by some hosting configurations or PHP-FPM process managers. A supervisor/systemd service is more reliable if this occurs.
-- A worker crash after writing `running` may require a new push/redelivery to restart; no cron or persistent service recovers it automatically.
-- Webhook delivery ordering is not a guarantee of Git ancestry. The worker verifies the requested SHA is on the fetched branch before deploying, but branch force-pushes and concurrent remote updates require operational care.
-- Do not let your API sync overwrite the `/deploy` entry point or production secrets. Exclude those paths or keep the route entry point managed outside the synchronized tree.
-- PHP API deploy excludes `.env`, `uploads`, `storage`, `logs`, `vendor`; adjust these exclusions to your real app. API deployment does not delete removed files by default.
-- Ensure the PHP CLI version, Git permissions, Apache/Nginx routing, and HestiaCP directory ownership are correct before enabling live deployment.
+## Operational limitations
+
+- The manager stores only the current deployment status and one log. It does not maintain deployment history or perform rollback.
+- The production database is not touched. Maintain independent backups of the database and production-only configuration.
+- A failed or interrupted deployment can leave some application files updated; file replacement is not atomic.
+- A crashed background process can leave status stuck at `queued` or `running`. Inspect `deploy.log` and the operating-system lock before manually resetting status. **Do not delete `deploy.lock` while a process may be running.**
+- The PHP-FPM process must permit `exec()` and allow detached children to survive request completion. Some hosting configurations prevent this; in that case use a restricted systemd launcher.
+- The dashboard login uses a basic shared rate limit (10 failed attempts per 15-minute window). Restrict access by IP/VPN if practical; consider stronger authentication for a production deployment control plane.
+- The `deploy.env` file is sourced as shell code. Only trusted administrators should be able to edit it.
+- The private Git checkout is reset to the remote branch on each deployment; never store manual changes or production secrets there.
+
+## Source layout notes
+
+The example Angular output path is not guaranteed. Verify `angular.json` and Ionic build configuration, then set `ADMIN_SOURCE` and `MEMBER_SOURCE` accordingly. The HestiaCP destinations are examples until confirmed on the server.
