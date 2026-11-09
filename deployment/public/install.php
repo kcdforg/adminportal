@@ -21,7 +21,6 @@ session_name('kcdf_deploy_setup');
 session_set_cookie_params(['secure' => true, 'httponly' => true, 'samesite' => 'Strict', 'path' => '/']);
 session_start();
 $_SESSION['setup_csrf'] ??= bin2hex(random_bytes(32));
-$secret = installerSetupSecret();
 $errors = [];
 $complete = false;
 $defaults = [
@@ -43,12 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $values['password'] = is_string($_POST['password'] ?? null) ? $_POST['password'] : '';
     $values['confirm_password'] = is_string($_POST['confirm_password'] ?? null) ? $_POST['confirm_password'] : '';
 
-    if ($secret === '') {
-        $errors[] = 'Set a private setup secret on the server before installation.';
-    } elseif (!is_string($_POST['setup_secret'] ?? null)
-        || !hash_equals($secret, $_POST['setup_secret'])) {
-        $errors[] = 'Invalid setup secret.';
-    }
     if (!is_string($_POST['csrf_token'] ?? null)
         || !hash_equals($_SESSION['setup_csrf'], $_POST['csrf_token'])) {
         $errors[] = 'Invalid form token.';
@@ -89,17 +82,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p>Installation completed. The installation lock has been created.</p>
         <p><a href="/login.php">Continue to login</a></p>
     <?php else: ?>
-        <p>Enter the initial settings. Deployment will start in dry-run mode.</p>
+        <p>Enter the initial settings. Deployment will start in dry-run mode. Only open this installer while access to the site is restricted to you.</p>
         <?php foreach ($errors as $error): ?>
             <p class="error"><?= installerEscape($error) ?></p>
         <?php endforeach; ?>
-        <?php if ($secret === ''): ?>
-            <p class="error">A private setup secret is required before using this installer. See README.md.</p>
-        <?php endif; ?>
         <form method="post" autocomplete="off">
             <input type="hidden" name="csrf_token" value="<?= installerEscape($_SESSION['setup_csrf']) ?>">
-            <h2>1. Installation authorization and administrator</h2>
-            <label>One-time setup secret <input type="password" name="setup_secret" required autocomplete="off"></label>
+            <h2>1. Administrator account</h2>
             <label>Administrator username <input name="username" value="<?= installerEscape($values['username']) ?>" required></label>
             <label>Password (minimum 12 characters) <input type="password" name="password" minlength="12" required autocomplete="new-password"></label>
             <label>Confirm password <input type="password" name="confirm_password" minlength="12" required autocomplete="new-password"></label>

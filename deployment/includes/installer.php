@@ -18,23 +18,6 @@ function installerEscape(string $value): string
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function installerSetupSecret(): string
-{
-    // Provision this once in HestiaCP's PHP environment or in a private file.
-    $secret = getenv('KCDF_DEPLOY_SETUP_SECRET');
-    if (is_string($secret) && strlen($secret) >= 32) {
-        return trim($secret);
-    }
-    $path = INSTALL_ROOT . '/config/setup-secret.txt';
-    if (is_file($path)) {
-        $secret = trim((string) file_get_contents($path));
-        if (strlen($secret) >= 32) {
-            return $secret;
-        }
-    }
-    return '';
-}
-
 function installerValidate(array $input): array
 {
     $errors = [];
@@ -149,5 +132,4 @@ function installerComplete(array $input): void
     installerWriteExclusive(ADMIN_CONFIG, $php);
     installerWriteExclusive(DEPLOY_CONFIG, $env);
     installerWriteExclusive(INSTALL_LOCK, "Installed at " . gmdate('c') . "\n");
-    @unlink(INSTALL_ROOT . '/config/setup-secret.txt');
 }
