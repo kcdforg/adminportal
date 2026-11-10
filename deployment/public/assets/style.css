@@ -1,4 +1,6 @@
+
 /* KCDF Deployment Manager: deliberately small, dependency-free styling. */
+
 :root {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     color: #182536;
@@ -6,19 +8,126 @@
     line-height: 1.5;
 }
 
-body { margin: 0; }
-.container { max-width: 720px; margin: 7vh auto; padding: 0 20px; }
-.panel { background: #fff; border: 1px solid #dbe1e8; border-radius: 12px; padding: 28px; box-shadow: 0 6px 24px #1423370a; }
-h1 { margin: 0 0 8px; font-size: 26px; }
-p { color: #526174; }
-label { display: block; margin: 12px 0; }
-input[type="text"], input[type="password"] { width: 100%; box-sizing: border-box; padding: 11px; border: 1px solid #b6c1cd; border-radius: 7px; font: inherit; }
-button { background: #164a86; color: white; border: 0; border-radius: 7px; padding: 11px 18px; font: inherit; cursor: pointer; }
-button:disabled { opacity: .5; cursor: not-allowed; }
-.error { color: #a12c2c; }
-.muted { color: #617084; font-size: 14px; }
-.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.app { padding: 13px 10px; border-bottom: 1px solid #edf0f3; }
-.status { background: #f2f5f9; padding: 14px; border-radius: 8px; margin: 18px 0; }
-code { overflow-wrap: anywhere; }
-a { color: #164a86; }
+body {
+    margin: 0;
+}
+
+.container {
+    max-width: 720px;
+    margin: 7vh auto;
+    padding: 0 20px;
+}
+
+.panel {
+    background: #fff;
+    border: 1px solid #dbe1e8;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 6px 24px #1423370a;
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+}
+
+p {
+    color: #526174;
+}
+
+label {
+    display: block;
+    margin: 12px 0;
+    font-weight: 500;
+}
+
+/* Style all text-entry fields, including inputs without a type attribute. */
+input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    margin-top: 6px;
+    padding: 11px 12px;
+    border: 1px solid #b6c1cd;
+    border-radius: 7px;
+    background: #fff;
+    color: #182536;
+    font: inherit;
+}
+
+/* Consistent focus indicator for form fields. */
+input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+    border-color: #164a86;
+    outline: 2px solid #164a8633;
+    outline-offset: 1px;
+}
+
+label input {
+    font-weight: 400;
+}
+
+form h2 {
+    margin-top: 26px;
+    margin-bottom: 12px;
+    font-size: 20px;
+}
+
+form button[type="submit"] {
+    margin-top: 16px;
+}
+
+button {
+    background: #164a86;
+    color: white;
+    border: 0;
+    border-radius: 7px;
+    padding: 11px 18px;
+    font: inherit;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.error {
+    color: #a12c2c;
+}
+
+.muted {
+    color: #617084;
+    font-size: 14px;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.app {
+    padding: 13px 10px;
+    border-bottom: 1px solid #edf0f3;
+}
+
+.status {
+    background: #f2f5f9;
+    padding: 14px;
+    border-radius: 8px;
+    margin: 18px 0;
+}
+
+code {
+    overflow-wrap: anywhere;
+}
+
+a {
+    color: #164a86;
+}

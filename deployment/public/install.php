@@ -25,7 +25,7 @@ $errors = [];
 $complete = false;
 $defaults = [
     'username' => 'admin', 'repo_url' => 'git@github.com:ORG/REPOSITORY.git',
-    'branch' => 'main', 'repo_dir' => '/home/kcdf/deployment/repo',
+    'branch' => 'main',
     'api_source' => 'api-backend-php',
     'admin_source' => 'kcdf-admin-app/dist/kcdf-admin-app/browser',
     'member_source' => 'kcdf-parents-app/www',
@@ -90,10 +90,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="hidden" name="csrf_token" value="<?= installerEscape($_SESSION['setup_csrf']) ?>">
             <h2>1. Administrator account</h2>
             <label>Administrator username <input name="username" value="<?= installerEscape($values['username']) ?>" required></label>
-            <label>Password (minimum 12 characters) <input type="password" name="password" minlength="12" required autocomplete="new-password"></label>
-            <label>Confirm password <input type="password" name="confirm_password" minlength="12" required autocomplete="new-password"></label>
+            <label>Password <input type="password" name="password" required autocomplete="new-password"></label>
+            <label>Confirm password <input type="password" name="confirm_password" required autocomplete="new-password"></label>
             <h2>2. Git repository</h2>
-            <?php foreach (['repo_url' => 'Repository URL', 'branch' => 'Branch', 'repo_dir' => 'Local checkout path'] as $key => $label): ?>
+            <?php foreach (['repo_url' => 'Repository URL', 'branch' => 'Branch'] as $key => $label): ?>
                 <label><?= installerEscape($label) ?><input name="<?= $key ?>" value="<?= installerEscape($values[$key]) ?>" required></label>
             <?php endforeach; ?>
             <h2>3. Application paths</h2>

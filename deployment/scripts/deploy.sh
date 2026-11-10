@@ -58,10 +58,16 @@ done
     exit 1
 }
 
-# Parse the request through PHP rather than evaluating JSON in Bash.
-# The PHP reader only outputs recognized application identifiers.
-# Command substitution preserves the parser's exit status (unlike process substitution).
-validated_apps="$("$PHP_BIN" "$APP_ROOT/scripts/read-request.php" "$RUNTIME_DIR/request.json")"
+# The cron worker passes the claimed deployment request.
+REQUEST_FILE="${1:-}"
+
+if [[ -z "$REQUEST_FILE" || "$REQUEST_FILE" != "$RUNTIME_DIR/processing.json" ]]; then
+    echo "Invalid deployment request path." >&2
+    exit 1
+fi
+
+validated_apps="$("$PHP_BIN" "$APP_ROOT/scripts/read-request.php" "$REQUEST_FILE")"
+
 mapfile -t SELECTED_APPS <<< "$validated_apps"
 
 ((${#SELECTED_APPS[@]} > 0)) || {

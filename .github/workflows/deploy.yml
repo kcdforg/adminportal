@@ -1,0 +1,198 @@
+name: Deploy KCDF
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kcdf-production
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      admin: ${{ steps.filter.outputs.admin }}
+      member: ${{ steps.filter.outputs.member }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Identify changed applications
+        id: filter
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo 'api=true' >> "$GITHUB_OUTPUT"
+            echo 'admin=true' >> "$GITHUB_OUTPUT"
+            echo 'member=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$BEFORE" =~ ^0+$ ]] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            files="$(git ls-files)"
+          else
+            files="$(git diff --name-only "$BEFORE" "$AFTER")"
+          fi
+          all=false
+          if grep -Eq '^\.github/workflows/deploy\.yml$' <<< "$files"; then all=true; fi
+          for app in api admin member; do
+            case "$app" in
+              api) pattern='^api-backend-php/' ;;
+              admin) pattern='^kcdf-admin-app/' ;;
+              member) pattern='^kcdf-parents-app/' ;;
+            esac
+            if [[ "$all" == true ]] || grep -Eq "$pattern" <<< "$files"; then
+              echo "$app=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "$app=false" >> "$GITHUB_OUTPUT"
+            fi
+          done
+
+  deploy-api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find api-backend-php -type f -name '*.php' -print0)
+      - name: Configure SSH
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      - name: Deploy API
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS='-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes'
+          # Do not delete files on the server: production may contain persistent state.
+          rsync -az --itemize-changes \
+            --exclude='.git/' --exclude='.github/' \
+            --exclude='.env' --exclude='.env-*' --exclude='storage/' \
+            --exclude='node_modules/' \
+            -e "ssh $SSH_OPTS" \
+            api-backend-php/ "$SSH_USER@$SSH_HOST:/home/kcdf/web/api.kcdfindia.com/public_html/"
+
+  deploy-admin:
+    needs: changes
+    if: needs.changes.outputs.admin == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: kcdf-admin-app/package-lock.json
+      - name: Build Angular
+        working-directory: kcdf-admin-app
+        run: |
+          npm ci
+          npm run build
+      - name: Locate Angular browser output
+        id: output
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t matches < <(find kcdf-admin-app/dist -type f -name index.html -printf '%h\n')
+          if (( ${#matches[@]} != 1 )); then
+            printf 'Expected one Angular index.html; found %s\n' "${#matches[@]}" >&2
+            exit 1
+          fi
+          echo "directory=${matches[0]}" >> "$GITHUB_OUTPUT"
+      - name: Configure SSH
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      - name: Deploy Angular
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          BUILD_DIR: ${{ steps.output.outputs.directory }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS='-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes'
+          rsync -az --delete --itemize-changes \
+            --exclude='.well-known/' --exclude='.htaccess' \
+            -e "ssh $SSH_OPTS" \
+            "$BUILD_DIR/" "$SSH_USER@$SSH_HOST:/home/kcdf/web/admin.kcdfindia.com/public_html/"
+
+  deploy-member:
+    needs: changes
+    if: needs.changes.outputs.member == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: kcdf-parents-app/package-lock.json
+      - name: Build Ionic
+        working-directory: kcdf-parents-app
+        run: |
+          npm ci
+          npm run build
+          test -f www/index.html
+      - name: Configure SSH
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      - name: Deploy Ionic
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS='-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes'
+          rsync -az --delete --itemize-changes \
+            --exclude='.well-known/' --exclude='.htaccess' \
+            -e "ssh $SSH_OPTS" \
+            kcdf-parents-app/www/ "$SSH_USER@$SSH_HOST:/home/kcdf/web/parents.kcdfindia.com/public_html/"
